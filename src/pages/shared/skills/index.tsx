@@ -302,7 +302,7 @@ const SharedSkillsMarket: React.FC = () => {
 
       {/* ===== 公共 Skills ===== */}
       <div style={{ marginTop: 48 }}>
-        <div style={titleStyle}>
+        <div style={{ ...titleStyle, marginTop: 0 }}>
           <div style={titleBarStyle} />
           <span style={titleTextStyle}>公共 Skills</span>
         </div>

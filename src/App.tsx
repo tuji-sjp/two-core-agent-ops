@@ -6,16 +6,13 @@ import MetricsClaims from './pages/metrics/claims'
 import MetricsUnderwriting from './pages/metrics/underwriting'
 import MetricsAntiFraud from './pages/metrics/anti-fraud'
 import BusinessOverview from './pages/business/overview'
-import AgentClaims from './pages/agent/claims'
-import AgentUnderwriting from './pages/agent/underwriting'
-import AgentAntiFraud from './pages/agent/anti-fraud'
 import SharedDataAssets from './pages/shared/data-assets'
 import SharedKnowledgeRules from './pages/shared/knowledge-rules'
 import SharedSkillsMarket from './pages/shared/skills'
 import SkillDetail from './pages/shared/skill-detail'
 
-const PagePlaceholder: React.FC<{ name: string }> = ({ name }) => (
-  <div style={{ padding: 24, color: '#8c8c8c' }}>{name} — 开发中</div>
+const PagePlaceholder: React.FC = () => (
+  <div style={{ padding: 24, color: '#8c8c8c' }}>页面开发中</div>
 )
 
 const App: React.FC = () => {
@@ -31,21 +28,22 @@ const App: React.FC = () => {
         <Route path="business/anti-fraud/metrics" element={<MetricsAntiFraud />} />
 
         {/* Agent运营 */}
-        <Route path="agent/claims" element={<AgentClaims />} />
-        <Route path="agent/underwriting" element={<AgentUnderwriting />} />
-        <Route path="agent/anti-fraud" element={<AgentAntiFraud />} />
+        <Route path="agent/claims-collect" element={<PagePlaceholder />} />
+        <Route path="agent/claims-case" element={<PagePlaceholder />} />
+        <Route path="agent/underwriting-review" element={<PagePlaceholder />} />
+        <Route path="agent/anti-fraud-detect" element={<PagePlaceholder />} />
 
         {/* 共享中心 */}
         <Route path="shared/skills" element={<SharedSkillsMarket />} />
         <Route path="shared/skill/:name" element={<SkillDetail />} />
-        <Route path="shared/mcp" element={<PagePlaceholder name="MCP服务" />} />
+        <Route path="shared/mcp" element={<PagePlaceholder />} />
         <Route path="shared/data-assets" element={<SharedDataAssets />} />
         <Route path="shared/knowledge-rules" element={<SharedKnowledgeRules />} />
 
         {/* 平台管理 */}
-        <Route path="platform/alert" element={<PagePlaceholder name="异常告警" />} />
-        <Route path="platform/permission" element={<PagePlaceholder name="权限控制" />} />
-        <Route path="platform/user" element={<PagePlaceholder name="用户管理" />} />
+        <Route path="platform/alert" element={<PagePlaceholder />} />
+        <Route path="platform/permission" element={<PagePlaceholder />} />
+        <Route path="platform/user" element={<PagePlaceholder />} />
 
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
