@@ -315,7 +315,7 @@ function DocTable({ items }: { items: KnowledgeItem[] }) {
   const [currentDoc, setCurrentDoc] = useState<KnowledgeItem | null>(null)
   const [docs, setDocs] = useState(items)
   const [page, setPage] = useState(1)
-  const pageSize = 5
+  const [pageSize, setPageSize] = useState(5)
 
   React.useEffect(() => {
     setDocs(items)
@@ -351,16 +351,49 @@ function DocTable({ items }: { items: KnowledgeItem[] }) {
         pagination={false}
         style={{ fontSize: 13 }}
       />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span style={{ fontSize: 12, color: '#000000e0' }}>共 {docs.length} 条数据</span>
+          <button
+            onClick={() => console.log('导出')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: '#65a5ff',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              padding: '6px 10px',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            结果导出
+          </button>
+        </div>
         <Pagination
           current={page}
-          total={docs.length}
           pageSize={pageSize}
+          total={docs.length}
+          showSizeChanger
+          showQuickJumper
+          pageSizeOptions={['10', '20', '50']}
+          onChange={(p, size) => {
+            if (size !== pageSize) {
+              setPageSize(size)
+              setPage(1)
+            } else {
+              setPage(p)
+            }
+          }}
           size="small"
-          onChange={setPage}
-          showSizeChanger={false}
-          showQuickJumper={false}
-          showTotal={total => `共 ${total} 条`}
         />
       </div>
       <DocModal

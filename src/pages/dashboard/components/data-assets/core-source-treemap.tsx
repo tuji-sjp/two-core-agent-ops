@@ -64,7 +64,7 @@ const CoreSourceTreemap: React.FC = () => {
         </span>
       </div>
       <ReactECharts option={option} style={{ height: 300 }} />
-      <div style={{ fontSize: 13, color: '#6b7280', textAlign: 'center', marginTop: 12 }}>
+      <div style={{ fontSize: 13, color: '#6b7280', textAlign: 'center' }}>
         * 方块面积与颜色代表不同来源的数据资产规模
       </div>
     </div>

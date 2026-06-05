@@ -14,24 +14,24 @@ import {
 const useCases = [
   {
     id: 1,
-    title: '阿里云官方解决方案一键自动部署',
-    solution: '一键自动部署阿里云官方解决方案，包括 VPC、安全组、ECS、RDS 等资源的创建和配置',
-    problem: '手动部署耗时长、配置易出错、重复操作多',
-    skillsCount: 1,
+    title: '理赔案件自动化处理',
+    solution: '通过组合票据OCR识别、理赔案件自动立案、理赔责任判定三个 Skills，实现理赔案件从影像采集到责任初判的全流程自动化处理',
+    problem: '传统理赔依赖人工录入票据信息、手动匹配条款、逐项审核责任，处理周期长达5-7个工作日',
+    skillsCount: 3,
   },
   {
     id: 2,
-    title: '企业级运维',
-    solution: 'Agent 调用 Agent Skills 依次完成告警规则配置、告警事件分析、故障根因定位',
-    problem: '云资源告警配置复杂、告警根因难定位、人工排查效率低',
-    skillsCount: 5,
+    title: '智能核保风控体系',
+    solution: 'Agent 调用健康告知评估、体检报告解读、风险智能定价三个 Skills 依次完成告知项分析、体检指标解读和个性化保费定价',
+    problem: '核保流程中健康告知审核耗时长、体检指标解读依赖专业医师经验、次标准体定价缺乏统一标准',
+    skillsCount: 3,
   },
   {
     id: 3,
-    title: 'OpenClaw 自动部署和安全加固',
-    solution: 'Agent 调用 Agent Skills 自动批量部署 OpenClaw，并进行安全加固',
-    problem: '人工部署慢、漏洞多、修复滞后、合规难达标',
-    skillsCount: 2,
+    title: '理赔反欺诈联动检测',
+    solution: 'Agent 调用理赔欺诈检测、关联图谱分析、理赔责任判定三个 Skills，实现欺诈风险识别、关联案件挖掘和责任最终判定',
+    problem: '理赔欺诈案件隐蔽性强、单案检测难以发现团伙欺诈、欺诈检测与责任判定割裂导致重复审核',
+    skillsCount: 3,
   },
 ]
 
@@ -61,10 +61,10 @@ const allSkills: SkillItem[] = [
   { name: '体检报告解读', description: '体检报告智能解读，对照核保手册自动给出风险评估和加费建议', likes: 47, downloads: '3.3K', updated: '3天前更新', category: '核保评估', version: 'v2.0.0' },
 ]
 
-// 个人 Skills mock 数据
+// 个人 Skills mock 数据（公共 Skills 的子集）
 const mySkills: SkillItem[] = [
-  { name: '我的理赔规则引擎', description: '自定义理赔规则配置工具，支持可视化规则编排和实时生效', likes: 5, downloads: '120', updated: '1天前更新', category: '自定义', version: 'v0.1.0' },
-  { name: '智能核保助手', description: '基于历史数据的智能核保建议生成器，支持多维度风险评估', likes: 8, downloads: '230', updated: '3天前更新', category: '自定义', version: 'v0.2.1' },
+  { name: '理赔案件自动立案', description: '理赔案件自动立案，根据报案信息智能匹配保险条款，完成责任初判', likes: 56, downloads: '4.2K', updated: '1天前更新', category: '立案定责', version: 'v2.3.0' },
+  { name: '体检报告解读', description: '体检报告智能解读，对照核保手册自动给出风险评估和加费建议', likes: 47, downloads: '3.3K', updated: '3天前更新', category: '核保评估', version: 'v2.0.0' },
 ]
 
 const LOAD_COUNT = 9
@@ -117,9 +117,9 @@ const UseCaseCarousel: React.FC = () => {
   return (
     <div style={{ position: 'relative', maxWidth: 1100, margin: '0 auto' }}>
       <Row gutter={16} align="middle">
-        <Col span={6}><UseCaseCard useCase={useCases[prevIdx]} active={false} isLeft isRight={false} /></Col>
-        <Col span={12}><UseCaseCard useCase={useCases[current]} active isLeft={false} isRight={false} /></Col>
-        <Col span={6}><UseCaseCard useCase={useCases[nextIdx]} active={false} isLeft={false} isRight /></Col>
+        <Col span={7}><UseCaseCard useCase={useCases[prevIdx]} active={false} isLeft isRight={false} /></Col>
+        <Col span={10}><UseCaseCard useCase={useCases[current]} active isLeft={false} isRight={false} /></Col>
+        <Col span={7}><UseCaseCard useCase={useCases[nextIdx]} active={false} isLeft={false} isRight /></Col>
       </Row>
       <div onClick={prev} style={{
         position: 'absolute', left: -40, top: '50%', transform: 'translateY(-50%)',
@@ -269,11 +269,11 @@ const SharedSkillsMarket: React.FC = () => {
       background: '#fff', borderRadius: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
       border: '1px solid #f3f4f6', padding: '14px 24px 34px',
     }}>
-      {/* ===== Skills 使用案例 ===== */}
-      <div style={{ marginBottom: 48 }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20, marginTop: 10 }}>
+      {/* ===== 最佳实践 ===== */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, marginTop: 10 }}>
           <div style={titleBarStyle} />
-          <span style={{ fontSize: 17, fontWeight: 700, color: '#1f2937' }}>Skills 使用案例</span>
+          <span style={{ fontSize: 17, fontWeight: 700, color: '#1f2937' }}>最佳实践</span>
         </div>
         <UseCaseCarousel />
       </div>
@@ -301,7 +301,7 @@ const SharedSkillsMarket: React.FC = () => {
       </div>
 
       {/* ===== 公共 Skills ===== */}
-      <div style={{ marginTop: 48 }}>
+      <div style={{ marginTop: 30 }}>
         <div style={{ ...titleStyle, marginTop: 0 }}>
           <div style={titleBarStyle} />
           <span style={titleTextStyle}>公共 Skills</span>
