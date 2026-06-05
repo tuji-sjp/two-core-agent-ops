@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>理赔智能体案件处理情况</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+        }
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        .metric-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .metric-card:hover {
+            border-color: #93c5fd;
+            background-color: #eff6ff;
+        }
+        .metric-card.active {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06);
+        }
+        
+        /* 实时监控呼吸灯特效 */
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            70% { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        .status-dot {
+            animation: pulse-green 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+
+    <div class="bg-white w-full max-w-[1200px] rounded-xl shadow-lg p-6 mx-auto border border-gray-100">
+        <!-- 顶部 Header 区域 -->
+        <div class="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
+            <div class="flex items-center gap-3">
+                <!-- 实时监控 Tag -->
+                <div class="flex items-center gap-1.5 px-3 py-1 bg-green-50 rounded-full border border-green-200">
+                    <div class="w-2 h-2 bg-green-500 rounded-full status-dot"></div>
+                    <span class="text-xs text-green-700 font-medium">实时监控运行中</span>
+                </div>
+                
+                <!-- 时间粒度切换 -->
+                <div class="relative">
+                    <select id="granularitySelect" class="appearance-none bg-white border border-gray-200 text-gray-700 py-1.5 pl-3 pr-8 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer">
+                        <option value="day">按天</option>
+                        <option value="week">按周</option>
+                        <option value="month">按月</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                </div>
+
+                <!-- 模拟日期选择器 -->
+                <div class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-600 cursor-pointer hover:border-blue-400 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span id="dateRangeText">2026-04-01 至 2026-04-05</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 指标切换面板 (Metric Cards) -->
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-8" id="metricCardsContainer">
+            <!-- 动态渲染卡片 -->
+        </div>
+
+        <!-- 图表容器 -->
+        <div class="relative w-full h-[450px]">
+            <!-- 左上角 Y 轴单位 -->
+            <div id="chartUnit" class="absolute top-0 left-0 text-xs text-gray-500 z-10">数值单位</div>
+            <div id="mainChart" class="w-full h-full"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 配置与初始化数据 ---
+        
+        // 智能体列表 (X轴)
+        const agents = ['预受理智能体', '数采智能体', '定责智能体', '剔费智能体', '理算智能体', '审核智能体'];
+        
+        // 核心指标定义 (添加了 mockValue 固定值)
+        const metrics = [
+            { id: 'total', name: '案件总量', unit: '件', mockValue: 13604 },
+            { id: 'completed', name: '已完成案件', unit: '件', mockValue: 11125 },
+            { id: 'processing', name: '处理中案件', unit: '件', mockValue: 262 },
+            { id: 'pending', name: '待处理案件', unit: '件', mockValue: 221 },
+            { id: 'overdueCount', name: '超时案件数', unit: '件', mockValue: 47 },
+            { id: 'avgTime', name: '平均处理时长', unit: '分钟', mockValue: 5.3 },
+            { id: 'overdueRate', name: '超时率', unit: '%', mockValue: 0.5 }
+        ];
+
+        // 全局状态
+        let currentMetricId = 'total';
+        let currentGranularity = 'day';
+        let myChart = null;
+
+        // 颜色配置 (参考原图风格)
+        const colors = ['#c1c9d2', '#409eff', '#fa8c16', '#f5222d', '#722ed1'];
+        const targetLineColor = '#3ba0ff';
+        const targetAreaColor = '#e6f4ff';
+
+        // --- 2. 模拟数据生成工具 ---
+
+        // 获取当前时间段的标签
+        function getTimeLabels(granularity) {
+            if (granularity === 'day') return ['4月1日', '4月2日', '4月3日', '4月4日', '4月5日'];
+            if (granularity === 'week') return ['第1周', '第2周', '第3周', '第4周', '第5周'];
+            if (granularity === 'month') return ['1月', '2月', '3月', '4月', '5月'];
+        }
+
+        // 生成固定的模拟数据，避免切换 Tab 时数值跳动
+        function getFixedLineData(metricId, lineIndex) {
+            const baseValues = {
+                'total': [12000, 3000, 2000, 1500, 5000, 5200],
+                'completed': [11500, 2800, 1800, 1400, 4800, 5000],
+                'processing': [300, 150, 120, 80, 150, 100],
+                'pending': [200, 50, 80, 20, 50, 100],
+                'overdueCount': [50, 15, 25, 5, 20, 30],
+                'avgTime': [5, 12, 45, 10, 20, 30], // 分钟
+                'overdueRate': [0.5, 1.2, 2.5, 0.8, 1.5, 2.0] // %
+            };
+            
+            const base = baseValues[metricId];
+            
+            // 预设固定的微调系数，让每条线呈现自然但固定的波动
+            const fluctuation = [
+                [1.05, 0.92, 1.08, 0.95, 1.03, 0.98],
+                [0.96, 1.04, 0.97, 1.02, 0.98, 1.05],
+                [1.02, 0.98, 1.05, 0.99, 1.04, 0.96],
+                [0.98, 1.05, 0.94, 1.06, 0.95, 1.02],
+                [1.04, 0.96, 1.02, 0.97, 1.06, 0.99]
+            ];
+
+            return base.map((val, agentIdx) => {
+                // 根据线条索引(即日期先后)放大数值，呈现趋势
+                const scale = 0.7 + (lineIndex * 0.15);
+                // 添加固定波动系数
+                const factor = fluctuation[lineIndex % fluctuation.length][agentIdx];
+                const scaledVal = val * scale * factor;
+                
+                // 案件数量必须是正整数
+                if (['total', 'completed', 'processing', 'pending', 'overdueCount'].includes(metricId)) {
+                    return Math.max(0, Math.round(scaledVal));
+                }
+                // 其他指标（时长、超时率）保留一位小数
+                return Math.max(0, Number(scaledVal.toFixed(1)));
+            });
+        }
+
+        // --- 3. UI 交互渲染 ---
+
+        // 渲染顶部指标卡片
+        function renderMetricCards() {
+            const container = document.getElementById('metricCardsContainer');
+            container.innerHTML = '';
+            
+            metrics.forEach(metric => {
+                const isActive = metric.id === currentMetricId;
+                const card = document.createElement('div');
+                card.className = `metric-card rounded-lg p-3 bg-gray-50 flex flex-col justify-center items-center gap-1 ${isActive ? 'active' : ''}`;
+                card.onclick = () => handleMetricChange(metric.id);
+                
+                // 使用固定的 mockValue，不再每次随机生成
+                card.innerHTML = `
+                    <span class="text-xs text-gray-500 font-medium">${metric.name}</span>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-lg font-bold text-gray-800">${metric.mockValue}</span>
+                        <span class="text-xs text-gray-400">${metric.unit}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 处理指标切换
+        function handleMetricChange(metricId) {
+            currentMetricId = metricId;
+            renderMetricCards();
+            updateChart();
+        }
+
+        // 处理粒度切换
+        document.getElementById('granularitySelect').addEventListener('change', (e) => {
+            currentGranularity = e.target.value;
+            
+            // 更新模拟日期文本
+            const dateText = document.getElementById('dateRangeText');
+            if (currentGranularity === 'day') dateText.innerText = '2026-04-01 至 2026-04-05';
+            else if (currentGranularity === 'week') dateText.innerText = '2026年 第1周 - 第5周';
+            else if (currentGranularity === 'month') dateText.innerText = '2026年 1月 - 5月';
+            
+            updateChart();
+        });
+
+        // --- 4. ECharts 图表核心逻辑 ---
+
+        function initChart() {
+            const chartDom = document.getElementById('mainChart');
+            myChart = echarts.init(chartDom);
+            
+            // 监听窗口大小改变，实现自适应
+            window.addEventListener('resize', () => {
+                myChart.resize();
+            });
+            
+            updateChart();
+        }
+
+        function updateChart() {
+            const currentMetric = metrics.find(m => m.id === currentMetricId);
+            const timeLabels = getTimeLabels(currentGranularity);
+            
+            // 更新左上角单位提示
+            document.getElementById('chartUnit').innerText = `${currentMetric.name} (${currentMetric.unit})`;
+
+            // 构造 Series 数据
+            const seriesData = [];
+
+            // 添加各时间段的平滑曲线
+            timeLabels.forEach((timeLabel, index) => {
+                // 获取固定数据，避免随机跳动
+                const lineData = getFixedLineData(currentMetricId, index);
+                
+                seriesData.push({
+                    name: timeLabel,
+                    type: 'line',
+                    smooth: 0.4, // 平滑曲线
+                    symbol: 'circle',
+                    symbolSize: 6,
+                    itemStyle: {
+                        color: colors[index % colors.length]
+                    },
+                    lineStyle: {
+                        width: 2
+                    },
+                    data: lineData,
+                    z: 2 // 置于顶层
+                });
+            });
+
+            // ECharts 配置项
+            const option = {
+                // 提示框组件，深度定制样式
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    padding: [12, 16],
+                    textStyle: {
+                        color: '#333'
+                    },
+                    extraCssText: 'box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); border-radius: 8px;',
+                    formatter: function (params) {
+                        let html = `<div class="font-bold text-gray-800 mb-3 border-b border-gray-100 pb-2">${params[0].axisValue} - ${currentMetric.name}</div>`;
+                        
+                        // 渲染各时间段实际值
+                        params.forEach(param => {
+                            html += `
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="flex items-center text-sm text-gray-500">
+                                        <span class="inline-block w-2.5 h-2.5 rounded-full mr-2" style="background-color: ${param.color};"></span>
+                                        ${param.seriesName}
+                                    </span>
+                                    <span class="font-semibold text-gray-700 ml-6">${param.value} ${currentMetric.unit}</span>
+                                </div>
+                            `;
+                        });
+                        return html;
+                    }
+                },
+                // 图例组件
+                legend: {
+                    bottom: 0,
+                    icon: 'circle',
+                    itemWidth: 10,
+                    itemHeight: 10,
+                    textStyle: {
+                        color: '#64748b',
+                        fontSize: 13
+                    },
+                    itemGap: 24
+                },
+                // 图表边距
+                grid: {
+                    top: '12%',
+                    left: '2%',
+                    right: '4%',
+                    bottom: '12%',
+                    containLabel: true
+                },
+                // X 轴配置
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false, // 让点在坐标轴刻度上，与原图阶梯对齐
+                    data: agents,
+                    axisLine: {
+                        lineStyle: { color: '#e2e8f0' }
+                    },
+                    axisTick: { show: false },
+                    axisLabel: {
+                        color: '#475569',
+                        margin: 16,
+                        fontWeight: 500
+                    }
+                },
+                // Y 轴配置
+                yAxis: {
+                    type: 'value',
+                    min: 0, // 确保 Y 轴起点为 0，防止平滑曲线导致坐标轴出现负数
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    axisLabel: {
+                        color: '#94a3b8',
+                        formatter: `{value}${currentMetric.id === 'overdueRate' ? '%' : ''}`
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            type: 'dashed',
+                            color: '#f1f5f9'
+                        }
+                    }
+                },
+                series: seriesData
+            };
+
+            myChart.setOption(option, true); // true 表示覆盖原有配置
+        }
+
+        // --- 5. 页面加载完成执行 ---
+        window.onload = () => {
+            renderMetricCards();
+            initChart();
+        };
+    </script>
+</body>
+</html>
