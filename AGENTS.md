@@ -18,7 +18,7 @@ This file provides guidance to AI coding agents when working with code in this r
 <!-- AUTO-MANAGED: build-commands -->
 ## Build & Development Commands
 
-Build configuration: `vite.config.ts` (port 3022, auto-open browser on dev start, `base: '/两核智能体运营平台/'` for GitHub Pages deployment).
+Build configuration: `vite.config.ts` (port 3022, auto-open browser on dev start, `base: '/'` for all environments).
 
 ```bash
 npm install          # 安装依赖
@@ -38,7 +38,6 @@ GitHub Actions workflow (`.github/workflows/deploy.yml`):
 - **Deploy**: deploys to GitHub Pages via `actions/deploy-pages@v4`
 - **Concurrency**: single `pages` group, no cancel-in-progress
 - **Permissions**: `contents: read`, `pages: write`, `id-token: write`
-- **Vite base path**: `base: '/两核智能体运营平台/'` in `vite.config.ts` must match the GitHub Pages repository name
 
 <!-- END AUTO-MANAGED -->
 
