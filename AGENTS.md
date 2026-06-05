@@ -18,7 +18,7 @@ This file provides guidance to AI coding agents when working with code in this r
 <!-- AUTO-MANAGED: build-commands -->
 ## Build & Development Commands
 
-Build configuration: `vite.config.ts` (port 3022, auto-open browser on dev start).
+Build configuration: `vite.config.ts` (port 3022, auto-open browser on dev start, `base: '/两核智能体运营平台/'` for GitHub Pages deployment).
 
 ```bash
 npm install          # 安装依赖
@@ -26,6 +26,19 @@ npm run dev          # 启动开发服务器 (Vite, http://localhost:3022, 自�
 npm run build        # 类型检查 + 构建生产版本 (tsc -b && vite build)
 npm run preview      # 预览构建结果
 ```
+
+<!-- END AUTO-MANAGED -->
+
+<!-- AUTO-MANAGED: deployment -->
+## Deployment
+
+GitHub Actions workflow (`.github/workflows/deploy.yml`):
+- **Trigger**: push to `v3` branch, or manual `workflow_dispatch`
+- **Build**: Node.js 20, `npm ci` + `npm run build`, uploads `./dist` as artifact
+- **Deploy**: deploys to GitHub Pages via `actions/deploy-pages@v4`
+- **Concurrency**: single `pages` group, no cancel-in-progress
+- **Permissions**: `contents: read`, `pages: write`, `id-token: write`
+- **Vite base path**: `base: '/两核智能体运营平台/'` in `vite.config.ts` must match the GitHub Pages repository name
 
 <!-- END AUTO-MANAGED -->
 
@@ -314,5 +327,7 @@ npm run preview      # 预览构建结果
 <!-- 2026-06-04: SharedSkillsMarket 页面重构：1) "最热门Skills"区拆分为"我的Skills"和"公共Skills"两个独立区块；2) 移除"我的收藏"分类标签（5个分类：全部/OCR识别/数据采集/立案定责/核保评估）；3) MySkillCard新增编辑+发布按钮行，PublicSkillCard无导航点击交互；4) 公共Skills新增分页加载机制（LOAD_COUNT=9，底部"查看更多"按钮，分类切换/搜索时重置）；5) 使用案例区新增"查看案例所用的X个Skills"链接 -->
 
 <!-- 2026-06-04: MainLayout.tsx 菜单结构简化：从 2 级+3 级嵌套混合结构改为全部 2 级扁平。业务应用：6 项直接菜单项（全景概览/理赔指标看板/理赔案件清单/核保指标看板/核保案件清单/反欺诈指标看板/反欺诈案件清单），移除理赔场景/核保场景/反欺诈场景子分组。共享中心：4 项直接菜单项（Skills集市/MCP服务/数据资产/知识&规则），Skills集市不再嵌套公共Skills/个人Skills子项。defaultOpenKeys 简化为仅基于一级路径前缀（/business/* /agent/* /shared/*）。 -->
+
+<!-- 2026-06-05: 新增 GitHub Actions 部署流程（.github/workflows/deploy.yml）：push 到 v3 分支触发，Node 20 + npm ci + npm run build，产物部署到 GitHub Pages。vite.config.ts 同步确认 base: '/两核智能体运营平台/' 匹配 GitHub Pages 仓库名 -->
 
 <!-- 2026-06-05: 案件清单模块移除：删除 `src/pages/business/cases/` 目录（BusinessCases 组件），App.tsx 中移除 `/business/claims/cases`、`/business/underwriting/cases`、`/business/anti-fraud/cases` 三条路由。MainLayout 菜单中仍保留案件清单入口（待后续清理）。业务应用菜单实际有效路由从 7 项减至 4 项（全景概览 + 三个指标看板）。 -->
