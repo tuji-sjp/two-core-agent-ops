@@ -18,7 +18,7 @@ This file provides guidance to AI coding agents when working with code in this r
 <!-- AUTO-MANAGED: build-commands -->
 ## Build & Development Commands
 
-Build configuration: `vite.config.ts` (port 3022, auto-open browser on dev start, `base: '/'` for all environments).
+Build configuration: `vite.config.ts` (port 3022, auto-open browser on dev start, `base: '/two-core-agent-ops/'` for GitHub Pages deployment).
 
 ```bash
 npm install          # 安装依赖
