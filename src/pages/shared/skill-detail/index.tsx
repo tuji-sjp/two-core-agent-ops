@@ -963,7 +963,7 @@ const SkillDetail: React.FC = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div
-            onClick={() => navigate('/shared/skills')}
+            onClick={() => navigate('/skills/market')}
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#595959', fontSize: 14 }}
           >
             <ArrowLeftOutlined /> 返回Skills集市

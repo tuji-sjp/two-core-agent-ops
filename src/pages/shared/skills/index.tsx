@@ -105,7 +105,8 @@ const UseCaseCard: React.FC<{
   )
 }
 
-// ==================== 使用案例轮播 ====================
+// ==================== 使用案例轮播（已隐藏） ====================
+// @ts-ignore
 const UseCaseCarousel: React.FC = () => {
   const [current, setCurrent] = useState(0)
   const total = useCases.length
@@ -269,14 +270,14 @@ const SharedSkillsMarket: React.FC = () => {
       background: '#fff', borderRadius: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
       border: '1px solid #f3f4f6', padding: '14px 24px 34px',
     }}>
-      {/* ===== 最佳实践 ===== */}
-      <div>
+      {/* ===== 最佳实践（已隐藏） ===== */}
+      {/* <div>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, marginTop: 10 }}>
           <div style={titleBarStyle} />
           <span style={{ fontSize: 17, fontWeight: 700, color: '#1f2937' }}>最佳实践</span>
         </div>
         <UseCaseCarousel />
-      </div>
+      </div> */}
 
       {/* ===== 我的 Skills ===== */}
       <div style={{ marginTop: 30 }}>

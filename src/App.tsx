@@ -28,17 +28,24 @@ const App: React.FC = () => {
         <Route path="business/anti-fraud/metrics" element={<MetricsAntiFraud />} />
 
         {/* Agent运营 */}
-        <Route path="agent/claims-collect" element={<PagePlaceholder />} />
-        <Route path="agent/claims-case" element={<PagePlaceholder />} />
-        <Route path="agent/underwriting-review" element={<PagePlaceholder />} />
-        <Route path="agent/anti-fraud-detect" element={<PagePlaceholder />} />
+        <Route path="agent/claims/overview" element={<PagePlaceholder />} />
+        <Route path="agent/claims/logs" element={<PagePlaceholder />} />
+        <Route path="agent/claims/case-analysis" element={<PagePlaceholder />} />
+        <Route path="agent/underwriting/overview" element={<PagePlaceholder />} />
+        <Route path="agent/underwriting/logs" element={<PagePlaceholder />} />
+        <Route path="agent/underwriting/case-analysis" element={<PagePlaceholder />} />
+        <Route path="agent/anti-fraud/overview" element={<PagePlaceholder />} />
+        <Route path="agent/anti-fraud/logs" element={<PagePlaceholder />} />
+        <Route path="agent/anti-fraud/case-analysis" element={<PagePlaceholder />} />
 
-        {/* 共享中心 */}
-        <Route path="shared/skills" element={<SharedSkillsMarket />} />
-        <Route path="shared/skill/:name" element={<SkillDetail />} />
-        <Route path="shared/mcp" element={<PagePlaceholder />} />
-        <Route path="shared/data-assets" element={<SharedDataAssets />} />
-        <Route path="shared/knowledge-rules" element={<SharedKnowledgeRules />} />
+        {/* 技能中心 */}
+        <Route path="skills/market" element={<SharedSkillsMarket />} />
+        <Route path="skills/mcp" element={<PagePlaceholder />} />
+        <Route path="skills/skill/:name" element={<SkillDetail />} />
+
+        {/* 数据共享 */}
+        <Route path="data-share/data-assets" element={<SharedDataAssets />} />
+        <Route path="data-share/knowledge-rules" element={<SharedKnowledgeRules />} />
 
         {/* 平台管理 */}
         <Route path="platform/alert" element={<PagePlaceholder />} />

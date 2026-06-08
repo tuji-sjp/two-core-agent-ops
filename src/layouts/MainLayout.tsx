@@ -27,28 +27,59 @@ const menuItems: MenuProps['items'] = [
       { key: '/business/anti-fraud/metrics', label: '反欺诈场景' },
     ],
   },
-  // Agent运营：2级
+  // Agent运营：3级嵌套
   {
     key: 'agent-ops',
     icon: <ThunderboltOutlined />,
     label: 'Agent运营',
     children: [
-      { key: '/agent/claims-collect', label: '理赔-采集Agent' },
-      { key: '/agent/claims-case', label: '理赔-立案Agent' },
-      { key: '/agent/underwriting-review', label: '核保-新契约审核Agent' },
-      { key: '/agent/anti-fraud-detect', label: '反欺诈-欺诈识别Agent' },
+      {
+        key: 'agent-claims',
+        label: '理赔',
+        children: [
+          { key: '/agent/claims/overview', label: '概览' },
+          { key: '/agent/claims/logs', label: '日志清单' },
+          { key: '/agent/claims/case-analysis', label: '错例分析' },
+        ],
+      },
+      {
+        key: 'agent-underwriting',
+        label: '核保',
+        children: [
+          { key: '/agent/underwriting/overview', label: '概览' },
+          { key: '/agent/underwriting/logs', label: '日志清单' },
+          { key: '/agent/underwriting/case-analysis', label: '错例分析' },
+        ],
+      },
+      {
+        key: 'agent-anti-fraud',
+        label: '反欺诈',
+        children: [
+          { key: '/agent/anti-fraud/overview', label: '概览' },
+          { key: '/agent/anti-fraud/logs', label: '日志清单' },
+          { key: '/agent/anti-fraud/case-analysis', label: '错例分析' },
+        ],
+      },
     ],
   },
-  // 共享中心：2级
+  // 技能中心：2级
   {
-    key: 'shared-center',
+    key: 'skill-center',
     icon: <BranchesOutlined />,
-    label: '共享中心',
+    label: '技能中心',
     children: [
-      { key: '/shared/skills', label: 'Skills集市' },
-      { key: '/shared/mcp', label: 'MCP服务' },
-      { key: '/shared/data-assets', label: '数据资产' },
-      { key: '/shared/knowledge-rules', label: '知识&规则' },
+      { key: '/skills/market', label: 'Skills集市' },
+      { key: '/skills/mcp', label: 'MCP服务' },
+    ],
+  },
+  // 数据共享：2级
+  {
+    key: 'data-share',
+    icon: <BranchesOutlined />,
+    label: '数据共享',
+    children: [
+      { key: '/data-share/data-assets', label: '数据资产' },
+      { key: '/data-share/knowledge-rules', label: '知识&规则' },
     ],
   },
   // 平台管理：2级
@@ -69,17 +100,20 @@ const MainLayout: React.FC = () => {
   const location = useLocation()
   const [popoverOpen, setPopoverOpen] = useState(false)
 
-  // 当 URL 为 Skill 详情页时，侧边栏仍高亮 Skills市场
-  const selectedKey = location.pathname.startsWith('/shared/skill/')
-    ? '/shared/skills'
+  // 当 URL 为 Skill 详情页时，侧边栏仍高亮 Skills集市
+  const selectedKey = location.pathname.startsWith('/skills/skill/')
+    ? '/skills/market'
     : location.pathname
 
   // 根据当前路由决定展开的菜单
   let defaultOpenKeys = ['business-app']
   if (location.pathname.startsWith('/business/')) defaultOpenKeys = ['business-app']
+  else if (location.pathname.startsWith('/agent/claims/')) defaultOpenKeys = ['agent-ops', 'agent-claims']
+  else if (location.pathname.startsWith('/agent/underwriting/')) defaultOpenKeys = ['agent-ops', 'agent-underwriting']
+  else if (location.pathname.startsWith('/agent/anti-fraud/')) defaultOpenKeys = ['agent-ops', 'agent-anti-fraud']
   else if (location.pathname.startsWith('/agent/')) defaultOpenKeys = ['agent-ops']
-  else if (location.pathname.startsWith('/shared/skill/') || location.pathname.startsWith('/shared/skills')) defaultOpenKeys = ['shared-center']
-  else if (location.pathname.startsWith('/shared/')) defaultOpenKeys = ['shared-center']
+  else if (location.pathname.startsWith('/skills/')) defaultOpenKeys = ['skill-center']
+  else if (location.pathname.startsWith('/data-share/')) defaultOpenKeys = ['data-share']
 
   return (
     <Layout style={{ height: '100vh', overflow: 'hidden' }}>
