@@ -4,12 +4,43 @@ import type { MenuProps } from 'antd'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   AppstoreOutlined,
-  ThunderboltOutlined,
   BranchesOutlined,
   SettingOutlined,
   LogoutOutlined,
   UserOutlined,
 } from '@ant-design/icons'
+
+// 数据共享图标：圆柱分层堆叠（3层圆盘 + 深色顶盖，层高3px，层间距1px）
+const DatabaseIcon = () => (
+  <span className="anticon" style={{ display: 'inline-flex', alignItems: 'center' }}>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      {/* 顶层椭圆 */}
+      <ellipse cx="12" cy="5" rx="8" ry="3" opacity="0.85" />
+      {/* 第1层（高3px） */}
+      <path d="M4 8c0 1.66 3.58 3 8 3s8-1.34 8-3V11c0 1.66-3.58 3-8 3s-8-1.34-8-3z" opacity="0.45" />
+      {/* 第2层（高3px） */}
+      <path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3V15c0 1.66-3.58 3-8 3s-8-1.34-8-3z" opacity="0.35" />
+      {/* 第3层（高3px） */}
+      <path d="M4 16c0 1.66 3.58 3 8 3s8-1.34 8-3V19c0 1.66-3.58 3-8 3s-8-1.34-8-3z" opacity="0.25" />
+    </svg>
+  </span>
+)
+
+// Agent运营图标：节点分流（父节点分支为菱形+矩形两个子节点）
+const AgentOpsIcon = () => (
+  <span className="anticon" style={{ display: 'inline-flex', alignItems: 'center' }}>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {/* 父节点（左侧横线） */}
+      <path d="M4 12h4" />
+      {/* 上分支：折线 + 菱形 */}
+      <path d="M8 12v-6h6" />
+      <path d="M14 6l4-4 4 4-4 4-4-4z" />
+      {/* 下分支：折线 + 矩形 */}
+      <path d="M8 12v5h3" />
+      <path d="M14 14h6a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2z" />
+    </svg>
+  </span>
+)
 
 const { Sider, Content } = Layout
 const { Text } = Typography
@@ -30,7 +61,7 @@ const menuItems: MenuProps['items'] = [
   // Agent运营：3级嵌套
   {
     key: 'agent-ops',
-    icon: <ThunderboltOutlined />,
+    icon: <AgentOpsIcon />,
     label: 'Agent运营',
     children: [
       {
@@ -75,7 +106,7 @@ const menuItems: MenuProps['items'] = [
   // 数据共享：2级
   {
     key: 'data-share',
-    icon: <BranchesOutlined />,
+    icon: <DatabaseIcon />,
     label: '数据共享',
     children: [
       { key: '/data-share/data-assets', label: '数据资产' },

@@ -160,7 +160,7 @@ const MySkillCard: React.FC<{
       padding: 20, height: '100%', display: 'flex', flexDirection: 'column',
       transition: 'all 0.2s ease', cursor: 'pointer',
     }}>
-      <div onClick={() => navigate(`/shared/skill/${encodeURIComponent(skill.name)}`)} style={{ flex: 1 }}>
+      <div onClick={() => navigate(`/skills/skill/${encodeURIComponent(skill.name)}`)} style={{ flex: 1 }}>
         <div style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {skill.name}
         </div>
@@ -175,7 +175,7 @@ const MySkillCard: React.FC<{
       {/* 版本号 + 查看详情 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, color: '#6b7280' }}>
         <span style={{ fontSize: 12, color: '#9ca3af' }}>{skill.version}</span>
-        <span onClick={() => navigate(`/shared/skill/${encodeURIComponent(skill.name)}`)} style={{ color: '#3b82f6', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
+        <span onClick={() => navigate(`/skills/skill/${encodeURIComponent(skill.name)}`)} style={{ color: '#3b82f6', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
           查看详情 &gt;
         </span>
       </div>

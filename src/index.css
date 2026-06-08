@@ -44,6 +44,7 @@ body {
   background: #ffffff !important;
   padding-left: 10px !important;
   color: #1d2129 !important;
+  margin-block: 4px !important;
 }
 
 /* Level 2: light gray bg, text 24px from sidebar left */
@@ -52,6 +53,9 @@ body {
   background: #f3f4f6 !important;
   padding-left: 24px !important;
   color: #1d2129 !important;
+  margin-inline: 0 !important;
+  width: 100% !important;
+  margin-block: 4px !important;
 }
 
 /* Level 3: dark gray bg, text 36px from sidebar left */
@@ -59,6 +63,7 @@ body {
   background: #e5e7eb !important;
   padding-left: 36px !important;
   color: #1d2129 !important;
+  margin: 0 !important;
 }
 
 /* Selected state - overrides level backgrounds with deeper blue */

@@ -10,7 +10,7 @@ import type { PickerMode } from 'rc-picker/lib/interface'
 const agents = ['数采智能体', '定责智能体', '剔费智能体', '理算智能体', '审核智能体']
 
 const metrics = [
-  { id: 'tokens', name: 'tokens使用量', unit: '万' },
+  { id: 'tokens', name: 'Tokens使用量', unit: '万' },
   { id: 'totalCases', name: '处理案件数', unit: '件' },
   { id: 'totalCalls', name: '服务调用数', unit: '次' },
   { id: 'successRate', name: '调用成功率', unit: '%' },
@@ -195,6 +195,7 @@ const CaseProcessingChart: React.FC = () => {
         axisTick: { show: false },
         axisLabel: {
           color: '#000000e0',
+          fontWeight: 500,
           formatter: ['successRate', 'autoRate'].includes(currentMetric) ? '{value}%' : undefined,
         },
         splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } },
@@ -292,7 +293,11 @@ const CaseProcessingChart: React.FC = () => {
         </div>
       </div>
       <div style={{ display: 'flex', gap: 20 }}>
-        {/* 左侧指标选择器 */}
+        {/* 右侧图表（左对齐） */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div ref={chartRef} style={{ width: '100%', height: 432 }} />
+        </div>
+        {/* 左侧指标选择器（右对齐） */}
         <div style={{
           width: 140,
           display: 'flex',
@@ -312,10 +317,10 @@ const CaseProcessingChart: React.FC = () => {
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   border: isActive ? '1px solid #3b82f6' : '1px solid transparent',
-                  background: isActive ? '#eff6ff' : '#f9fafb',
+                  background: isActive ? '#eff6ff' : '#f3f4f6',
                   boxShadow: isActive ? '0 4px 6px -1px rgba(59,130,246,0.1), 0 2px 4px -1px rgba(59,130,246,0.06)' : 'none',
                   textAlign: 'center',
-                  fontSize: 13,
+                  fontSize: 14,
                   color: isActive ? '#1d2937' : '#1d2937',
                   fontWeight: isActive ? 600 : 400,
                 }}
@@ -324,10 +329,6 @@ const CaseProcessingChart: React.FC = () => {
               </div>
             )
           })}
-        </div>
-        {/* 右侧图表 */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div ref={chartRef} style={{ width: '100%', height: 432 }} />
         </div>
       </div>
     </div>

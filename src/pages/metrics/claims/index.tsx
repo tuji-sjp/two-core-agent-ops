@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import { Row, Col, Table, Tag, Pagination } from 'antd'
+import { Row, Col, Table, Tag, Pagination, Input, Button } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import MetricCard from '../../dashboard/components/smart-services/metric-card'
 import CaseProcessingChart from '../../dashboard/components/smart-services/case-processing-chart'
 
 const METRICS_CLAIMS: { label: string; value: string }[] = [
-  { label: 'tokens使用量', value: '12.8万' },
+  { label: 'Tokens使用量', value: '12.8万' },
   { label: '处理案件总数', value: '3,245' },
   { label: '服务调用总数', value: '8,712' },
   { label: '平均调用成功率', value: '96.3%' },
@@ -38,81 +38,81 @@ const STATUS_COLORS: Record<NodeStatus, string> = {
 
 const NODE_LABELS = ['开始', '采集', '立案', '理算', '扣费', '审核', '结束']
 
-// ========== 测试数据 ==========
-const flowDataMap: Record<string, FlowTrajectory> = {
-  'CLS-2026060301': {
-    nodes: [
-      { label: '开始', status: 'completed' },
-      { label: '采集', status: 'processing' },
-      { label: '立案', status: 'processing' },
-      { label: '理算', status: 'processing' },
-      { label: '扣费', status: 'processing' },
-      { label: '审核', status: 'processing' },
-      { label: '结束', status: 'processing' },
-    ],
-  },
-  'CLS-2026060302': {
-    nodes: [
-      { label: '开始', status: 'completed' },
-      { label: '采集', status: 'completed' },
-      { label: '立案', status: 'completed' },
-      { label: '理算', status: 'completed' },
-      { label: '扣费', status: 'completed' },
-      { label: '审核', status: 'completed' },
-      { label: '结束', status: 'completed' },
-    ],
-  },
-  'CLS-2026060303': {
-    nodes: [
-      { label: '开始', status: 'completed' },
-      { label: '采集', status: 'completed' },
-      { label: '立案', status: 'completed' },
-      { label: '理算', status: 'completed' },
-      { label: '扣费', status: 'completed' },
-      { label: '审核', status: 'processing' },
-      { label: '结束', status: 'processing' },
-    ],
-  },
-  'CLS-2026060304': {
-    nodes: [
-      { label: '开始', status: 'completed' },
-      { label: '采集', status: 'completed' },
-      { label: '立案', status: 'completed' },
-      { label: '理算', status: 'completed' },
-      { label: '扣费', status: 'completed' },
-      { label: '审核', status: 'completed' },
-      { label: '结束', status: 'completed' },
-    ],
-  },
-  'CLS-2026060305': {
-    nodes: [
-      { label: '开始', status: 'completed' },
-      { label: '采集', status: 'completed' },
-      { label: '立案', status: 'completed' },
-      { label: '理算', status: 'completed' },
-      { label: '扣费', status: 'completed' },
-      { label: '审核', status: 'completed' },
-      { label: '结束', status: 'completed' },
-    ],
-  },
+// ========== 动态流程轨迹生成 ==========
+function generateFlowTrajectory(caseNo: string, status: string): FlowTrajectory {
+  const lastChar = parseInt(caseNo.slice(-2), 10)
+  const nodes: { label: string; status: NodeStatus }[] = NODE_LABELS.map(label => ({ label, status: 'processing' as NodeStatus }))
+
+  if (status === 'completed') {
+    // 已完成：全部节点已完成
+    for (let i = 0; i < nodes.length; i++) nodes[i].status = 'completed'
+  } else if (status === 'processing') {
+    // 处理中：前 N 个已完成，其余未执行
+    const completedCount = 1 + (lastChar % 5) // 1~5 个已完成节点
+    for (let i = 0; i < nodes.length; i++) {
+      nodes[i].status = i <= completedCount ? 'completed' : 'processing'
+    }
+  } else if (status === 'exception') {
+    // 异常：前 N 个已完成 → 紧接着 1 个异常 → 之后全部未执行（顺序严格）
+    const completedCount = 2 + (lastChar % 3) // 2~4 个已完成节点
+    const exceptionIdx = completedCount // 异常节点紧跟在已完成节点之后
+    for (let i = 0; i < nodes.length; i++) {
+      if (i < completedCount) nodes[i].status = 'completed'
+      else if (i === exceptionIdx) nodes[i].status = 'exception'
+      else nodes[i].status = 'processing'
+    }
+  }
+
+  return { nodes }
 }
 
 // ========== 流程轨迹图组件 ==========
-const NODE_R = 10
-const NODE_GAP = 60
+const NODE_R = 14
+const NODE_GAP = 74
 const SVG_W = NODE_LABELS.length * NODE_GAP + 20
 const SVG_H = 60
+const PENDING_COLOR = '#9ca3af'
 
-const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory }> = ({ trajectory }) => {
+// mock 处理时长（秒级），keyed by caseNo -> nodeLabel，每个节点时长不同
+const NODE_PROCESSING_TIMES: Record<string, Record<string, number>> = {
+  'CLS-2026060301': { '开始': 0.5, '采集': 2.3, '立案': 1.8, '理算': 3.1, '扣费': 1.5, '审核': 4.2, '结束': 0.8 },
+  'CLS-2026060302': { '开始': 0.3, '采集': 1.5, '立案': 2.0, '理算': 2.8, '扣费': 1.2, '审核': 3.5, '结束': 0.6 },
+  'CLS-2026060303': { '开始': 0.7, '采集': 2.1, '立案': 1.5, '理算': 3.3, '扣费': 2.0, '审核': 4.8, '结束': 0.9 },
+  'CLS-2026060304': { '开始': 0.4, '采集': 1.8, '立案': 2.5, '理算': 2.5, '扣费': 1.8, '审核': 3.2, '结束': 0.7 },
+  'CLS-2026060305': { '开始': 0.6, '采集': 2.0, '立案': 1.2, '理算': 3.5, '扣费': 2.2, '审核': 3.8, '结束': 0.5 },
+  'CLS-2026060306': { '开始': 0.8, '采集': 2.5, '立案': 1.9, '理算': 2.7, '扣费': 1.6, '审核': 4.0, '结束': 0.9 },
+  'CLS-2026060307': { '开始': 0.2, '采集': 1.6, '立案': 2.2, '理算': 3.0, '扣费': 1.4, '审核': 3.6, '结束': 0.7 },
+  'CLS-2026060308': { '开始': 0.5, '采集': 2.4, '立案': 1.7, '理算': 2.9, '扣费': 2.1, '审核': 4.5, '结束': 0.8 },
+  'CLS-2026060309': { '开始': 0.9, '采集': 1.9, '立案': 2.3, '理算': 3.2, '扣费': 1.3, '审核': 3.9, '结束': 0.6 },
+  'CLS-2026060310': { '开始': 0.3, '采集': 2.2, '立案': 1.6, '理算': 2.6, '扣费': 1.7, '审核': 4.1, '结束': 0.5 },
+  'CLS-2026060311': { '开始': 0.7, '采集': 1.7, '立案': 2.4, '理算': 3.4, '扣费': 2.0, '审核': 3.7, '结束': 0.8 },
+  'CLS-2026060312': { '开始': 0.4, '采集': 2.6, '立案': 1.3, '理算': 2.8, '扣费': 1.5, '审核': 4.3, '结束': 0.7 },
+  'CLS-2026060313': { '开始': 0.6, '采集': 1.4, '立案': 2.1, '理算': 3.1, '扣费': 2.3, '审核': 3.4, '结束': 0.9 },
+  'CLS-2026060314': { '开始': 0.8, '采集': 2.3, '立案': 1.8, '理算': 2.5, '扣费': 1.9, '审核': 4.6, '结束': 0.6 },
+  'CLS-2026060315': { '开始': 0.2, '采集': 1.5, '立案': 2.6, '理算': 3.6, '扣费': 1.2, '审核': 3.3, '结束': 0.5 },
+  'CLS-2026060316': { '开始': 0.5, '采集': 2.7, '立案': 1.4, '理算': 2.4, '扣费': 2.1, '审核': 4.0, '结束': 0.8 },
+  'CLS-2026060317': { '开始': 0.9, '采集': 1.8, '立案': 2.0, '理算': 3.3, '扣费': 1.6, '审核': 3.8, '结束': 0.7 },
+  'CLS-2026060318': { '开始': 0.3, '采集': 2.1, '立案': 1.7, '理算': 2.7, '扣费': 1.8, '审核': 4.4, '结束': 0.9 },
+  'CLS-2026060319': { '开始': 0.6, '采集': 1.6, '立案': 2.5, '理算': 3.5, '扣费': 2.0, '审核': 3.5, '结束': 0.6 },
+  'CLS-2026060320': { '开始': 0.4, '采集': 2.4, '立案': 1.3, '理算': 2.9, '扣费': 1.4, '审核': 4.7, '结束': 0.5 },
+}
+
+const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory; caseNo?: string }> = ({ trajectory, caseNo }) => {
+  const nodeTimes = caseNo ? NODE_PROCESSING_TIMES[caseNo] : undefined
   return (
-    <div style={{ padding: '16px', background: '#f9fafb', borderRadius: 8 }}>
+    <div style={{ padding: '24px', background: '#f9fafb', borderRadius: 8 }}>
       <svg width={SVG_W} height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ overflow: 'visible' }}>
         {NODE_LABELS.map((label, i) => {
           const node = trajectory.nodes[i] || { label, status: 'processing' as NodeStatus }
           const cx = 20 + i * NODE_GAP
           const cy = SVG_H / 2
-          const color = STATUS_COLORS[node.status]
-          const icon = node.status === 'completed' ? '✓' : node.status === 'exception' ? '✗' : '·'
+          const isCompleted = node.status === 'completed'
+          const isException = node.status === 'exception'
+          const color = isCompleted ? STATUS_COLORS.completed : isException ? STATUS_COLORS.exception : PENDING_COLOR
+          const icon = isCompleted ? '✓' : isException ? '✗' : '·'
+          const iconSize = isCompleted ? 16 : 10
+          const nodeTime = isCompleted && nodeTimes ? nodeTimes[label] : undefined
+          const labelText = nodeTime !== undefined ? `${label} (${nodeTime}s)` : label
 
           return (
             <g key={i}>
@@ -126,9 +126,9 @@ const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory }> = ({ traject
                   strokeWidth={2}
                 />
               )}
-              <circle cx={cx} cy={cy} r={NODE_R} fill={color} />
-              <text x={cx} y={cy} textAnchor="middle" dy="0.35em" fill="#fff" fontSize={10} fontWeight="bold">{icon}</text>
-              <text x={cx} y={cy + NODE_R + 12} textAnchor="middle" fill="#6b7280" fontSize={10}>{node.label}</text>
+              <circle cx={cx} cy={cy} r={NODE_R} fill={isCompleted || isException ? color : 'none'} stroke={color} strokeWidth={2} />
+              <text x={cx} y={cy} textAnchor="middle" dy="0.35em" fill={isCompleted || isException ? '#fff' : color} fontSize={iconSize} fontWeight="bold">{icon}</text>
+              <text x={cx} y={cy + NODE_R + 20} textAnchor="middle" fill="#000000e0" fontSize={12}>{labelText}</text>
             </g>
           )
         })}
@@ -148,19 +148,6 @@ interface CaseRecord {
   currentNode: string
   status: string
 }
-
-const ALL_BRANCHES = [...new Set([
-  '北京分公司', '上海分公司', '广州分公司', '深圳分公司', '杭州分公司',
-  '成都分公司', '武汉分公司', '南京分公司', '重庆分公司', '天津分公司',
-  '苏州分公司', '长沙分公司', '西安分公司', '郑州分公司', '合肥分公司',
-])].sort()
-
-const ALL_NODES = ['采集智能体', '立案智能体', '理算智能体', '扣费智能体', '审核智能体']
-const ALL_STATUSES = [
-  { text: '处理中', value: 'processing' },
-  { text: '已完成', value: 'completed' },
-  { text: '异常', value: 'exception' },
-]
 
 const MOCK_CASES: CaseRecord[] = [
   { key: '1', caseNo: 'CLS-2026060301', claimNo: 'CLM-2026060301', branch: '北京分公司', accidentDate: '2026-06-01', claimDate: '2026-06-02', currentNode: '采集智能体', status: 'processing' },
@@ -206,121 +193,42 @@ const titleTextStyle: React.CSSProperties = {
   color: '#1f2937',
 }
 
-const CHEVRON_DOWN = (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" style={{ flexShrink: 0 }}>
-    <path d="M6 9l6 6 6-6" />
-  </svg>
-)
-
 const MetricsClaims: React.FC = () => {
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([])
   const [pageSize, setPageSize] = useState(10)
   const [currentPage, setCurrentPage] = useState(1)
 
   // 筛选条件
-  const [caseNoFilter, setCaseNoFilter] = useState<string | undefined>()
-  const [claimNoFilter, setClaimNoFilter] = useState<string | undefined>()
-  const [branchFilter, setBranchFilter] = useState<string | undefined>()
-  const [accidentDateFilter, setAccidentDateFilter] = useState<string | undefined>()
-  const [claimDateFilter, setClaimDateFilter] = useState<string | undefined>()
-  const [nodeFilter, setNodeFilter] = useState<string | undefined>()
-  const [statusFilter, setStatusFilter] = useState<string | undefined>()
-
-  // Dropdown open states
-  const [ddCaseNo, setDdCaseNo] = useState(false)
-  const [ddClaimNo, setDdClaimNo] = useState(false)
-  const [ddBranch, setDdBranch] = useState(false)
-  const [ddAccident, setDdAccident] = useState(false)
-  const [ddClaim, setDdClaim] = useState(false)
-  const [ddNode, setDdNode] = useState(false)
-  const [ddStatus, setDdStatus] = useState(false)
-
-  // Close all dropdowns on outside click
-  React.useEffect(() => {
-    const handler = () => {
-      setDdCaseNo(false); setDdClaimNo(false); setDdBranch(false)
-      setDdAccident(false); setDdClaim(false); setDdNode(false); setDdStatus(false)
-    }
-    if (ddCaseNo || ddClaimNo || ddBranch || ddAccident || ddClaim || ddNode || ddStatus) {
-      setTimeout(() => document.addEventListener('click', handler), 0)
-      return () => document.removeEventListener('click', handler)
-    }
-  }, [ddCaseNo, ddClaimNo, ddBranch, ddAccident, ddClaim, ddNode, ddStatus])
-
-  const FilterDropdown: React.FC<{
-    open: boolean; onToggle: () => void; onClose: () => void
-    value: string | undefined; options: { label: string; value: string }[]
-    onSelect: (v: string | undefined) => void; placeholder: string
-  }> = ({ open, onToggle, onClose, value, options, onSelect, placeholder }) => {
-    const displayLabel = value ? options.find(o => o.value === value)?.label : placeholder
-    return (
-      <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggle(); }}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            width: 120, height: 32, padding: '0 10px',
-            border: '1px solid #e5e7eb', borderRadius: 10,
-            background: '#fff', fontSize: 14,
-            color: value ? '#374151' : '#374151',
-            cursor: 'pointer',
-            boxSizing: 'border-box',
-          }}
-        >
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{displayLabel}</span>
-          {CHEVRON_DOWN}
-        </button>
-        {open && (
-          <div style={{
-            position: 'absolute', top: '100%', left: 0, marginTop: 4,
-            minWidth: 120, background: '#fff', border: '1px solid #e5e7eb',
-            borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-            maxHeight: 240, overflow: 'auto', zIndex: 10,
-          }}>
-            {options.map(opt => (
-              <div
-                key={opt.value}
-                onClick={() => { onSelect(value === opt.value ? undefined : opt.value); onClose(); }}
-                style={{
-                  padding: '6px 14px', fontSize: 14, cursor: 'pointer',
-                  background: value === opt.value ? '#e6f4ff' : 'transparent',
-                  color: value === opt.value ? '#1677ff' : '#475569',
-                  fontWeight: value === opt.value ? 600 : 400,
-                }}
-                onMouseEnter={e => { if (value !== opt.value) e.currentTarget.style.background = '#f8fafc' }}
-                onMouseLeave={e => { if (value !== opt.value) e.currentTarget.style.background = 'transparent' }}
-              >
-                {opt.label}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    )
-  }
+  const [caseNoFilter, setCaseNoFilter] = useState('')
+  const [claimNoFilter, setClaimNoFilter] = useState('')
+  const [branchFilter, setBranchFilter] = useState('')
+  const [accidentDateFilter, setAccidentDateFilter] = useState('')
+  const [claimDateFilter, setClaimDateFilter] = useState('')
+  const [nodeFilter, setNodeFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
   const filteredData = React.useMemo(() => {
     return MOCK_CASES.filter(r =>
-      (!caseNoFilter || r.caseNo === caseNoFilter) &&
-      (!claimNoFilter || r.claimNo === claimNoFilter) &&
-      (!branchFilter || r.branch === branchFilter) &&
-      (!accidentDateFilter || r.accidentDate === accidentDateFilter) &&
-      (!claimDateFilter || r.claimDate === claimDateFilter) &&
-      (!nodeFilter || r.currentNode === nodeFilter) &&
-      (!statusFilter || r.status === statusFilter)
+      (!caseNoFilter || r.caseNo.includes(caseNoFilter)) &&
+      (!claimNoFilter || r.claimNo.includes(claimNoFilter)) &&
+      (!branchFilter || r.branch.includes(branchFilter)) &&
+      (!accidentDateFilter || r.accidentDate.includes(accidentDateFilter)) &&
+      (!claimDateFilter || r.claimDate.includes(claimDateFilter)) &&
+      (!nodeFilter || r.currentNode.includes(nodeFilter)) &&
+      (!statusFilter || r.status.includes(statusFilter))
     )
   }, [caseNoFilter, claimNoFilter, branchFilter, accidentDateFilter, claimDateFilter, nodeFilter, statusFilter])
 
   const pagedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const clearFilters = () => {
-    setCaseNoFilter(undefined)
-    setClaimNoFilter(undefined)
-    setBranchFilter(undefined)
-    setAccidentDateFilter(undefined)
-    setClaimDateFilter(undefined)
-    setNodeFilter(undefined)
-    setStatusFilter(undefined)
+    setCaseNoFilter('')
+    setClaimNoFilter('')
+    setBranchFilter('')
+    setAccidentDateFilter('')
+    setClaimDateFilter('')
+    setNodeFilter('')
+    setStatusFilter('')
     setCurrentPage(1)
   }
 
@@ -359,9 +267,8 @@ const MetricsClaims: React.FC = () => {
   ]
 
   const expandedRowRender = (record: CaseRecord) => {
-    const trajectory = flowDataMap[record.caseNo]
-    if (!trajectory) return <div style={{ padding: '16px', color: '#999', textAlign: 'center' }}>暂无流程轨迹数据</div>
-    return <FlowTrajectoryGraph trajectory={trajectory} />
+    const trajectory = generateFlowTrajectory(record.caseNo, record.status)
+    return <FlowTrajectoryGraph trajectory={trajectory} caseNo={record.caseNo} />
   }
 
   return (
@@ -396,7 +303,7 @@ const MetricsClaims: React.FC = () => {
         <span style={titleTextStyle}>案件清单</span>
       </div>
 
-      {/* 筛选区 */}
+      {/* 查询区 */}
       <div style={{
         display: 'flex',
         flexWrap: 'wrap',
@@ -404,58 +311,56 @@ const MetricsClaims: React.FC = () => {
         marginBottom: 16,
         alignItems: 'center',
       }}>
-        <FilterDropdown
-          open={ddCaseNo} onToggle={() => setDdCaseNo(!ddCaseNo)} onClose={() => setDdCaseNo(false)}
-          value={caseNoFilter} options={MOCK_CASES.map(c => ({ label: c.caseNo, value: c.caseNo }))}
-          onSelect={v => { setCaseNoFilter(v); setCurrentPage(1) }} placeholder="案件号"
+        <Input
+          placeholder="案件号"
+          value={caseNoFilter}
+          onChange={e => { setCaseNoFilter(e.target.value); setCurrentPage(1) }}
+          allowClear
+          style={{ width: 140 }}
         />
-        <FilterDropdown
-          open={ddClaimNo} onToggle={() => setDdClaimNo(!ddClaimNo)} onClose={() => setDdClaimNo(false)}
-          value={claimNoFilter} options={MOCK_CASES.map(c => ({ label: c.claimNo, value: c.claimNo }))}
-          onSelect={v => { setClaimNoFilter(v); setCurrentPage(1) }} placeholder="索赔号"
+        <Input
+          placeholder="索赔号"
+          value={claimNoFilter}
+          onChange={e => { setClaimNoFilter(e.target.value); setCurrentPage(1) }}
+          allowClear
+          style={{ width: 140 }}
         />
-        <FilterDropdown
-          open={ddBranch} onToggle={() => setDdBranch(!ddBranch)} onClose={() => setDdBranch(false)}
-          value={branchFilter} options={ALL_BRANCHES.map(b => ({ label: b, value: b }))}
-          onSelect={v => { setBranchFilter(v); setCurrentPage(1) }} placeholder="分公司"
+        <Input
+          placeholder="分公司"
+          value={branchFilter}
+          onChange={e => { setBranchFilter(e.target.value); setCurrentPage(1) }}
+          allowClear
+          style={{ width: 130 }}
         />
-        <FilterDropdown
-          open={ddAccident} onToggle={() => setDdAccident(!ddAccident)} onClose={() => setDdAccident(false)}
-          value={accidentDateFilter} options={[...new Set(MOCK_CASES.map(c => c.accidentDate))].map(d => ({ label: d, value: d }))}
-          onSelect={v => { setAccidentDateFilter(v); setCurrentPage(1) }} placeholder="出险日期"
+        <Input
+          placeholder="出险日期"
+          value={accidentDateFilter}
+          onChange={e => { setAccidentDateFilter(e.target.value); setCurrentPage(1) }}
+          allowClear
+          style={{ width: 120 }}
         />
-        <FilterDropdown
-          open={ddClaim} onToggle={() => setDdClaim(!ddClaim)} onClose={() => setDdClaim(false)}
-          value={claimDateFilter} options={[...new Set(MOCK_CASES.map(c => c.claimDate))].map(d => ({ label: d, value: d }))}
-          onSelect={v => { setClaimDateFilter(v); setCurrentPage(1) }} placeholder="索赔日期"
+        <Input
+          placeholder="索赔日期"
+          value={claimDateFilter}
+          onChange={e => { setClaimDateFilter(e.target.value); setCurrentPage(1) }}
+          allowClear
+          style={{ width: 120 }}
         />
-        <FilterDropdown
-          open={ddNode} onToggle={() => setDdNode(!ddNode)} onClose={() => setDdNode(false)}
-          value={nodeFilter} options={ALL_NODES.map(n => ({ label: n, value: n }))}
-          onSelect={v => { setNodeFilter(v); setCurrentPage(1) }} placeholder="当前节点"
+        <Input
+          placeholder="当前节点"
+          value={nodeFilter}
+          onChange={e => { setNodeFilter(e.target.value); setCurrentPage(1) }}
+          allowClear
+          style={{ width: 130 }}
         />
-        <FilterDropdown
-          open={ddStatus} onToggle={() => setDdStatus(!ddStatus)} onClose={() => setDdStatus(false)}
-          value={statusFilter} options={ALL_STATUSES.map(s => ({ label: s.text, value: s.value }))}
-          onSelect={v => { setStatusFilter(v); setCurrentPage(1) }} placeholder="状态"
+        <Input
+          placeholder="状态"
+          value={statusFilter}
+          onChange={e => { setStatusFilter(e.target.value); setCurrentPage(1) }}
+          allowClear
+          style={{ width: 100 }}
         />
-        <button
-          onClick={clearFilters}
-          style={{
-            border: '1px solid #e5e7eb',
-            borderRadius: 10,
-            height: 32,
-            padding: '0 14px',
-            fontSize: 14,
-            cursor: 'pointer',
-            background: '#fff',
-            color: '#374151',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          重置
-        </button>
+        <Button onClick={clearFilters}>重置</Button>
       </div>
 
       <Table
