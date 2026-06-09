@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import * as echarts from 'echarts'
 import type { EChartsOption } from 'echarts'
-import { DatePicker } from 'antd'
+import { DatePicker, Select } from 'antd'
 import dayjs, { Dayjs } from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 dayjs.extend(weekOfYear)
@@ -111,7 +111,6 @@ const CaseProcessingChart: React.FC = () => {
   const chartInstance = useRef<echarts.ECharts | null>(null)
   const [currentMetric, setCurrentMetric] = useState('tokens')
   const [granularity, setGranularity] = useState<PeriodType>('day')
-  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>([dayjs('2026-04-01'), dayjs('2026-04-30')])
 
   React.useEffect(() => {
@@ -235,48 +234,17 @@ const CaseProcessingChart: React.FC = () => {
           智能体案件处理情况趋势图
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                width: 64, height: 32, padding: '0 10px',
-                border: '1px solid #e5e7eb', borderRadius: 10,
-                background: '#fff', fontSize: 14, color: '#374151',
-                cursor: 'pointer',
-                boxSizing: 'border-box',
-              }}
-            >
-              <span>{periodLabels[granularity]}</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-            {dropdownOpen && (
-              <div style={{
-                position: 'absolute', top: '100%', left: 0, marginTop: 4,
-                width: 64, background: '#fff', border: '1px solid #e5e7eb',
-                borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                overflow: 'hidden', zIndex: 10,
-              }}>
-                {(['day', 'week', 'month'] as const).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => { setGranularity(p); setDropdownOpen(false) }}
-                    style={{
-                      width: '100%', padding: '6px 0', textAlign: 'center',
-                      fontSize: 14, border: 'none', cursor: 'pointer',
-                      background: granularity === p ? '#e6f4ff' : 'transparent',
-                      color: granularity === p ? '#1677ff' : '#374151',
-                      fontWeight: granularity === p ? 600 : 400,
-                    }}
-                  >
-                    {periodLabels[p]}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <Select
+            value={granularity}
+            onChange={setGranularity}
+            options={[
+              { label: '按天', value: 'day' },
+              { label: '按周', value: 'week' },
+              { label: '按月', value: 'month' },
+            ]}
+            style={{ width: 72 }}
+            rootClassName="filter-select"
+          />
           <DatePicker.RangePicker
             value={dateRange}
             onChange={(values) => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Row, Col, Table, Tag, Pagination, Input, Button } from 'antd'
+import { Row, Col, Table, Tag, Pagination, Input, Button, Select } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import MetricCard from '../../dashboard/components/smart-services/metric-card'
 import CaseProcessingChart from '../../dashboard/components/smart-services/case-processing-chart'
@@ -346,19 +346,33 @@ const MetricsClaims: React.FC = () => {
           allowClear
           style={{ width: 120 }}
         />
-        <Input
-          placeholder="当前节点"
-          value={nodeFilter}
-          onChange={e => { setNodeFilter(e.target.value); setCurrentPage(1) }}
+        <Select
+          placeholder="当前所处节点"
+          value={nodeFilter || undefined}
+          onChange={val => { setNodeFilter(val || ''); setCurrentPage(1) }}
           allowClear
+          options={[
+            { label: '采集智能体', value: '采集智能体' },
+            { label: '立案智能体', value: '立案智能体' },
+            { label: '理算智能体', value: '理算智能体' },
+            { label: '扣费智能体', value: '扣费智能体' },
+            { label: '审核智能体', value: '审核智能体' },
+          ]}
           style={{ width: 130 }}
+          rootClassName="filter-select"
         />
-        <Input
+        <Select
           placeholder="状态"
-          value={statusFilter}
-          onChange={e => { setStatusFilter(e.target.value); setCurrentPage(1) }}
+          value={statusFilter || undefined}
+          onChange={val => { setStatusFilter(val || ''); setCurrentPage(1) }}
           allowClear
+          options={[
+            { label: '处理中', value: 'processing' },
+            { label: '已完成', value: 'completed' },
+            { label: '异常', value: 'exception' },
+          ]}
           style={{ width: 100 }}
+          rootClassName="filter-select"
         />
         <Button onClick={clearFilters}>重置</Button>
       </div>
