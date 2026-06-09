@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import ChinaMapPanel from './components/ChinaMapPanel'
 import CityStatsTable from './components/CityStatsTable'
 import ScrollingCases from './components/ScrollingCases'
-import { claimsKnowledge, underwritingKnowledge } from '../../dashboard/data/mock-data'
 
 // ========== Mock: 数据资产总览（理赔&核保各4大类） ==========
 const DATA_ASSETS = {
@@ -20,26 +19,40 @@ const DATA_ASSETS = {
   ],
 }
 
-// ========== Mock: 高频知识 Top 10（带分类标签） ==========
-const TOP_CLAIMS_KNOWLEDGE = claimsKnowledge.groups.flatMap(g =>
-  g.items.slice(0, 2).map(item => ({ name: item.name, category: g.name, count: item.count }))
-).slice(0, 10)
-
-const TOP_UNDERWRITING_KNOWLEDGE = underwritingKnowledge.groups.flatMap(g =>
-  g.items.slice(0, 2).map(item => ({ name: item.name, category: g.name, count: item.count }))
-).slice(0, 10)
-
-const CATEGORY_COLOR: Record<string, string> = {
-  '产品责任': '#3b82f6',
-  '立案规则': '#10b981',
-  '理算规则': '#f59e0b',
-  '免赔结算': '#ef4444',
-  '风控审核': '#8b5cf6',
-  '医学知识': '#3b82f6',
-  '核保标准': '#10b981',
-  '评点规则': '#f59e0b',
-  '操作规则': '#ef4444',
+// ========== Mock: 知识调用排行 Top 10（与"数据共享-知识&规则"的 TopKnowledgeList 数据完全一致 + 分类标签） ==========
+interface KnowledgeRankingItem {
+  name: string
+  category: string
+  count: number
 }
+
+// 理赔模式：与 TopKnowledgeList defaultData 完全一致
+const TOP_CLAIMS_KNOWLEDGE: KnowledgeRankingItem[] = [
+  { name: '甲状腺结节核保指南 v2.1', category: '医学知识', count: 45430 },
+  { name: '2024版国家医保目录剔除规则', category: '免赔结算', count: 38210 },
+  { name: '急性阑尾炎标准住院天数限制', category: '理算规则', count: 35600 },
+  { name: '高血压II期并发症判定逻辑', category: '医学知识', count: 26320 },
+  { name: '门诊统筹起付线扣减规则', category: '理算规则', count: 15100 },
+  { name: '骨折内固定器材合理费用标准', category: '理算规则', count: 14900 },
+  { name: '重症确诊报告必须专项检查', category: '产品责任', count: 8200 },
+  { name: '意外身故置方案件性质要求', category: '立案规则', count: 6500 },
+  { name: '乳腺癌特定靶向药赔付目录', category: '产品责任', count: 5100 },
+  { name: '异地就医结算比例换算公式', category: '免赔结算', count: 4400 },
+]
+
+// 核保模式：与 shared/knowledge-rules 的 underwritingTopKnowledge 完全一致
+const TOP_UNDERWRITING_KNOWLEDGE: KnowledgeRankingItem[] = [
+  { name: '甲状腺结节核保指南 v2.1', category: '医学知识', count: 45430 },
+  { name: '高血压III期拒保标准', category: '核保标准', count: 38210 },
+  { name: '糖尿病并发症加费规则', category: '评点规则', count: 35600 },
+  { name: '乳腺结节BI-RADS分级核保', category: '核保标准', count: 26320 },
+  { name: 'BMI超重加费计算表', category: '评点规则', count: 15100 },
+  { name: '既往症等待期认定规则', category: '操作规则', count: 14900 },
+  { name: '职业分类风险等级对照表', category: '医学知识', count: 8200 },
+  { name: '高保额财务核保指引', category: '核保标准', count: 6500 },
+  { name: '未成年人身故保额限制', category: '操作规则', count: 5100 },
+  { name: '境外人士核保政策说明', category: '操作规则', count: 4400 },
+]
 
 // ========== 白色主题 ==========
 const cardStyle: React.CSSProperties = {
@@ -58,12 +71,16 @@ const sectionLabel = (text: string) => (
   </div>
 )
 
-const tabBtnStyle = (active: boolean): React.CSSProperties => ({
-  padding: '2px 14px', borderRadius: 12, border: 'none',
-  background: active ? '#eff6ff' : 'transparent',
-  color: active ? '#3b82f6' : '#6b7280',
-  fontSize: 11, fontWeight: active ? 600 : 400,
+const segTabStyle: React.CSSProperties = {
+  display: 'inline-flex', borderRadius: 10, border: '1px solid #e5e7eb',
+  background: '#f9fafb', overflow: 'hidden', flexShrink: 0,
+}
+const segTabBtn = (active: boolean): React.CSSProperties => ({
+  padding: '3px 14px', border: 'none', background: active ? '#fff' : 'transparent',
+  color: active ? '#3b82f6' : '#1d2937',
+  fontSize: 12, fontWeight: active ? 600 : 400,
   cursor: 'pointer', transition: 'all 0.2s',
+  boxShadow: active ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
 })
 
 // ========== 板块：数据资产总览 ==========
@@ -75,9 +92,9 @@ const DataAssetsSection: React.FC = () => {
     <div style={{ ...cardStyle, padding: '10px 14px', flex: 1 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         {sectionLabel('数据资产总览')}
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={segTabStyle}>
           {(['claims', 'underwriting'] as const).map(d => (
-            <button key={d} onClick={() => setDomain(d)} style={tabBtnStyle(domain === d)}>
+            <button key={d} onClick={() => setDomain(d)} style={segTabBtn(domain === d)}>
               {d === 'claims' ? '理赔' : '核保'}
             </button>
           ))}
@@ -105,55 +122,81 @@ const DataAssetsSection: React.FC = () => {
   )
 }
 
-// ========== 板块：知识调用排行 ==========
+// ========== 板块：知识调用排行（1:1 复刻 TopKnowledgeList 进度条样式 + 分类标签） ==========
 const KnowledgeSection: React.FC = () => {
   const [domain, setDomain] = useState<'claims' | 'underwriting'>('claims')
   const data = domain === 'claims' ? TOP_CLAIMS_KNOWLEDGE : TOP_UNDERWRITING_KNOWLEDGE
+  const maxCalls = data[0]?.count || 1
 
   return (
     <div style={{ ...cardStyle, padding: '10px 14px', flex: 1 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        {sectionLabel('知识调用排行')}
-        <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 4, height: 18, background: '#3b82f6', borderRadius: 10 }} />
+          <span style={{ fontSize: 15, fontWeight: 700, color: '#1f2937' }}>知识调用排行</span>
+        </div>
+        <div style={segTabStyle}>
           {(['claims', 'underwriting'] as const).map(d => (
-            <button key={d} onClick={() => setDomain(d)} style={tabBtnStyle(domain === d)}>
+            <button key={d} onClick={() => setDomain(d)} style={segTabBtn(domain === d)}>
               {d === 'claims' ? '理赔' : '核保'}
             </button>
           ))}
         </div>
       </div>
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        {data.map((item, idx) => (
-          <div key={idx} style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            padding: '6px 12px', borderRadius: 6,
-            background: idx % 2 === 0 ? 'transparent' : '#f9fafb',
-            fontSize: 12, color: '#374151',
-          }}>
-            <span style={{
-              width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: idx < 3 ? '#eff6ff' : '#f3f4f6',
-              color: idx < 3 ? '#3b82f6' : '#9ca3af',
-              fontSize: 11, fontWeight: 700,
+      <div style={{ flex: 1, overflow: 'auto', paddingRight: 6 }}>
+        {data.map((item, idx) => {
+          const percentage = (item.count / maxCalls) * 100
+          const isTop = idx < 3
+          return (
+            <div key={item.name} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              marginBottom: 10,
             }}>
-              {idx + 1}
-            </span>
-            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
-              {item.name}
-            </span>
-            <span style={{
-              flexShrink: 0, padding: '1px 8px', borderRadius: 10, fontSize: 10, fontWeight: 500,
-              background: `${CATEGORY_COLOR[item.category] || '#9ca3af'}15`,
-              color: CATEGORY_COLOR[item.category] || '#9ca3af',
-            }}>
-              {item.category}
-            </span>
-            <span style={{ flexShrink: 0, color: '#9ca3af', fontSize: 11 }}>
-              {item.count.toLocaleString()} 次
-            </span>
-          </div>
-        ))}
+              {/* 排名徽章 */}
+              <span style={{
+                width: 22, height: 22, borderRadius: 16, flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: isTop ? '#fff7ed' : '#f3f4f6',
+                color: isTop ? '#ea580c' : '#6b7280',
+                fontSize: 11, fontWeight: 700,
+              }}>
+                {idx + 1}
+              </span>
+              {/* 文档名称 + 进度条 */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  {/* 分类标签 pill（未选中态朴素样式） */}
+                  <span style={{
+                    flexShrink: 0, padding: '1px 8px', borderRadius: 10, fontSize: 10, fontWeight: 500,
+                    background: '#fff', color: '#374151', border: '1px solid #d9d9d9',
+                  }}>
+                    {item.category}
+                  </span>
+                  <span style={{
+                    flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    fontSize: 12, fontWeight: 500, color: '#374151',
+                  }}>
+                    {item.name}
+                  </span>
+                  <span style={{
+                    flexShrink: 0, fontSize: 11, color: '#6b7280', marginLeft: 4,
+                  }}>
+                    {item.count.toLocaleString()} 次
+                  </span>
+                </div>
+                {/* 进度条 */}
+                <div style={{
+                  height: 5, width: '100%', background: '#f3f4f6', borderRadius: 10, overflow: 'hidden',
+                }}>
+                  <div style={{
+                    height: '100%', width: `${percentage}%`, borderRadius: 10,
+                    background: isTop ? '#fb923c' : '#60a5fa',
+                  }} />
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -210,7 +253,7 @@ const BusinessOverview: React.FC = () => {
         </div>
 
         {/* 中列：全国案件处理情况（最宽，占满全高） */}
-        <div style={{ flex: 1.8, minWidth: 0, display: 'flex', flexDirection: 'column', padding: '0px 6px 6px' }}>
+        <div style={{ flex: 1.8, minWidth: 0, display: 'flex', flexDirection: 'column'}}>
           <div style={{ ...cardStyle, flex: 1, padding: '10px 6px 6px' }}>
             {sectionLabel('全国案件处理情况')}
             <div style={{ flex: 1, minHeight: 0, padding: '0px 6px 6px' }}>
