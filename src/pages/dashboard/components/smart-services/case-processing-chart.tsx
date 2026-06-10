@@ -103,7 +103,6 @@ function generateMockData(metricId: string, period: PeriodType, start: Dayjs, en
   })
 }
 
-const periodLabels: Record<PeriodType, string> = { day: '按天', week: '按周', month: '按月' }
 type PeriodType = 'day' | 'week' | 'month'
 
 const CaseProcessingChart: React.FC = () => {
