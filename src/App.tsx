@@ -10,6 +10,8 @@ import SharedDataAssets from './pages/shared/data-assets'
 import SharedKnowledgeRules from './pages/shared/knowledge-rules'
 import SharedSkillsMarket from './pages/shared/skills'
 import SkillDetail from './pages/shared/skill-detail'
+import AgentClaimsLogs from './pages/agent/claims/logs'
+import AgentClaimsTaskDetail from './pages/agent/claims/task-detail'
 
 const PagePlaceholder: React.FC = () => (
   <div style={{ padding: 24, color: '#8c8c8c' }}>页面开发中</div>
@@ -29,7 +31,8 @@ const App: React.FC = () => {
 
         {/* Agent运营 */}
         <Route path="agent/claims/overview" element={<PagePlaceholder />} />
-        <Route path="agent/claims/logs" element={<PagePlaceholder />} />
+        <Route path="agent/claims/logs" element={<AgentClaimsLogs />} />
+        <Route path="agent/claims/task-detail" element={<AgentClaimsTaskDetail />} />
         <Route path="agent/claims/case-analysis" element={<PagePlaceholder />} />
         <Route path="agent/underwriting/overview" element={<PagePlaceholder />} />
         <Route path="agent/underwriting/logs" element={<PagePlaceholder />} />

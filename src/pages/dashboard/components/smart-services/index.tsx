@@ -21,7 +21,7 @@ const SmartServices: React.FC<{ agents?: SmartAgent[] }> = ({ agents }) => {
           borderRadius: 10,
           marginRight: 10,
         }} />
-        <span style={{ fontSize: 17, fontWeight: 700, color: '#1f2937' }}>智能服务</span>
+        <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>智能服务</span>
         <span style={{
           display: 'inline-flex',
           alignItems: 'center',

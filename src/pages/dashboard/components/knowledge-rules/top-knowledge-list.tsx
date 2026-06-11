@@ -39,7 +39,7 @@ const TopKnowledgeList: React.FC<{ data?: TopKnowledgeItem[] }> = ({ data: propD
           borderRadius: 10,
           marginRight: 10,
         }} />
-        <span style={{ fontSize: 17, fontWeight: 700, color: '#1f2937' }}>
+        <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>
           高频调用知识 & 规则 Top 10
         </span>
       </div>

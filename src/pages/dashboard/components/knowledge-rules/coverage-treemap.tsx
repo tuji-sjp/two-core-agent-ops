@@ -65,7 +65,7 @@ const CoverageTreemap: React.FC<{ data?: CoverageSceneItem[] }> = ({ data: propD
           borderRadius: 10,
           marginRight: 10,
         }} />
-        <span style={{ fontSize: 17, fontWeight: 700, color: '#1f2937' }}>
+        <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>
           覆盖场景分布
         </span>
       </div>

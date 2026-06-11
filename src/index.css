@@ -155,8 +155,12 @@ body {
 .ant-pagination .ant-pagination-jump-next {
   font-size: 12px !important;
 }
+.ant-pagination .ant-pagination-options-quick-jumper {
+  font-size: 12px !important;
+}
 .ant-pagination .ant-pagination-options-quick-jumper input {
   font-size: 12px !important;
+  height: 24px !important;
 }
 
 /* Filter select - same style as pagination size changer, but 32px height, 6px radius, 14px font */
@@ -200,4 +204,10 @@ body {
 /* DatePicker selected range text color */
 .ant-picker-input > input {
   color: #000000e0 !important;
+}
+
+/* Flow trajectory node Popover */
+.node-call-popover .ant-popover-inner {
+  padding: 0 !important;
+  border-radius: 8px !important;
 }

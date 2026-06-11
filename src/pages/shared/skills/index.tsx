@@ -44,27 +44,28 @@ interface SkillItem {
   updated: string
   category: string
   version: string
+  publisher: string
 }
 
 const allSkills: SkillItem[] = [
-  { name: '票据OCR识别', description: '智能识别并提取发票、收据中的关键字段信息，支持多版式票据的自动识别与结构化输出', likes: 18, downloads: '1.2K', updated: '3天前更新', category: 'OCR识别', version: 'v1.2.0' },
-  { name: '医疗文档OCR识别', description: '自动识别病历、检验报告等医疗文档内容，提取关键诊断指标和检验数据', likes: 32, downloads: '2.1K', updated: '5天前更新', category: 'OCR识别', version: 'v2.0.1' },
-  { name: '身份证OCR识别', description: '身份证正反面信息自动识别与校验，支持批量处理和真伪验证', likes: 45, downloads: '3.4K', updated: '2天前更新', category: 'OCR识别', version: 'v1.5.3' },
-  { name: '网页数据采集', description: '基于规则的网页数据采集工具，支持增量抓取、去重和结构化存储', likes: 27, downloads: '1.8K', updated: '7天前更新', category: '数据采集', version: 'v1.0.8' },
-  { name: 'API数据同步', description: '多源 API 数据同步聚合，支持定时任务、数据转换和异常重试机制', likes: 15, downloads: '980', updated: '4天前更新', category: '数据采集', version: 'v0.9.2' },
-  { name: '日志采集', description: '分布式日志采集与聚合，支持多数据源接入、实时解析和异常检测', likes: 22, downloads: '1.5K', updated: '6天前更新', category: '数据采集', version: 'v1.1.0' },
-  { name: '理赔案件自动立案', description: '理赔案件自动立案，根据报案信息智能匹配保险条款，完成责任初判', likes: 56, downloads: '4.2K', updated: '1天前更新', category: '立案定责', version: 'v2.3.0' },
-  { name: '理赔责任判定', description: '基于知识图谱的理赔责任智能判定，覆盖多险种责任竞合场景', likes: 41, downloads: '2.8K', updated: '3天前更新', category: '立案定责', version: 'v1.8.4' },
-  { name: '理赔欺诈检测', description: '理赔欺诈风险智能检测，基于行为模式和关联分析识别可疑案件', likes: 63, downloads: '5.1K', updated: '2天前更新', category: '立案定责', version: 'v3.1.0' },
-  { name: '健康告知评估', description: '健康告知智能评估，自动识别异常告知项并给出核保建议', likes: 38, downloads: '2.6K', updated: '4天前更新', category: '核保评估', version: 'v1.4.2' },
-  { name: '风险智能定价', description: '基于多维度风险因子的智能定价，支持次标准体加费计算和拒保决策', likes: 29, downloads: '1.9K', updated: '5天前更新', category: '核保评估', version: 'v0.7.5' },
-  { name: '体检报告解读', description: '体检报告智能解读，对照核保手册自动给出风险评估和加费建议', likes: 47, downloads: '3.3K', updated: '3天前更新', category: '核保评估', version: 'v2.0.0' },
+  { name: '票据OCR识别', description: '智能识别并提取发票、收据中的关键字段信息，支持多版式票据的自动识别与结构化输出', likes: 18, downloads: '1.2K', updated: '3天前更新', category: 'OCR识别', version: 'v1.2.0', publisher: '科技部-何军' },
+  { name: '医疗文档OCR识别', description: '自动识别病历、检验报告等医疗文档内容，提取关键诊断指标和检验数据', likes: 32, downloads: '2.1K', updated: '5天前更新', category: 'OCR识别', version: 'v2.0.1', publisher: '科技部-张伟' },
+  { name: '身份证OCR识别', description: '身份证正反面信息自动识别与校验，支持批量处理和真伪验证', likes: 45, downloads: '3.4K', updated: '2天前更新', category: 'OCR识别', version: 'v1.5.3', publisher: '科技部-何军' },
+  { name: '网页数据采集', description: '基于规则的网页数据采集工具，支持增量抓取、去重和结构化存储', likes: 27, downloads: '1.8K', updated: '7天前更新', category: '数据采集', version: 'v1.0.8', publisher: '数据部-陈静' },
+  { name: 'API数据同步', description: '多源 API 数据同步聚合，支持定时任务、数据转换和异常重试机制', likes: 15, downloads: '980', updated: '4天前更新', category: '数据采集', version: 'v0.9.2', publisher: '数据部-陈静' },
+  { name: '日志采集', description: '分布式日志采集与聚合，支持多数据源接入、实时解析和异常检测', likes: 22, downloads: '1.5K', updated: '6天前更新', category: '数据采集', version: 'v1.1.0', publisher: '数据部-刘伟' },
+  { name: '理赔案件自动立案', description: '理赔案件自动立案，根据报案信息智能匹配保险条款，完成责任初判', likes: 56, downloads: '4.2K', updated: '1天前更新', category: '立案定责', version: 'v2.3.0', publisher: '理赔部-马丽' },
+  { name: '理赔责任判定', description: '基于知识图谱的理赔责任智能判定，覆盖多险种责任竞合场景', likes: 41, downloads: '2.8K', updated: '3天前更新', category: '立案定责', version: 'v1.8.4', publisher: '理赔部-何军' },
+  { name: '理赔欺诈检测', description: '理赔欺诈风险智能检测，基于行为模式和关联分析识别可疑案件', likes: 63, downloads: '5.1K', updated: '2天前更新', category: '立案定责', version: 'v3.1.0', publisher: '风控部-杨刚' },
+  { name: '健康告知评估', description: '健康告知智能评估，自动识别异常告知项并给出核保建议', likes: 38, downloads: '2.6K', updated: '4天前更新', category: '核保评估', version: 'v1.4.2', publisher: '核保部-赵强' },
+  { name: '风险智能定价', description: '基于多维度风险因子的智能定价，支持次标准体加费计算和拒保决策', likes: 29, downloads: '1.9K', updated: '5天前更新', category: '核保评估', version: 'v0.7.5', publisher: '精算部-孙涛' },
+  { name: '体检报告解读', description: '体检报告智能解读，对照核保手册自动给出风险评估和加费建议', likes: 47, downloads: '3.3K', updated: '3天前更新', category: '核保评估', version: 'v2.0.0', publisher: '核保部-王芳' },
 ]
 
 // 个人 Skills mock 数据（公共 Skills 的子集）
 const mySkills: SkillItem[] = [
-  { name: '理赔案件自动立案', description: '理赔案件自动立案，根据报案信息智能匹配保险条款，完成责任初判', likes: 56, downloads: '4.2K', updated: '1天前更新', category: '立案定责', version: 'v2.3.0' },
-  { name: '体检报告解读', description: '体检报告智能解读，对照核保手册自动给出风险评估和加费建议', likes: 47, downloads: '3.3K', updated: '3天前更新', category: '核保评估', version: 'v2.0.0' },
+  { name: '理赔案件自动立案', description: '理赔案件自动立案，根据报案信息智能匹配保险条款，完成责任初判', likes: 56, downloads: '4.2K', updated: '1天前更新', category: '立案定责', version: 'v2.3.0', publisher: '理赔部-马丽' },
+  { name: '体检报告解读', description: '体检报告智能解读，对照核保手册自动给出风险评估和加费建议', likes: 47, downloads: '3.3K', updated: '3天前更新', category: '核保评估', version: 'v2.0.0', publisher: '核保部-王芳' },
 ]
 
 const LOAD_COUNT = 9
@@ -172,9 +173,12 @@ const MySkillCard: React.FC<{
         </div>
       </div>
 
-      {/* 版本号 + 查看详情 */}
+      {/* 版本号 + 发布者 + 查看详情 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, color: '#6b7280' }}>
-        <span style={{ fontSize: 12, color: '#9ca3af' }}>{skill.version}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 12, color: '#9ca3af' }}>{skill.version}</span>
+          <span style={{ fontSize: 12, color: '#9ca3af' }}>{skill.publisher}</span>
+        </div>
         <span onClick={() => navigate(`/skills/skill/${encodeURIComponent(skill.name)}`)} style={{ color: '#3b82f6', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
           查看详情 &gt;
         </span>
@@ -206,9 +210,12 @@ const PublicSkillCard: React.FC<{
         </div>
       </div>
 
-      {/* 版本号 + 收藏 + 更新时间 */}
+      {/* 版本号 + 发布者 + 收藏 + 更新时间 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, color: '#9ca3af' }}>
-        <span>{skill.version}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>{skill.version}</span>
+          <span>{skill.publisher}</span>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span onClick={(e) => { e.stopPropagation(); onToggleLike() }} style={{ display: 'flex', alignItems: 'center', gap: 3, cursor: 'pointer' }}>
             <StarOutlined style={{ fontSize: 13, color: liked ? '#f59e0b' : '#9ca3af' }} />
@@ -262,7 +269,7 @@ const SharedSkillsMarket: React.FC = () => {
     width: 4, height: 20, background: '#3b82f6', borderRadius: 10, marginRight: 10,
   }
   const titleTextStyle: React.CSSProperties = {
-    fontSize: 17, fontWeight: 700, color: '#1f2937',
+    fontSize: 18, fontWeight: 700, color: '#1f2937',
   }
 
   return (
@@ -274,13 +281,13 @@ const SharedSkillsMarket: React.FC = () => {
       {/* <div>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, marginTop: 10 }}>
           <div style={titleBarStyle} />
-          <span style={{ fontSize: 17, fontWeight: 700, color: '#1f2937' }}>最佳实践</span>
+          <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>最佳实践</span>
         </div>
         <UseCaseCarousel />
       </div> */}
 
       {/* ===== 我的 Skills ===== */}
-      <div style={{ marginTop: 30 }}>
+      <div style={{ marginTop: 10 }}>
         <div style={{ ...titleStyle, marginTop: 0 }}>
           <div style={titleBarStyle} />
           <span style={titleTextStyle}>我的 Skills</span>
@@ -302,7 +309,7 @@ const SharedSkillsMarket: React.FC = () => {
       </div>
 
       {/* ===== 公共 Skills ===== */}
-      <div style={{ marginTop: 30 }}>
+      <div style={{ marginTop: 40 }}>
         <div style={{ ...titleStyle, marginTop: 0 }}>
           <div style={titleBarStyle} />
           <span style={titleTextStyle}>公共 Skills</span>
@@ -353,8 +360,8 @@ const SharedSkillsMarket: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
             <button onClick={loadMore} style={{
               padding: '8px 32px', border: '1px solid #e5e7eb', borderRadius: 20,
-              background: '#fff', color: '#374151', fontSize: 13, cursor: 'pointer',
-              fontWeight: 500,
+              background: '#fff', color: '#374151', fontSize: 14, cursor: 'pointer',
+              fontWeight: 400,
             }}>
               查看更多
             </button>

@@ -52,7 +52,7 @@ const SharedKnowledgeRules: React.FC = () => {
               onClick={() => setActiveTab(tab)}
               style={{
                 padding: '10px 24px',
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: active ? 600 : 400,
                 color: active ? '#1f2937' : '#8c8c8c',
                 cursor: 'pointer',

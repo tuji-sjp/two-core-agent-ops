@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Row, Col, Table, Tag, Pagination, Input, Button, Select } from 'antd'
+import { Row, Col, Table, Tag, Pagination, Input, Button, Select, Popover } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import MetricCard from '../../dashboard/components/smart-services/metric-card'
 import CaseProcessingChart from '../../dashboard/components/smart-services/case-processing-chart'
@@ -20,11 +20,10 @@ const METRICS_CLAIMS: { label: string; value: string }[] = [
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
   processing: { color: 'processing', text: '处理中' },
   completed: { color: 'success', text: '已完成' },
-  exception: { color: 'error', text: '异常' },
 }
 
 // ========== 流程轨迹类型 ==========
-type NodeStatus = 'processing' | 'completed' | 'exception'
+type NodeStatus = 'processing' | 'completed'
 
 interface FlowTrajectory {
   nodes: { label: string; status: NodeStatus }[]
@@ -33,7 +32,6 @@ interface FlowTrajectory {
 const STATUS_COLORS: Record<NodeStatus, string> = {
   processing: '#91caff',
   completed: '#95de64',
-  exception: '#ff7875',
 }
 
 const NODE_LABELS = ['开始', '采集', '立案', '理算', '扣费', '审核', '结束']
@@ -44,36 +42,168 @@ function generateFlowTrajectory(caseNo: string, status: string): FlowTrajectory 
   const nodes: { label: string; status: NodeStatus }[] = NODE_LABELS.map(label => ({ label, status: 'processing' as NodeStatus }))
 
   if (status === 'completed') {
-    // 已完成：全部节点已完成
     for (let i = 0; i < nodes.length; i++) nodes[i].status = 'completed'
-  } else if (status === 'processing') {
-    // 处理中：前 N 个已完成，其余未执行
-    const completedCount = 1 + (lastChar % 5) // 1~5 个已完成节点
+  } else {
+    const completedCount = 1 + (lastChar % 5)
     for (let i = 0; i < nodes.length; i++) {
       nodes[i].status = i <= completedCount ? 'completed' : 'processing'
-    }
-  } else if (status === 'exception') {
-    // 异常：前 N 个已完成 → 紧接着 1 个异常 → 之后全部未执行（顺序严格）
-    const completedCount = 2 + (lastChar % 3) // 2~4 个已完成节点
-    const exceptionIdx = completedCount // 异常节点紧跟在已完成节点之后
-    for (let i = 0; i < nodes.length; i++) {
-      if (i < completedCount) nodes[i].status = 'completed'
-      else if (i === exceptionIdx) nodes[i].status = 'exception'
-      else nodes[i].status = 'processing'
     }
   }
 
   return { nodes }
 }
 
-// ========== 流程轨迹图组件 ==========
-const NODE_R = 14
-const NODE_GAP = 74
-const SVG_W = NODE_LABELS.length * NODE_GAP + 20
-const SVG_H = 60
-const PENDING_COLOR = '#9ca3af'
+// ========== 节点调用记录 mock 数据 ==========
+interface CallRecord {
+  time: string
+  success: boolean
+}
 
-// mock 处理时长（秒级），keyed by caseNo -> nodeLabel，每个节点时长不同
+// 每个案件的中间节点（采集~审核）mock 1~4 次调用记录
+const NODE_CALL_RECORDS: Record<string, Record<string, CallRecord[]>> = {
+  'CLS-2026060301': {
+    '采集': [{ time: '2026-06-02 10:23', success: true }, { time: '2026-06-02 10:25', success: true }],
+    '立案': [{ time: '2026-06-02 10:28', success: true }],
+    '理算': [{ time: '2026-06-02 10:32', success: true }, { time: '2026-06-02 10:33', success: false }, { time: '2026-06-02 10:35', success: true }],
+    '扣费': [{ time: '2026-06-02 10:38', success: true }],
+    '审核': [{ time: '2026-06-02 10:42', success: true }, { time: '2026-06-02 10:43', success: true }],
+  },
+  'CLS-2026060302': {
+    '采集': [{ time: '2026-06-01 09:15', success: true }, { time: '2026-06-01 09:16', success: true }, { time: '2026-06-01 09:17', success: true }, { time: '2026-06-01 09:18', success: true }],
+    '立案': [{ time: '2026-06-01 09:20', success: true }],
+    '理算': [{ time: '2026-06-01 09:23', success: true }, { time: '2026-06-01 09:24', success: true }],
+    '扣费': [{ time: '2026-06-01 09:26', success: true }],
+    '审核': [{ time: '2026-06-01 09:28', success: true }],
+  },
+  'CLS-2026060303': {
+    '采集': [{ time: '2026-05-30 14:10', success: true }],
+    '立案': [{ time: '2026-05-30 14:12', success: true }, { time: '2026-05-30 14:13', success: true }],
+    '理算': [{ time: '2026-05-30 14:15', success: false }, { time: '2026-05-30 14:17', success: true }],
+    '扣费': [{ time: '2026-05-30 14:20', success: true }, { time: '2026-05-30 14:21', success: true }, { time: '2026-05-30 14:22', success: true }],
+    '审核': [{ time: '2026-05-30 14:25', success: true }],
+  },
+  'CLS-2026060304': {
+    '采集': [{ time: '2026-05-27 11:00', success: true }, { time: '2026-05-27 11:01', success: true }],
+    '立案': [{ time: '2026-05-27 11:05', success: true }],
+    '理算': [{ time: '2026-05-27 11:08', success: true }],
+    '扣费': [{ time: '2026-05-27 11:10', success: false }, { time: '2026-05-27 11:12', success: true }],
+    '审核': [{ time: '2026-05-27 11:15', success: true }],
+  },
+  'CLS-2026060305': {
+    '采集': [{ time: '2026-05-24 08:30', success: true }, { time: '2026-05-24 08:31', success: true }, { time: '2026-05-24 08:32', success: true }],
+    '立案': [{ time: '2026-05-24 08:35', success: true }, { time: '2026-05-24 08:36', success: true }],
+    '理算': [{ time: '2026-05-24 08:38', success: true }],
+    '扣费': [{ time: '2026-05-24 08:40', success: true }],
+    '审核': [{ time: '2026-05-24 08:42', success: true }],
+  },
+  'CLS-2026060306': {
+    '采集': [{ time: '2026-05-22 16:00', success: true }],
+    '立案': [{ time: '2026-05-22 16:05', success: true }, { time: '2026-05-22 16:06', success: true }],
+    '理算': [{ time: '2026-05-22 16:08', success: true }],
+    '扣费': [{ time: '2026-05-22 16:10', success: true }, { time: '2026-05-22 16:11', success: true }],
+    '审核': [{ time: '2026-05-22 16:13', success: true }],
+  },
+  'CLS-2026060307': {
+    '采集': [{ time: '2026-05-20 13:00', success: true }, { time: '2026-05-20 13:01', success: true }],
+    '立案': [{ time: '2026-05-20 13:03', success: true }, { time: '2026-05-20 13:04', success: true }, { time: '2026-05-20 13:05', success: true }, { time: '2026-05-20 13:06', success: true }],
+    '理算': [{ time: '2026-05-20 13:08', success: true }],
+    '扣费': [{ time: '2026-05-20 13:10', success: true }],
+    '审核': [{ time: '2026-05-20 13:12', success: true }],
+  },
+  'CLS-2026060308': {
+    '采集': [{ time: '2026-05-17 10:00', success: true }],
+    '立案': [{ time: '2026-05-17 10:03', success: true }],
+    '理算': [{ time: '2026-05-17 10:05', success: true }, { time: '2026-05-17 10:06', success: true }],
+    '扣费': [{ time: '2026-05-17 10:08', success: false }],
+    '审核': [{ time: '2026-05-17 10:10', success: true }, { time: '2026-05-17 10:11', success: true }],
+  },
+  'CLS-2026060309': {
+    '采集': [{ time: '2026-05-16 09:00', success: true }, { time: '2026-05-16 09:01', success: true }],
+    '立案': [{ time: '2026-05-16 09:03', success: true }],
+    '理算': [{ time: '2026-05-16 09:05', success: true }, { time: '2026-05-16 09:06', success: true }],
+    '扣费': [{ time: '2026-05-16 09:08', success: true }],
+    '审核': [{ time: '2026-05-16 09:10', success: true }],
+  },
+  'CLS-2026060310': {
+    '采集': [{ time: '2026-05-14 14:30', success: true }, { time: '2026-05-14 14:31', success: true }, { time: '2026-05-14 14:32', success: true }],
+    '立案': [{ time: '2026-05-14 14:35', success: true }],
+    '理算': [{ time: '2026-05-14 14:37', success: true }],
+    '扣费': [{ time: '2026-05-14 14:39', success: true }, { time: '2026-05-14 14:40', success: true }],
+    '审核': [{ time: '2026-05-14 14:42', success: true }, { time: '2026-05-14 14:43', success: true }, { time: '2026-05-14 14:44', success: true }],
+  },
+  'CLS-2026060311': {
+    '采集': [{ time: '2026-05-12 11:00', success: true }],
+    '立案': [{ time: '2026-05-12 11:03', success: true }, { time: '2026-05-12 11:04', success: true }],
+    '理算': [{ time: '2026-05-12 11:06', success: true }],
+    '扣费': [{ time: '2026-05-12 11:08', success: true }],
+    '审核': [{ time: '2026-05-12 11:10', success: true }],
+  },
+  'CLS-2026060312': {
+    '采集': [{ time: '2026-05-10 15:00', success: true }, { time: '2026-05-10 15:01', success: true }],
+    '立案': [{ time: '2026-05-10 15:03', success: true }, { time: '2026-05-10 15:04', success: true }, { time: '2026-05-10 15:05', success: true }],
+    '理算': [{ time: '2026-05-10 15:07', success: true }],
+    '扣费': [{ time: '2026-05-10 15:09', success: true }],
+    '审核': [{ time: '2026-05-10 15:11', success: true }],
+  },
+  'CLS-2026060313': {
+    '采集': [{ time: '2026-05-08 09:30', success: true }],
+    '立案': [{ time: '2026-05-08 09:33', success: true }],
+    '理算': [{ time: '2026-05-08 09:35', success: true }, { time: '2026-05-08 09:36', success: true }],
+    '扣费': [{ time: '2026-05-08 09:38', success: true }],
+    '审核': [{ time: '2026-05-08 09:40', success: true }, { time: '2026-05-08 09:41', success: true }],
+  },
+  'CLS-2026060314': {
+    '采集': [{ time: '2026-05-06 10:00', success: true }, { time: '2026-05-06 10:01', success: true }],
+    '立案': [{ time: '2026-05-06 10:03', success: true }],
+    '理算': [{ time: '2026-05-06 10:05', success: true }],
+    '扣费': [{ time: '2026-05-06 10:07', success: true }, { time: '2026-05-06 10:08', success: true }],
+    '审核': [{ time: '2026-05-06 10:10', success: true }],
+  },
+  'CLS-2026060315': {
+    '采集': [{ time: '2026-05-04 08:00', success: true }],
+    '立案': [{ time: '2026-05-04 08:03', success: true }, { time: '2026-05-04 08:04', success: true }],
+    '理算': [{ time: '2026-05-04 08:06', success: true }],
+    '扣费': [{ time: '2026-05-04 08:08', success: true }, { time: '2026-05-04 08:09', success: true }],
+    '审核': [{ time: '2026-05-04 08:11', success: true }, { time: '2026-05-04 08:12', success: true }, { time: '2026-05-04 08:13', success: true }, { time: '2026-05-04 08:14', success: true }],
+  },
+  'CLS-2026060316': {
+    '采集': [{ time: '2026-05-02 12:00', success: true }, { time: '2026-05-02 12:01', success: true }, { time: '2026-05-02 12:02', success: true }],
+    '立案': [{ time: '2026-05-02 12:04', success: true }],
+    '理算': [{ time: '2026-05-02 12:06', success: true }],
+    '扣费': [{ time: '2026-05-02 12:08', success: true }],
+    '审核': [{ time: '2026-05-02 12:10', success: true }],
+  },
+  'CLS-2026060317': {
+    '采集': [{ time: '2026-04-30 16:30', success: true }],
+    '立案': [{ time: '2026-04-30 16:32', success: true }],
+    '理算': [{ time: '2026-04-30 16:34', success: true }, { time: '2026-04-30 16:35', success: true }],
+    '扣费': [{ time: '2026-04-30 16:37', success: true }],
+    '审核': [{ time: '2026-04-30 16:39', success: true }],
+  },
+  'CLS-2026060318': {
+    '采集': [{ time: '2026-04-28 14:00', success: true }, { time: '2026-04-28 14:01', success: true }],
+    '立案': [{ time: '2026-04-28 14:03', success: true }],
+    '理算': [{ time: '2026-04-28 14:05', success: true }],
+    '扣费': [{ time: '2026-04-28 14:07', success: true }, { time: '2026-04-28 14:08', success: true }],
+    '审核': [{ time: '2026-04-28 14:10', success: true }],
+  },
+  'CLS-2026060319': {
+    '采集': [{ time: '2026-04-26 09:00', success: true }],
+    '立案': [{ time: '2026-04-26 09:03', success: true }, { time: '2026-04-26 09:04', success: true }, { time: '2026-04-26 09:05', success: true }],
+    '理算': [{ time: '2026-04-26 09:07', success: true }],
+    '扣费': [{ time: '2026-04-26 09:09', success: true }],
+    '审核': [{ time: '2026-04-26 09:11', success: true }],
+  },
+  'CLS-2026060320': {
+    '采集': [{ time: '2026-04-24 11:30', success: true }, { time: '2026-04-24 11:31', success: true }],
+    '立案': [{ time: '2026-04-24 11:33', success: true }],
+    '理算': [{ time: '2026-04-24 11:35', success: true }],
+    '扣费': [{ time: '2026-04-24 11:37', success: true }, { time: '2026-04-24 11:38', success: true }],
+    '审核': [{ time: '2026-04-24 11:40', success: true }],
+  },
+}
+
+// mock 处理时长（秒级）
 const NODE_PROCESSING_TIMES: Record<string, Record<string, number>> = {
   'CLS-2026060301': { '开始': 0.5, '采集': 2.3, '立案': 1.8, '理算': 3.1, '扣费': 1.5, '审核': 4.2, '结束': 0.8 },
   'CLS-2026060302': { '开始': 0.3, '采集': 1.5, '立案': 2.0, '理算': 2.8, '扣费': 1.2, '审核': 3.5, '结束': 0.6 },
@@ -97,41 +227,91 @@ const NODE_PROCESSING_TIMES: Record<string, Record<string, number>> = {
   'CLS-2026060320': { '开始': 0.4, '采集': 2.4, '立案': 1.3, '理算': 2.9, '扣费': 1.4, '审核': 4.7, '结束': 0.5 },
 }
 
+// 中间节点（可悬停弹出 Popover）
+const MIDDLE_NODES = ['采集', '立案', '理算', '扣费', '审核']
+
 const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory; caseNo?: string }> = ({ trajectory, caseNo }) => {
   const nodeTimes = caseNo ? NODE_PROCESSING_TIMES[caseNo] : undefined
+  const nodeCalls = caseNo ? NODE_CALL_RECORDS[caseNo] : undefined
+
+  const renderPopoverContent = (label: string): React.ReactNode => {
+    const calls = nodeCalls?.[label]
+    if (!calls || calls.length === 0) return <div style={{ padding: '8px 12px', color: '#9ca3af' }}>暂无调用记录</div>
+    return (
+      <div style={{ padding: '4px 0' }}>
+        {calls.map((c, ci) => (
+          <div key={ci} style={{ display: 'flex', alignItems: 'center', padding: '4px 12px', gap: 8, fontSize: 12 }}>
+            <span style={{ color: '#6b7280', minWidth: 80 }}>{c.time}</span>
+            <span style={{ color: c.success ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
+              {c.success ? '成功' : '失败'}
+            </span>
+            <span style={{ color: '#6b7280', cursor: 'pointer' }}>查看详情 &gt;</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  const renderNode = (label: string, i: number): React.ReactNode => {
+    const node = trajectory.nodes[i] || { label, status: 'processing' as NodeStatus }
+    const cx = 20 + i * NODE_GAP
+    const cy = SVG_H / 2
+    const isCompleted = node.status === 'completed'
+    const color = isCompleted ? STATUS_COLORS.completed : PENDING_COLOR
+    const icon = isCompleted ? '✓' : '·'
+    const iconSize = isCompleted ? 16 : 10
+    const nodeTime = isCompleted && nodeTimes ? nodeTimes[label] : undefined
+    const labelText = nodeTime !== undefined ? `${label} (${nodeTime}s)` : label
+
+    const circle = (
+      <circle cx={cx} cy={cy} r={NODE_R} fill={isCompleted ? color : 'none'} stroke={color} strokeWidth={2} />
+    )
+    const iconText = (
+      <text x={cx} y={cy} textAnchor="middle" dy="0.35em" fill={isCompleted ? '#fff' : color} fontSize={iconSize} fontWeight="bold">{icon}</text>
+    )
+    const labelTextEl = (
+      <text x={cx} y={cy + NODE_R + 20} textAnchor="middle" fill="#000000e0" fontSize={12}>{labelText}</text>
+    )
+
+    // 中间节点可悬停
+    if (MIDDLE_NODES.includes(label)) {
+      return (
+        <g key={i}>
+          {i > 0 && (
+            <line x1={20 + (i - 1) * NODE_GAP + NODE_R} y1={cy} x2={cx - NODE_R} y2={cy} stroke="#d1d5db" strokeWidth={2} />
+          )}
+          <Popover
+            content={renderPopoverContent(label)}
+            trigger="hover"
+            placement="top"
+            rootClassName="node-call-popover"
+          >
+            <g style={{ cursor: 'pointer' }}>
+              {circle}
+              {iconText}
+            </g>
+          </Popover>
+          {labelTextEl}
+        </g>
+      )
+    }
+
+    return (
+      <g key={i}>
+        {i > 0 && (
+          <line x1={20 + (i - 1) * NODE_GAP + NODE_R} y1={cy} x2={cx - NODE_R} y2={cy} stroke="#d1d5db" strokeWidth={2} />
+        )}
+        {circle}
+        {iconText}
+        {labelTextEl}
+      </g>
+    )
+  }
+
   return (
     <div style={{ padding: '24px', background: '#f9fafb', borderRadius: 8 }}>
       <svg width={SVG_W} height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ overflow: 'visible' }}>
-        {NODE_LABELS.map((label, i) => {
-          const node = trajectory.nodes[i] || { label, status: 'processing' as NodeStatus }
-          const cx = 20 + i * NODE_GAP
-          const cy = SVG_H / 2
-          const isCompleted = node.status === 'completed'
-          const isException = node.status === 'exception'
-          const color = isCompleted ? STATUS_COLORS.completed : isException ? STATUS_COLORS.exception : PENDING_COLOR
-          const icon = isCompleted ? '✓' : isException ? '✗' : '·'
-          const iconSize = isCompleted ? 16 : 10
-          const nodeTime = isCompleted && nodeTimes ? nodeTimes[label] : undefined
-          const labelText = nodeTime !== undefined ? `${label} (${nodeTime}s)` : label
-
-          return (
-            <g key={i}>
-              {i > 0 && (
-                <line
-                  x1={20 + (i - 1) * NODE_GAP + NODE_R}
-                  y1={cy}
-                  x2={cx - NODE_R}
-                  y2={cy}
-                  stroke="#d1d5db"
-                  strokeWidth={2}
-                />
-              )}
-              <circle cx={cx} cy={cy} r={NODE_R} fill={isCompleted || isException ? color : 'none'} stroke={color} strokeWidth={2} />
-              <text x={cx} y={cy} textAnchor="middle" dy="0.35em" fill={isCompleted || isException ? '#fff' : color} fontSize={iconSize} fontWeight="bold">{icon}</text>
-              <text x={cx} y={cy + NODE_R + 20} textAnchor="middle" fill="#000000e0" fontSize={12}>{labelText}</text>
-            </g>
-          )
-        })}
+        {NODE_LABELS.map((label, i) => renderNode(label, i))}
       </svg>
     </div>
   )
@@ -153,24 +333,30 @@ const MOCK_CASES: CaseRecord[] = [
   { key: '1', caseNo: 'CLS-2026060301', claimNo: 'CLM-2026060301', branch: '北京分公司', accidentDate: '2026-06-01', claimDate: '2026-06-02', currentNode: '采集智能体', status: 'processing' },
   { key: '2', caseNo: 'CLS-2026060302', claimNo: 'CLM-2026060302', branch: '上海分公司', accidentDate: '2026-05-30', claimDate: '2026-06-01', currentNode: '立案智能体', status: 'completed' },
   { key: '3', caseNo: 'CLS-2026060303', claimNo: 'CLM-2026060303', branch: '广州分公司', accidentDate: '2026-05-28', claimDate: '2026-05-30', currentNode: '理算智能体', status: 'processing' },
-  { key: '4', caseNo: 'CLS-2026060304', claimNo: 'CLM-2026060304', branch: '深圳分公司', accidentDate: '2026-05-25', claimDate: '2026-05-27', currentNode: '扣费智能体', status: 'exception' },
+  { key: '4', caseNo: 'CLS-2026060304', claimNo: 'CLM-2026060304', branch: '深圳分公司', accidentDate: '2026-05-25', claimDate: '2026-05-27', currentNode: '扣费智能体', status: 'processing' },
   { key: '5', caseNo: 'CLS-2026060305', claimNo: 'CLM-2026060305', branch: '杭州分公司', accidentDate: '2026-05-22', claimDate: '2026-05-24', currentNode: '审核智能体', status: 'completed' },
   { key: '6', caseNo: 'CLS-2026060306', claimNo: 'CLM-2026060306', branch: '成都分公司', accidentDate: '2026-05-20', claimDate: '2026-05-22', currentNode: '采集智能体', status: 'processing' },
   { key: '7', caseNo: 'CLS-2026060307', claimNo: 'CLM-2026060307', branch: '武汉分公司', accidentDate: '2026-05-18', claimDate: '2026-05-20', currentNode: '立案智能体', status: 'completed' },
-  { key: '8', caseNo: 'CLS-2026060308', claimNo: 'CLM-2026060308', branch: '南京分公司', accidentDate: '2026-05-15', claimDate: '2026-05-17', currentNode: '理算智能体', status: 'exception' },
+  { key: '8', caseNo: 'CLS-2026060308', claimNo: 'CLM-2026060308', branch: '南京分公司', accidentDate: '2026-05-15', claimDate: '2026-05-17', currentNode: '理算智能体', status: 'processing' },
   { key: '9', caseNo: 'CLS-2026060309', claimNo: 'CLM-2026060309', branch: '重庆分公司', accidentDate: '2026-05-14', claimDate: '2026-05-16', currentNode: '审核智能体', status: 'processing' },
   { key: '10', caseNo: 'CLS-2026060310', claimNo: 'CLM-2026060310', branch: '天津分公司', accidentDate: '2026-05-12', claimDate: '2026-05-14', currentNode: '扣费智能体', status: 'completed' },
   { key: '11', caseNo: 'CLS-2026060311', claimNo: 'CLM-2026060311', branch: '苏州分公司', accidentDate: '2026-05-10', claimDate: '2026-05-12', currentNode: '采集智能体', status: 'processing' },
   { key: '12', caseNo: 'CLS-2026060312', claimNo: 'CLM-2026060312', branch: '长沙分公司', accidentDate: '2026-05-08', claimDate: '2026-05-10', currentNode: '立案智能体', status: 'completed' },
-  { key: '13', caseNo: 'CLS-2026060313', claimNo: 'CLM-2026060313', branch: '西安分公司', accidentDate: '2026-05-06', claimDate: '2026-05-08', currentNode: '理算智能体', status: 'exception' },
+  { key: '13', caseNo: 'CLS-2026060313', claimNo: 'CLM-2026060313', branch: '西安分公司', accidentDate: '2026-05-06', claimDate: '2026-05-08', currentNode: '理算智能体', status: 'processing' },
   { key: '14', caseNo: 'CLS-2026060314', claimNo: 'CLM-2026060314', branch: '郑州分公司', accidentDate: '2026-05-04', claimDate: '2026-05-06', currentNode: '扣费智能体', status: 'processing' },
   { key: '15', caseNo: 'CLS-2026060315', claimNo: 'CLM-2026060315', branch: '合肥分公司', accidentDate: '2026-05-02', claimDate: '2026-05-04', currentNode: '审核智能体', status: 'completed' },
   { key: '16', caseNo: 'CLS-2026060316', claimNo: 'CLM-2026060316', branch: '北京分公司', accidentDate: '2026-04-30', claimDate: '2026-05-02', currentNode: '采集智能体', status: 'processing' },
   { key: '17', caseNo: 'CLS-2026060317', claimNo: 'CLM-2026060317', branch: '上海分公司', accidentDate: '2026-04-28', claimDate: '2026-04-30', currentNode: '立案智能体', status: 'completed' },
   { key: '18', caseNo: 'CLS-2026060318', claimNo: 'CLM-2026060318', branch: '广州分公司', accidentDate: '2026-04-26', claimDate: '2026-04-28', currentNode: '理算智能体', status: 'processing' },
-  { key: '19', caseNo: 'CLS-2026060319', claimNo: 'CLM-2026060319', branch: '深圳分公司', accidentDate: '2026-04-24', claimDate: '2026-04-26', currentNode: '扣费智能体', status: 'exception' },
+  { key: '19', caseNo: 'CLS-2026060319', claimNo: 'CLM-2026060319', branch: '深圳分公司', accidentDate: '2026-04-24', claimDate: '2026-04-26', currentNode: '扣费智能体', status: 'processing' },
   { key: '20', caseNo: 'CLS-2026060320', claimNo: 'CLM-2026060320', branch: '杭州分公司', accidentDate: '2026-04-22', claimDate: '2026-04-24', currentNode: '审核智能体', status: 'completed' },
 ]
+
+const NODE_R = 14
+const NODE_GAP = 74
+const SVG_W = NODE_LABELS.length * NODE_GAP + 20
+const SVG_H = 60
+const PENDING_COLOR = '#9ca3af'
 
 const titleStyle: React.CSSProperties = {
   display: 'flex',
@@ -188,7 +374,7 @@ const titleBarStyle: React.CSSProperties = {
 }
 
 const titleTextStyle: React.CSSProperties = {
-  fontSize: 17,
+  fontSize: 18,
   fontWeight: 700,
   color: '#1f2937',
 }
@@ -198,7 +384,6 @@ const MetricsClaims: React.FC = () => {
   const [pageSize, setPageSize] = useState(10)
   const [currentPage, setCurrentPage] = useState(1)
 
-  // 筛选条件
   const [caseNoFilter, setCaseNoFilter] = useState('')
   const [claimNoFilter, setClaimNoFilter] = useState('')
   const [branchFilter, setBranchFilter] = useState('')
@@ -261,7 +446,7 @@ const MetricsClaims: React.FC = () => {
       width: 100,
       render: (status: string) => {
         const s = STATUS_MAP[status] ?? { color: 'default', text: status }
-        return <Tag color={s.color}>{s.text}</Tag>
+        return <Tag color={s.color} style={{ borderRadius: 6 }}>{s.text}</Tag>
       },
     },
   ]
@@ -279,7 +464,6 @@ const MetricsClaims: React.FC = () => {
       border: '1px solid #f3f4f6',
       padding: '14px 24px 34px',
     }}>
-      {/* 指标看板标题 */}
       <div style={titleStyle}>
         <div style={titleBarStyle} />
         <span style={titleTextStyle}>指标看板</span>
@@ -297,7 +481,6 @@ const MetricsClaims: React.FC = () => {
         </Col>
       </Row>
 
-      {/* 案件清单标题 */}
       <div style={{ ...titleStyle, marginTop: 30 }}>
         <div style={titleBarStyle} />
         <span style={titleTextStyle}>案件清单</span>
@@ -369,7 +552,6 @@ const MetricsClaims: React.FC = () => {
           options={[
             { label: '处理中', value: 'processing' },
             { label: '已完成', value: 'completed' },
-            { label: '异常', value: 'exception' },
           ]}
           style={{ width: 100 }}
           rootClassName="filter-select"

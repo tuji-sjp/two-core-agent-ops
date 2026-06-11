@@ -1003,7 +1003,7 @@ const SkillDetail: React.FC = () => {
           border: '1px solid #e8e8e8',
         }}
       >
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1f2937', paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
           概述
         </h2>
         <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.8, marginTop: 12 }}>
@@ -1039,7 +1039,7 @@ const SkillDetail: React.FC = () => {
           border: '1px solid #e8e8e8',
         }}
       >
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
           版本历史
         </h2>
         <table style={{ width: '100%', maxWidth: '800px', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -1076,7 +1076,7 @@ const SkillDetail: React.FC = () => {
           border: '1px solid #e8e8e8',
         }}
       >
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
           SKILL.md
         </h2>
         <div style={{
@@ -1107,7 +1107,7 @@ const SkillDetail: React.FC = () => {
           border: '1px solid #e8e8e8',
         }}
       >
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
           API参考
         </h2>
 
