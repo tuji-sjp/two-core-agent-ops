@@ -40,7 +40,7 @@ const TopKnowledgeList: React.FC<{ data?: TopKnowledgeItem[] }> = ({ data: propD
           marginRight: 10,
         }} />
         <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>
-          高频调用知识 & 规则 Top 10
+          知识调用排行
         </span>
       </div>
       <div style={{ flex: 1, overflowY: 'auto', paddingRight: 8 }}>
@@ -66,10 +66,10 @@ const TopKnowledgeList: React.FC<{ data?: TopKnowledgeItem[] }> = ({ data: propD
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <Text ellipsis style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>
+                  <Text ellipsis style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>
                     {item.name}
                   </Text>
-                  <span style={{ fontSize: 12, color: '#6b7280', flexShrink: 0, marginLeft: 8 }}>
+                  <span style={{ fontSize: 14, color: '#6b7280', flexShrink: 0, marginLeft: 8 }}>
                     {item.count.toLocaleString()} 次
                   </span>
                 </div>

@@ -91,11 +91,12 @@ const DataCard: React.FC<DataCardProps> = ({ category, unit = '份', headerUnit,
       ...style,
     }}>
       <div style={{
-        background: '#7fb3f5',
+        background: '#65A5FF',
+        fontSize: 16,
         color: '#fff',
         padding: '8px 16px',
         textAlign: 'center',
-        fontWeight: 500,
+        fontWeight: 600,
       }}>
         {category.name} <span style={{ marginLeft: 4, opacity: 0.9 }}>{category.total.toLocaleString()} {headerUnit || unit}</span>
       </div>
@@ -108,13 +109,13 @@ const DataCard: React.FC<DataCardProps> = ({ category, unit = '份', headerUnit,
             paddingBottom: 8,
             marginBottom: idx < category.items.length - 1 ? 12 : 0,
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-              <Text style={{ fontSize: 13, color: '#374151', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+              <Text style={{ fontSize: 14, color: '#374151', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>
                 {item.label}
               </Text>
-              <Text style={{ fontSize: 14, color: '#111827', fontWeight: 700, flexShrink: 0 }}>共 {item.count.toLocaleString()} {unit}</Text>
+              <Text style={{ fontSize: 14, color: '#111827', fontWeight: 600, flexShrink: 0 }}>共 {item.count.toLocaleString()} {unit}</Text>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, fontSize: 11, color: '#6b7280' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, fontSize: 12, color: '#6b7280' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}><span style={{ color: '#10b981' }}>{item.d}{unit}</span>/日</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}><span style={{ color: '#10b981' }}>{item.w}{unit}</span>/周</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}><span style={{ color: '#10b981' }}>{item.m}{unit}</span>/月</span>

@@ -37,7 +37,7 @@ const CoverageTreemap: React.FC<{ data?: CoverageSceneItem[] }> = ({ data: propD
       label: {
         show: true,
         formatter: '{b}',
-        fontSize: 12,
+        fontSize: 14,
         color: '#fff',
         fontWeight: 'bold',
       },

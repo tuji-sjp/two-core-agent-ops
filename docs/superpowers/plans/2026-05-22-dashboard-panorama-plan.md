@@ -291,7 +291,7 @@ export const coverageSceneData = [
   { name: '津贴赔付', value: 7 },
 ]
 
-// 高频调用知识 & 规则 Top 10
+// 知识调用排行
 export const topKnowledgeData = [
   { name: '甲状腺结节核保指南 v2.1', count: 45430 },
   { name: '2024版国家医保目录剔除规则', count: 38210 },

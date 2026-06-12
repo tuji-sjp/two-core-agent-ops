@@ -158,7 +158,7 @@ const KnowledgeSection: React.FC = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: isTop ? '#fff7ed' : '#f3f4f6',
                 color: isTop ? '#ea580c' : '#6b7280',
-                fontSize: 11, fontWeight: 700,
+                fontSize: 10, fontWeight: 700,
               }}>
                 {idx + 1}
               </span>
@@ -179,7 +179,7 @@ const KnowledgeSection: React.FC = () => {
                     {item.name}
                   </span>
                   <span style={{
-                    flexShrink: 0, fontSize: 11, color: '#6b7280', marginLeft: 4,
+                    flexShrink: 0, fontSize: 12, color: '#6b7280', marginLeft: 4,
                   }}>
                     {item.count.toLocaleString()} 次
                   </span>
@@ -213,7 +213,7 @@ const DashboardHeader: React.FC = () => (
       <div style={{ width: 24, height: 2, background: 'linear-gradient(90deg, transparent, #3b82f6)' }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#3b82f6' }} />
     </div>
-    <h1 style={{ fontSize: 16, fontWeight: 700, color: '#1f2937', letterSpacing: 4, margin: 0 }}>
+    <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', letterSpacing: 4, margin: 0 }}>
       两核智能体运营平台 · 业务全景看板
     </h1>
     <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 6 }}>

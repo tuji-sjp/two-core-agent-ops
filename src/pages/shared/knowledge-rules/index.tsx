@@ -76,7 +76,7 @@ const SharedKnowledgeRules: React.FC = () => {
       {/* 知识库卡片 */}
       <KnowledgeBaseCards activeTab={activeTab} />
 
-      {/* 覆盖场景 + 高频调用知识 */}
+      {/* 覆盖场景 + 知识调用排行 */}
       <Row gutter={[24, 24]} style={{ marginTop: 30 }}>
         <Col xs={24} lg={12}>
           <CoverageTreemap
