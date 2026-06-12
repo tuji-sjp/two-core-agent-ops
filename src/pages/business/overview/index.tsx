@@ -6,10 +6,11 @@ import ScrollingCases from './components/ScrollingCases'
 // ========== Mock: 数据资产总览（理赔&核保各4大类） ==========
 const DATA_ASSETS = {
   claims: [
-    { name: '影像数据', total: '21,594', usage: '62,400' },
-    { name: '体检报告', total: '10,825', usage: '45,800' },
-    { name: '保单信息', total: '25,000', usage: '142,000' },
-    { name: '案件信息', total: '12,500', usage: '108,000' },
+    { name: '病历类', total: '88,200', usage: '242,500' },
+    { name: '票据类', total: '42,500', usage: '116,800' },
+    { name: '费用结算类', total: '38,000', usage: '104,400' },
+    { name: '辅助证明类', total: '55,000', usage: '151,200' },
+    { name: '申请类', total: '18,000', usage: '49,500' },
   ],
   underwriting: [
     { name: '影像数据', total: '8,200', usage: '28,500' },
@@ -65,9 +66,9 @@ const cardStyle: React.CSSProperties = {
 }
 
 const sectionLabel = (text: string) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', marginBottom: 8 }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 0px', marginBottom: 8 }}>
     <div style={{ width: 4, height: 18, background: '#3b82f6', borderRadius: 10 }} />
-    <span style={{ fontSize: 15, fontWeight: 700, color: '#1f2937' }}>{text}</span>
+    <span style={{ fontSize: 16, fontWeight: 700, color: '#1f2937' }}>{text}</span>
   </div>
 )
 
@@ -106,17 +107,18 @@ const DataAssetsSection: React.FC = () => {
             background: '#f9fafb', borderRadius: 8, padding: '10px 12px',
             border: '1px solid #e5e7eb',
           }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#1f2937', marginBottom: 8 }}>{item.name}</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
+            <div style={{ fontSize:14, fontWeight: 600, color: '#1f2937', marginBottom: 8 }}>{item.name}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
               <span style={{ color: '#9ca3af' }}>总数量</span>
               <span style={{ color: '#3b82f6', fontWeight: 600 }}>{item.total}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginTop: 2 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginTop: 2 }}>
               <span style={{ color: '#9ca3af' }}>使用量</span>
-              <span style={{ color: '#10b981', fontWeight: 600 }}>{item.usage}</span>
+              <span style={{ color: '#fb923c', fontWeight: 600 }}>{item.usage}</span>
             </div>
           </div>
         ))}
+        {data.length % 2 !== 0 && <div />}
       </div>
     </div>
   )
@@ -133,7 +135,7 @@ const KnowledgeSection: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 4, height: 18, background: '#3b82f6', borderRadius: 10 }} />
-          <span style={{ fontSize: 15, fontWeight: 700, color: '#1f2937' }}>知识调用排行</span>
+          <span style={{ fontSize: 16, fontWeight: 700, color: '#1f2937' }}>知识调用排行</span>
         </div>
         <div style={segTabStyle}>
           {(['claims', 'underwriting'] as const).map(d => (

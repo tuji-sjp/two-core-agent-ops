@@ -11,9 +11,9 @@ interface VirtualCase {
   updatedAt: string
 }
 
-const SCENES = ['医疗险理赔', '重疾险理赔', '意外险理赔', '住院津贴', '健康告知', '财务核保', '职业风险评估', '欺诈检测', '影像伪造检测', '异常就诊']
-const STATUSES = ['处理中', '智能审核中', '待人工复核', '已完成', '异常标记', '理赔中', '核保通过', '核保驳回', '风险预警', '已结案']
-const AGENTS = ['预受理智能体', '数采智能体', '立案智能体', '扣费理智能体', '理算智能体', '审核智能体', '健康告知审核智能体', '财务核保智能体', '影像伪造检测智能体', '欺诈风险评分智能体']
+const SCENES = ['医疗险理赔', '重疾险理赔', '意外险理赔', '车险理赔', '新契约核保', '健康险二核质检', '欺诈识别']
+const STATUSES = ['处理中', '待人工复核', '已完成', '异常']
+const AGENTS = ['采集智能体', '立案智能体', '扣费智能体', '理算智能体', '审核智能体', '核保评估智能体', '核保质检智能体', '欺诈识别智能体']
 const CITIES = ['北京', '上海', '广州', '深圳', '成都', '杭州', '武汉', '西安', '重庆', '南京', '天津', '长沙', '郑州', '济南', '福州']
 const AMOUNTS = ['¥1,280', '¥3,500', '¥8,920', '¥15,600', '¥22,300', '¥45,000', '¥67,800', '¥120,000', '¥5,200', '¥31,400']
 
@@ -72,14 +72,14 @@ const ScrollingCases: React.FC = () => {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 15, fontWeight: 700, color: '#1f2937' }}>实时案件流</span>
-        <span style={{ fontSize: 10, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ fontSize: 16, fontWeight: 700, color: '#1f2937' }}>实时案件流</span>
+        <span style={{ fontSize: 12, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#52c41a', boxShadow: '0 0 4px #52c41a', animation: 'pulse 1.5s ease-in-out infinite' }} />
           实时更新中 · {cases.length} 条
         </span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', padding: '8px 0', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 11, color: '#9ca3af' }}>
-        <span style={{ padding: '0 6px' }}>案件编号</span><span style={{ padding: '0 6px' }}>城市</span><span style={{ padding: '0 6px' }}>场景</span><span style={{ padding: '0 6px' }}>处理智能体</span><span style={{ padding: '0 6px' }}>状态</span><span style={{ textAlign: 'right', padding: '0 6px' }}>金额</span>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', padding: '8px 0', background: '#f3f4f6', borderBottom: '1px solid #e5e7eb', fontSize: 12, color: '#1d2937' }}>
+        <span style={{ padding: '0 6px' }}>案件编号</span><span style={{ padding: '0 6px' }}>城市</span><span style={{ padding: '0 6px' }}>应用场景</span><span style={{ padding: '0 6px' }}>处理Agent</span><span style={{ padding: '0 6px' }}>状态</span><span style={{ textAlign: 'right', padding: '0 6px' }}>金额</span>
       </div>
       <div ref={scrollRef} style={{ flex: 1, overflow: 'hidden' }}>
         <div>{cases.map((c) => (

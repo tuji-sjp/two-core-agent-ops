@@ -26,10 +26,10 @@ const CityStatsTable: React.FC = () => {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{ padding: '10px 14px', borderBottom: '1px solid #e5e7eb', fontSize: 15, fontWeight: 700, color: '#1f2937' }}>
+      <div style={{ padding: '10px 14px', borderBottom: '1px solid #e5e7eb', fontSize: 16, fontWeight: 700, color: '#1f2937' }}>
         地区案件统计
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',  background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 11, color: '#9ca3af', padding: '7px 14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', background: '#f3f4f6', borderBottom: '1px solid #e5e7eb', fontSize: 12, color: '#1d2937', padding: '7px 14px' }}>
         <span>城市</span>
         <span onClick={() => handleSort('totalCases')} style={{ cursor: 'pointer', userSelect: 'none' }}>案件总数{sortIndicator('totalCases')}</span>
         <span onClick={() => handleSort('completedCases')} style={{ cursor: 'pointer', userSelect: 'none' }}>已完成{sortIndicator('completedCases')}</span>
@@ -47,12 +47,12 @@ const CityStatsTable: React.FC = () => {
           >
             <span style={{ fontWeight: 500 }}>{row.city}</span>
             <span style={{ color: '#1f2937', fontWeight: 600 }}>{row.totalCases.toLocaleString()}</span>
-            <span style={{ color: '#10b981' }}>{row.completedCases.toLocaleString()}</span>
-            <span><span style={{ color: rateColor(row.rateValue), fontWeight: 600, fontSize: 11, borderRadius: 4 }}>{row.rate}</span></span>
+            <span style={{ color: '#1f2937', fontWeight: 600 }}>{row.completedCases.toLocaleString()}</span>
+            <span><span style={{ color: rateColor(row.rateValue), fontWeight: 600, fontSize: 12, borderRadius: 4 }}>{row.rate}</span></span>
           </div>
         ))}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', padding: '8px 14px', borderTop: '1px solid #e5e7eb', background: '#f9fafb', fontSize: 12, fontWeight: 600, color: '#1f2937' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', padding: '8px 14px', borderTop: '1px solid #e5e7eb', background: '#f3f4f6', fontSize: 12, fontWeight: 600, color: '#1f2937' }}>
         <span>合计</span>
         <span>{data.reduce((s, c) => s + c.totalCases, 0).toLocaleString()}</span>
         <span>{data.reduce((s, c) => s + c.completedCases, 0).toLocaleString()}</span>
