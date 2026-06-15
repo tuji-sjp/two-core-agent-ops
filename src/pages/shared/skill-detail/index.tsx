@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeftOutlined } from '@ant-design/icons'
+import { ArrowLeftOutlined, EditOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons'
 
 // ==================== Skill mock 数据 ====================
 interface SkillContent {
   overview: string
   features: string[]
-  category: string
+  category: string[]
   publisher: string
   versions: { version: string; publisher: string; date: string; changes: string }[]
   skillMd: string
@@ -19,7 +19,7 @@ const skillContentMap: Record<string, SkillContent> = {
   '票据OCR识别': {
     overview: '面向保险理赔场景的智能票据 OCR 技能，能够自动识别各类票据图片并提取关键字段信息。底层基于阿里云视觉智能开放平台的 OCR 能力，结合领域知识实现高精度结构化输出。',
     features: ['增值税专票/普票自动识别与关键字段提取', '定额发票、机打小票、电子发票全覆盖', '支持批量票据处理与结构化输出', '内置票据真伪校验逻辑'],
-    category: 'OCR识别',
+    category: ['OCR识别'],
     publisher: '阿里云智能',
     versions: [
       { version: 'v1.0.0', publisher: '阿里云智能', date: '2026-05-29', changes: '正式发布，支持增值税发票、定额发票、机打小票识别' },
@@ -111,7 +111,7 @@ gh ocr verify --code <invoice_code> --number <invoice_number>
   '医疗文档OCR识别': {
     overview: '面向医疗理赔场景的智能文档识别技能，能够自动识别病历、检验报告、处方笺等医疗文档内容并提取关键诊断指标。底层结合医学 NLP 模型实现医疗术语标准化。',
     features: ['病历、检验报告、处方笺等多类型医疗文档识别', '医学术语标准化与 ICD-10 编码映射', '支持检验指标异常值自动标注', '医疗隐私数据自动脱敏处理'],
-    category: 'OCR识别',
+    category: ['OCR识别'],
     publisher: '医疗智能团队',
     versions: [
       { version: 'v2.0.1', publisher: '医疗智能团队', date: '2026-05-27', changes: '新增医疗隐私脱敏功能，修复检验报告表格解析问题' },
@@ -183,7 +183,7 @@ gh medical-ocr extract --image <image_path> --type <medical_record|lab_report|pr
   '身份证OCR识别': {
     overview: '身份证正反面信息自动识别与校验技能，支持批量处理和真伪验证。底层基于公安系统接口对接，实现高准确率的身份证信息提取。',
     features: ['身份证正反面自动识别与字段提取', '支持批量身份证图片处理', '内置身份证校验码验证逻辑', '支持真伪验证与伪造检测'],
-    category: 'OCR识别',
+    category: ['OCR识别'],
     publisher: '身份认证团队',
     versions: [
       { version: 'v1.5.3', publisher: '身份认证团队', date: '2026-06-01', changes: '优化身份证防伪水印识别算法，提升伪造检测准确率' },
@@ -257,7 +257,7 @@ gh id-ocr extract --image <image_path> --side <front|back>
   '网页数据采集': {
     overview: '基于规则的网页数据采集工具，支持增量抓取、去重和结构化存储。适用于保险条款、费率表、医院列表等公开数据的自动化采集。',
     features: ['支持自定义 XPath/CSS 选择器配置采集规则', '增量抓取与自动去重机制', '支持定时任务与异常重试', '采集结果自动结构化存储'],
-    category: '数据采集',
+    category: ['数据采集'],
     publisher: '数据采集团队',
     versions: [
       { version: 'v1.0.8', publisher: '数据采集团队', date: '2026-05-26', changes: '新增 XPath 选择器支持，优化增量去重逻辑' },
@@ -328,7 +328,7 @@ gh web-collect run --url <url> --selector <css_selector> --output <json|csv>
   'API数据同步': {
     overview: '多源 API 数据同步聚合技能，支持定时任务、数据转换和异常重试机制。适用于保险核心系统与外部数据源之间的数据同步场景。',
     features: ['多数据源 API 并发同步', '支持数据转换与格式标准化', '自动重试与失败告警', '增量同步与全量同步两种模式'],
-    category: '数据采集',
+    category: ['数据采集'],
     publisher: '数据集成团队',
     versions: [
       { version: 'v0.9.2', publisher: '数据集成团队', date: '2026-05-29', changes: '新增数据转换管道，支持自定义字段映射规则' },
@@ -397,7 +397,7 @@ gh api-sync run --config <config_file> --mode <incremental|full>
   '日志采集': {
     overview: '分布式日志采集与聚合技能，支持多数据源接入、实时解析和异常检测。适用于运营平台各智能体运行日志的统一采集与分析。',
     features: ['多数据源日志接入（文件/HTTP/消息队列）', '实时日志解析与结构化', '异常日志自动检测与告警', '支持日志压缩与归档'],
-    category: '数据采集',
+    category: ['数据采集'],
     publisher: '运维团队',
     versions: [
       { version: 'v1.1.0', publisher: '运维团队', date: '2026-05-27', changes: '新增消息队列接入支持，优化异常检测算法' },
@@ -466,7 +466,7 @@ gh log-collect start --source <file|http|mq> --config <config_file>
   '理赔案件自动立案': {
     overview: '理赔案件自动立案技能，根据报案信息智能匹配保险条款，完成责任初判与自动立案。底层基于规则引擎和 NLP 技术实现报案信息的结构化解析。',
     features: ['报案信息自动解析与结构化', '保险条款智能匹配与责任初判', '支持多险种自动立案流程', '立案信息一键推送至理赔系统'],
-    category: '立案定责',
+    category: ['立案定责'],
     publisher: '理赔运营团队',
     versions: [
       { version: 'v2.3.0', publisher: '理赔运营团队', date: '2026-06-02', changes: '新增医疗险自动立案规则，优化责任判定准确率至 95%' },
@@ -536,7 +536,7 @@ gh auto-file --case <case_info_json> --insurance_type <accident|medical|critical
   '理赔责任判定': {
     overview: '基于知识图谱的理赔责任智能判定技能，覆盖多险种责任竞合场景。底层融合保险条款图谱与历史判例库，实现高精度的责任判定。',
     features: ['基于知识图谱的责任推理', '支持多险种责任竞合场景分析', '融合历史判例辅助判定', '输出判定依据与解释说明'],
-    category: '立案定责',
+    category: ['立案定责'],
     publisher: '理赔智能团队',
     versions: [
       { version: 'v1.8.4', publisher: '理赔智能团队', date: '2026-06-01', changes: '新增重疾险责任判定规则，优化竞合场景处理逻辑' },
@@ -608,7 +608,7 @@ gh liability judge --case <case_info_json> --insurance_type <accident|medical|cr
   '理赔欺诈检测': {
     overview: '理赔欺诈风险智能检测技能，基于行为模式和关联分析识别可疑案件。底层融合图谱分析与机器学习模型，实现多维度欺诈风险识别。',
     features: ['基于行为模式的异常检测', '关联图谱发现团伙欺诈', '多维度风险评分与分级预警', '支持历史欺诈案例比对'],
-    category: '立案定责',
+    category: ['立案定责'],
     publisher: '风控团队',
     versions: [
       { version: 'v3.1.0', publisher: '风控团队', date: '2026-06-01', changes: '新增关联图谱欺诈检测模型，识别团伙欺诈准确率提升至 88%' },
@@ -683,7 +683,7 @@ gh fraud-detect analyze --case <case_info_json> --mode <full|quick>
   '健康告知评估': {
     overview: '健康告知智能评估技能，自动识别异常告知项并给出核保建议。底层基于核保手册和医学知识，实现对健康告知的结构化分析与风险评估。',
     features: ['健康告知项自动解析与异常识别', '基于核保手册的风险评估', '支持标准体/次标准体/拒保三种结论', '输出加费建议与除外责任推荐'],
-    category: '核保评估',
+    category: ['核保评估'],
     publisher: '核保智能团队',
     versions: [
       { version: 'v1.4.2', publisher: '核保智能团队', date: '2026-05-29', changes: '新增甲状腺结节核保规则，优化次标准体加费计算' },
@@ -755,7 +755,7 @@ gh health-assess evaluate --declaration <declaration_json> --product <product_co
   '风险智能定价': {
     overview: '基于多维度风险因子的智能定价技能，支持次标准体加费计算和拒保决策。底层融合精算模型与机器学习，实现个性化保费定价。',
     features: ['多维度风险因子评估（年龄/健康/职业等）', '次标准体自动加费计算', '支持拒保决策与建议', '精算模型与 ML 模型双引擎定价'],
-    category: '核保评估',
+    category: ['核保评估'],
     publisher: '精算团队',
     versions: [
       { version: 'v0.7.5', publisher: '精算团队', date: '2026-05-28', changes: '新增职业风险因子评估，优化加费计算模型' },
@@ -826,7 +826,7 @@ gh smart-price calculate --applicant <applicant_info_json> --product <product_co
   '体检报告解读': {
     overview: '体检报告智能解读技能，对照核保手册自动给出风险评估和加费建议。底层基于医学指标知识库与核保规则引擎，实现体检指标的结构化分析与核保决策。',
     features: ['体检报告自动解析与指标提取', '异常指标自动标注与分级', '对照核保手册给出风险评估', '输出加费/除外/延期/拒保建议'],
-    category: '核保评估',
+    category: ['核保评估'],
     publisher: '核保智能团队',
     versions: [
       { version: 'v2.0.0', publisher: '核保智能团队', date: '2026-05-30', changes: '新增 50+ 项体检指标解析，优化核保规则引擎' },
@@ -907,12 +907,17 @@ const SkillDetail: React.FC = () => {
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
 
   const currentName = name || '票据OCR识别'
-  const content = skillContentMap[currentName] || defaultSkill
+  const [isEditing, setIsEditing] = useState(false)
+
+  // 可编辑状态的本地副本
+  const [editContent, setEditContent] = useState<SkillContent | null>(null)
+
+  const content = isEditing && editContent ? editContent : (skillContentMap[currentName] || defaultSkill)
 
   const skillData = {
     name: currentName,
     version: content.versions[0]?.version || 'v1.0.0',
-    category: content.category,
+    category: content.category[0] || '',
     description: content.overview,
   }
 
@@ -949,6 +954,39 @@ const SkillDetail: React.FC = () => {
       contentEl.scrollTo({ top: el.offsetTop - 64, behavior: 'smooth' })
     }
     setActiveSection(key)
+  }
+
+  const handleEdit = () => {
+    const sorted = { ...skillContentMap[currentName] || defaultSkill }
+    sorted.versions = [...sorted.versions].sort((a, b) => {
+      const va = a.version.replace(/[vV]/g, '').split('.').map(Number)
+      const vb = b.version.replace(/[vV]/g, '').split('.').map(Number)
+      for (let i = 0; i < Math.max(va.length, vb.length); i++) {
+        const d = (va[i] || 0) - (vb[i] || 0); if (d !== 0) return d
+      }
+      return 0
+    })
+    setEditContent(sorted)
+    setIsEditing(true)
+  }
+
+  const handleCancel = () => {
+    setEditContent(null)
+    setIsEditing(false)
+  }
+
+  const handleSubmit = () => {
+    if (editContent) {
+      skillContentMap[currentName] = editContent
+      setIsEditing(false)
+      setEditContent(null)
+    }
+  }
+
+  const updateField = (field: keyof SkillContent, value: SkillContent[typeof field]) => {
+    if (editContent) {
+      setEditContent({ ...editContent, [field]: value })
+    }
   }
 
   return (
@@ -991,6 +1029,43 @@ const SkillDetail: React.FC = () => {
         </nav>
       </div>
 
+      {/* 编辑/取消按钮 */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+        <button
+          onClick={handleEdit}
+          disabled={isEditing}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '6px 16px', border: '1px solid', borderRadius: 6,
+            borderColor: isEditing ? '#d9d9d9' : '#3b82f6',
+            background: '#fff',
+            color: isEditing ? '#bfbfbf' : '#3b82f6',
+            fontSize: 13, fontWeight: 600,
+            cursor: isEditing ? 'not-allowed' : 'pointer',
+            opacity: isEditing ? 0.5 : 1,
+            transition: 'all 0.2s',
+          }}
+        >
+          <EditOutlined style={{ fontSize: 12 }} /> 编辑
+        </button>
+        {isEditing && (
+          <button
+            onClick={handleCancel}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              padding: '6px 16px', border: '1px solid #3b82f6', borderRadius: 6,
+              background: '#fff',
+              color: '#3b82f6',
+              fontSize: 13, fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            <CloseOutlined style={{ fontSize: 12 }} /> 取消
+          </button>
+        )}
+      </div>
+
       {/* 概述 */}
       <section
         id="overview"
@@ -1000,31 +1075,94 @@ const SkillDetail: React.FC = () => {
           borderRadius: 12,
           padding: 20,
           marginBottom: 20,
-          border: '1px solid #e8e8e8',
+          border: isEditing ? '2px solid #3b82f6' : '1px solid #e8e8e8',
         }}
       >
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
           概述
         </h2>
-        <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.8, marginTop: 12 }}>
-          {content.overview}
-        </p>
-        {content.features.length > 0 && (
-          <ul style={{ paddingLeft: 20, marginBottom: 10, color: '#374151', lineHeight: 2 }}>
-            {content.features.map((f, i) => <li key={i}>{f}</li>)}
-          </ul>
-        )}
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, maxWidth: '800px' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-            border: '1px solid #3b82f6', background: '#eff6ff',
-            color: '#3b82f6', lineHeight: 1.4, whiteSpace: 'nowrap',
-          }}>
-            {skillData.category}
+        {isEditing ? (
+          <div style={{ marginTop: 12 }}>
+            <textarea
+              value={content.overview}
+              onChange={e => updateField('overview', e.target.value)}
+              style={{
+                width: '100%', minHeight: 80, padding: 12, fontSize: 14,
+                border: '1px solid #d9d9d9', borderRadius: 8, resize: 'vertical',
+                fontFamily: 'inherit', color: '#374151', lineHeight: 1.8,
+              }}
+            />
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>功能特性：</div>
+              {content.features.map((f, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                  <span style={{ color: '#9ca3af', fontSize: 12, flexShrink: 0 }}>{i + 1}.</span>
+                  <input
+                    value={f}
+                    onChange={e => {
+                      const newFeatures = [...content.features]
+                      newFeatures[i] = e.target.value
+                      updateField('features', newFeatures)
+                    }}
+                    placeholder="输入新功能描述"
+                    style={{ flex: 1, padding: '6px 10px', fontSize: 13, border: '1px solid #d9d9d9', borderRadius: 6 }}
+                  />
+                  <button
+                    onClick={() => updateField('features', content.features.filter((_, j) => j !== i))}
+                    style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}
+                  ><DeleteOutlined /></button>
+                </div>
+              ))}
+              <button
+                onClick={() => updateField('features', [...content.features, ''])}
+                style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12, marginTop: 4, marginBottom: 12 }}
+              >+ 添加功能</button>
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>分类标签：</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {['OCR识别', '数据采集', '立案定责', '核保评估'].map(tag => {
+                  const active = content.category.includes(tag)
+                  return (
+                    <div key={tag} onClick={() => {
+                      const nc = active ? content.category.filter((c: string) => c !== tag) : [...content.category, tag]
+                      updateField('category', nc)
+                    }} style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: active ? 600 : 400,
+                      border: `1px solid ${active ? '#3b82f6' : '#d9d9d9'}`, background: active ? '#eff6ff' : '#fff',
+                      color: active ? '#3b82f6' : '#000000e0', cursor: 'pointer', transition: 'all 0.2s ease',
+                      lineHeight: 1.4, whiteSpace: 'nowrap',
+                    }}>
+                      {tag}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.8, marginTop: 12 }}>
+              {content.overview}
+            </p>
+            {content.features.length > 0 && (
+              <ul style={{ paddingLeft: 20, marginBottom: 10, color: '#374151', lineHeight: 2 }}>
+                {content.features.map((f, i) => <li key={i}>{f}</li>)}
+              </ul>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, maxWidth: '800px', marginTop: 12 }}>
+              {content.category.map((c: string, ci: number) => (
+                <span key={ci} style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+                  border: '1px solid #3b82f6', background: '#eff6ff',
+                  color: '#3b82f6', lineHeight: 1.4, whiteSpace: 'nowrap',
+                }}>{c}</span>
+              ))}
+            </div>
+          </>
+        )}
       </section>
 
       {/* 版本历史 */}
@@ -1036,32 +1174,61 @@ const SkillDetail: React.FC = () => {
           borderRadius: 12,
           padding: 20,
           marginBottom: 20,
-          border: '1px solid #e8e8e8',
+          border: isEditing ? '2px solid #3b82f6' : '1px solid #e8e8e8',
         }}
       >
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
           版本历史
         </h2>
-        <table style={{ width: '100%', maxWidth: '800px', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead>
-            <tr style={{ background: '#fafafa' }}>
-              <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>版本</th>
-              <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>发布者</th>
-              <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>发布日期</th>
-              <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>更新内容</th>
-            </tr>
-          </thead>
-          <tbody>
+        {isEditing ? (
+          <div>
             {content.versions.map((v, i) => (
-              <tr key={i}>
-                <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace' }}>{v.version}</td>
-                <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{content.publisher}</td>
-                <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{v.date}</td>
-                <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{v.changes}</td>
-              </tr>
+              <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'flex-start' }}>
+                <input value={v.version} onChange={e => {
+                  const nv = [...content.versions]; nv[i] = { ...nv[i], version: e.target.value }; updateField('versions', nv)
+                }} placeholder="版本号" style={{ width: 100, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
+                <input value={v.date} onChange={e => {
+                  const nv = [...content.versions]; nv[i] = { ...nv[i], date: e.target.value }; updateField('versions', nv)
+                }} style={{ width: 130, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} placeholder="日期" />
+                <input value={v.changes} onChange={e => {
+                  const nv = [...content.versions]; nv[i] = { ...nv[i], changes: e.target.value }; updateField('versions', nv)
+                }} style={{ flex: 1, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} placeholder="更新内容" />
+                <button onClick={() => updateField('versions', content.versions.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}><DeleteOutlined /></button>
+              </div>
             ))}
-          </tbody>
-        </table>
+            <button onClick={() => updateField('versions', [...content.versions, { version: '', publisher: content.publisher, date: '', changes: '' }])} style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12 }}>+ 添加版本</button>
+          </div>
+        ) : (
+          <table style={{ width: '100%', maxWidth: '800px', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: '#fafafa' }}>
+                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>版本</th>
+                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>发布者</th>
+                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>发布日期</th>
+                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>更新内容</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(() => {
+                const sv = [...content.versions].sort((a, b) => {
+                  const va = a.version.replace(/[vV]/g, '').split('.').map(Number)
+                  const vb = b.version.replace(/[vV]/g, '').split('.').map(Number)
+                  for (let i = 0; i < Math.max(va.length, vb.length); i++) {
+                    const d = (va[i] || 0) - (vb[i] || 0); if (d !== 0) return d
+                  }
+                  return 0
+                })
+                return sv.map((v, i) => (
+                <tr key={i}>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace' }}>{v.version}</td>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{content.publisher}</td>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{v.date}</td>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{v.changes}</td>
+                </tr>
+              ))})()}
+            </tbody>
+          </table>
+        )}
       </section>
 
       {/* SKILL.md */}
@@ -1073,26 +1240,39 @@ const SkillDetail: React.FC = () => {
           borderRadius: 12,
           padding: 20,
           marginBottom: 20,
-          border: '1px solid #e8e8e8',
+          border: isEditing ? '2px solid #3b82f6' : '1px solid #e8e8e8',
         }}
       >
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
           SKILL.md
         </h2>
-        <div style={{
-          background: '#f9fafb',
-          border: '1px solid #e5e7eb',
-          borderRadius: 8,
-          padding: 20,
-          fontFamily: 'Consolas, Monaco, monospace',
-          fontSize: 12,
-          lineHeight: 2,
-          color: '#374151',
-          whiteSpace: 'pre-wrap',
-          maxWidth: '800px',
-        }}>
+        {isEditing ? (
+          <textarea
+            value={content.skillMd}
+            onChange={e => updateField('skillMd', e.target.value)}
+            style={{
+              width: '100%', minHeight: 400, padding: 16, fontSize: 12,
+              border: '1px solid #d9d9d9', borderRadius: 8, resize: 'vertical',
+              fontFamily: 'Consolas, Monaco, monospace', lineHeight: 2, color: '#374151',
+              background: '#f9fafb',
+            }}
+          />
+        ) : (
+          <div style={{
+            background: '#f9fafb',
+            border: '1px solid #e5e7eb',
+            borderRadius: 8,
+            padding: 20,
+            fontFamily: 'Consolas, Monaco, monospace',
+            fontSize: 12,
+            lineHeight: 2,
+            color: '#374151',
+            whiteSpace: 'pre-wrap',
+            maxWidth: '800px',
+          }}>
 {content.skillMd}
-        </div>
+          </div>
+        )}
       </section>
 
       {/* API参考 */}
@@ -1104,7 +1284,7 @@ const SkillDetail: React.FC = () => {
           borderRadius: 12,
           padding: 20,
           marginBottom: 20,
-          border: '1px solid #e8e8e8',
+          border: isEditing ? '2px solid #3b82f6' : '1px solid #e8e8e8',
         }}
       >
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
@@ -1113,56 +1293,114 @@ const SkillDetail: React.FC = () => {
 
         <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 12 }}>核心接口</h3>
 
-        <table style={{
-          width: '100%',
-          maxWidth: '800px',
-          borderCollapse: 'collapse',
-          marginBottom: 20,
-          fontSize: 13,
-        }}>
-          <thead>
-            <tr style={{ background: '#fafafa' }}>
-              <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>接口</th>
-              <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>功能描述</th>
-              <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>返回字段</th>
-            </tr>
-          </thead>
-          <tbody>
+        {isEditing ? (
+          <div style={{ marginBottom: 20 }}>
             {content.apis.map((item, i) => (
-              <tr key={i}>
-                <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace' }}>{item.api}</td>
-                <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{item.desc}</td>
-                <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace', fontSize: 11 }}>{item.fields}</td>
-              </tr>
+              <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
+                <input value={item.api} onChange={e => {
+                  const na = [...content.apis]; na[i] = { ...na[i], api: e.target.value }; updateField('apis', na)
+                }} style={{ width: 180, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} placeholder="接口名" />
+                <input value={item.desc} onChange={e => {
+                  const na = [...content.apis]; na[i] = { ...na[i], desc: e.target.value }; updateField('apis', na)
+                }} style={{ width: 160, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} placeholder="功能描述" />
+                <input value={item.fields} onChange={e => {
+                  const na = [...content.apis]; na[i] = { ...na[i], fields: e.target.value }; updateField('apis', na)
+                }} style={{ flex: 1, padding: '6px 10px', fontSize: 11, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} placeholder="返回字段" />
+                <button onClick={() => updateField('apis', content.apis.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}><DeleteOutlined /></button>
+              </div>
             ))}
-          </tbody>
-        </table>
+            <button onClick={() => updateField('apis', [...content.apis, { api: '', desc: '', fields: '' }])} style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12 }}>+ 添加接口</button>
+          </div>
+        ) : (
+          <table style={{
+            width: '100%',
+            maxWidth: '800px',
+            borderCollapse: 'collapse',
+            marginBottom: 20,
+            fontSize: 13,
+          }}>
+            <thead>
+              <tr style={{ background: '#fafafa' }}>
+                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>接口</th>
+                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>功能描述</th>
+                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>返回字段</th>
+              </tr>
+            </thead>
+            <tbody>
+              {content.apis.map((item, i) => (
+                <tr key={i}>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace' }}>{item.api}</td>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{item.desc}</td>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace', fontSize: 11 }}>{item.fields}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
 
         <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 12 }}>错误码</h3>
-        <table style={{
-          width: '100%',
-          maxWidth: '800px',
-          borderCollapse: 'collapse',
-          fontSize: 13,
-        }}>
-          <thead>
-            <tr style={{ background: '#fafafa' }}>
-              <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>错误码</th>
-              <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>描述</th>
-              <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>解决方案</th>
-            </tr>
-          </thead>
-          <tbody>
+        {isEditing ? (
+          <div>
             {content.errors.map((item, i) => (
-              <tr key={i}>
-                <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace' }}>{item.code}</td>
-                <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{item.desc}</td>
-                <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{item.solution}</td>
-              </tr>
+              <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
+                <input value={item.code} onChange={e => {
+                  const ne = [...content.errors]; ne[i] = { ...ne[i], code: e.target.value }; updateField('errors', ne)
+                }} style={{ width: 140, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} placeholder="错误码" />
+                <input value={item.desc} onChange={e => {
+                  const ne = [...content.errors]; ne[i] = { ...ne[i], desc: e.target.value }; updateField('errors', ne)
+                }} style={{ width: 180, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} placeholder="描述" />
+                <input value={item.solution} onChange={e => {
+                  const ne = [...content.errors]; ne[i] = { ...ne[i], solution: e.target.value }; updateField('errors', ne)
+                }} style={{ flex: 1, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} placeholder="解决方案" />
+                <button onClick={() => updateField('errors', content.errors.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}><DeleteOutlined /></button>
+              </div>
             ))}
-          </tbody>
-        </table>
+            <button onClick={() => updateField('errors', [...content.errors, { code: '', desc: '', solution: '' }])} style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12 }}>+ 添加错误码</button>
+          </div>
+        ) : (
+          <table style={{
+            width: '100%',
+            maxWidth: '800px',
+            borderCollapse: 'collapse',
+            fontSize: 13,
+          }}>
+            <thead>
+              <tr style={{ background: '#fafafa' }}>
+                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>错误码</th>
+                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>描述</th>
+                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>解决方案</th>
+              </tr>
+            </thead>
+            <tbody>
+              {content.errors.map((item, i) => (
+                <tr key={i}>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace' }}>{item.code}</td>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{item.desc}</td>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{item.solution}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
+
+      {/* 提交发布按钮 */}
+      {isEditing && (
+        <div style={{ textAlign: 'left'}}>
+          <button
+            onClick={handleSubmit}
+            style={{
+              padding: '8px 20px', border: 'none', borderRadius: 8,
+              background: '#3b82f6', color: '#fff',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(59,130,246,0.25)',
+              transition: 'all 0.2s',
+            }}
+          >
+            提交发布
+          </button>
+        </div>
+      )}
     </div>
   )
 }

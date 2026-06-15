@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Tag, message } from 'antd'
 import { ArrowLeftOutlined, FolderOutlined, AppstoreOutlined, CopyOutlined } from '@ant-design/icons'
@@ -254,6 +254,16 @@ const AgentClaimsTaskDetail: React.FC = () => {
   const [searchParams] = useSearchParams()
   const caseNo = searchParams.get('caseNo') || ''
   const taskId = searchParams.get('taskId') || ''
+
+  // 路由参数变化时滚动到页面顶部
+  useEffect(() => {
+    // 找到最近的 overflow: auto 父容器并滚动到顶部
+    const el = document.querySelector('.ant-layout-content')
+    if (el) {
+      el.scrollTo({ top: 0, behavior: 'instant' })
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [caseNo, taskId])
 
   // 匹配采集日志获取对应状态和创建时间
   const CLAIMS_LOGS = [
