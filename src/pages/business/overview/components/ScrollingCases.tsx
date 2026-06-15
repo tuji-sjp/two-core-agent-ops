@@ -24,7 +24,7 @@ function generateCase(): VirtualCase {
   now.setSeconds(now.getSeconds() - Math.floor(Math.random() * 300))
   return {
     id: `vc-${caseIdCounter}`,
-    caseNo: `${['CLS', 'UW', 'AF'][Math.floor(Math.random() * 3)]}-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(Math.floor(Math.random() * 9999)).padStart(4, '0')}`,
+    caseNo: `${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String(Math.floor(Math.random() * 9000000000) + 1000000000)}`,
     city: CITIES[Math.floor(Math.random() * CITIES.length)],
     scene: SCENES[Math.floor(Math.random() * SCENES.length)],
     status: STATUSES[Math.floor(Math.random() * STATUSES.length)],

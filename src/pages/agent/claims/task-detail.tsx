@@ -182,6 +182,52 @@ const AgentClaimsTaskDetail: React.FC = () => {
   const caseNo = searchParams.get('caseNo') || ''
   const taskId = searchParams.get('taskId') || ''
 
+  // 匹配采集日志获取对应状态和创建时间
+  const CLAIMS_LOGS = [
+    { taskId: '2044719745388838912', caseNo: 'A1000000000', status: 'success', createdAt: '2026-06-02 10:23' },
+    { taskId: '2044719745288838912', caseNo: 'A1000000000', status: 'success', createdAt: '2026-06-02 10:25' },
+    { taskId: '2044719745188838912', caseNo: 'B1000000001', status: 'failed', createdAt: '2026-06-01 09:15' },
+    { taskId: '2044719745088838912', caseNo: 'B1000000001', status: 'success', createdAt: '2026-06-01 09:16' },
+    { taskId: '2044719744988838912', caseNo: 'B1000000001', status: 'success', createdAt: '2026-06-01 09:17' },
+    { taskId: '2044719744888838912', caseNo: 'B1000000001', status: 'failed', createdAt: '2026-06-01 09:18' },
+    { taskId: '2044719744788838912', caseNo: 'C1000000002', status: 'success', createdAt: '2026-05-30 14:10' },
+    { taskId: '2044719744688838912', caseNo: 'D1000000003', status: 'success', createdAt: '2026-05-27 11:00' },
+    { taskId: '2044719744588838912', caseNo: 'D1000000003', status: 'failed', createdAt: '2026-05-27 11:01' },
+    { taskId: '2044719744488838912', caseNo: 'E1000000004', status: 'success', createdAt: '2026-05-24 08:30' },
+    { taskId: '2044719744388838912', caseNo: 'E1000000004', status: 'success', createdAt: '2026-05-24 08:31' },
+    { taskId: '2044719744288838912', caseNo: 'E1000000004', status: 'failed', createdAt: '2026-05-24 08:32' },
+    { taskId: '2044719744188838912', caseNo: 'F1000000005', status: 'success', createdAt: '2026-05-22 16:00' },
+    { taskId: '2044719744088838912', caseNo: 'G1000000006', status: 'success', createdAt: '2026-05-20 13:00' },
+    { taskId: '2044719743988838912', caseNo: 'G1000000006', status: 'failed', createdAt: '2026-05-20 13:01' },
+    { taskId: '2044719743888838912', caseNo: 'H1000000007', status: 'success', createdAt: '2026-05-17 10:00' },
+    { taskId: '2044719743788838912', caseNo: 'I1000000008', status: 'success', createdAt: '2026-05-16 09:00' },
+    { taskId: '2044719743688838912', caseNo: 'I1000000008', status: 'failed', createdAt: '2026-05-16 09:01' },
+    { taskId: '2044719743588838912', caseNo: 'J1000000009', status: 'success', createdAt: '2026-05-14 14:30' },
+    { taskId: '2044719743488838912', caseNo: 'J1000000009', status: 'success', createdAt: '2026-05-14 14:31' },
+    { taskId: '2044719743388838912', caseNo: 'J1000000009', status: 'failed', createdAt: '2026-05-14 14:32' },
+    { taskId: '2044719743288838912', caseNo: 'K1000000010', status: 'success', createdAt: '2026-05-13 10:00' },
+    { taskId: '2044719743188838912', caseNo: 'K1000000010', status: 'success', createdAt: '2026-05-13 10:02' },
+    { taskId: '2044719743088838912', caseNo: 'L1000000011', status: 'failed', createdAt: '2026-05-12 11:00' },
+    { taskId: '2044719742988838912', caseNo: 'M1000000012', status: 'success', createdAt: '2026-05-10 15:00' },
+    { taskId: '2044719742888838912', caseNo: 'M1000000012', status: 'success', createdAt: '2026-05-10 15:01' },
+    { taskId: '2044719742788838912', caseNo: 'N1000000013', status: 'failed', createdAt: '2026-05-08 09:30' },
+    { taskId: '2044719742688838912', caseNo: 'O1000000014', status: 'success', createdAt: '2026-05-06 10:00' },
+    { taskId: '2044719742588838912', caseNo: 'O1000000014', status: 'success', createdAt: '2026-05-06 10:01' },
+    { taskId: '2044719742488838912', caseNo: 'P1000000015', status: 'failed', createdAt: '2026-05-04 08:00' },
+    { taskId: '2044719742388838912', caseNo: 'Q1000000016', status: 'success', createdAt: '2026-05-02 12:00' },
+    { taskId: '2044719742288838912', caseNo: 'Q1000000016', status: 'success', createdAt: '2026-05-02 12:01' },
+    { taskId: '2044719742188838912', caseNo: 'Q1000000016', status: 'failed', createdAt: '2026-05-02 12:02' },
+    { taskId: '2044719742088838912', caseNo: 'R1000000017', status: 'success', createdAt: '2026-04-30 16:30' },
+    { taskId: '2044719741988838912', caseNo: 'S1000000018', status: 'success', createdAt: '2026-04-28 14:00' },
+    { taskId: '2044719741888838912', caseNo: 'S1000000018', status: 'failed', createdAt: '2026-04-28 14:01' },
+    { taskId: '2044719741788838912', caseNo: 'T1000000019', status: 'success', createdAt: '2026-04-26 09:00' },
+    { taskId: '2044719741688838912', caseNo: 'U1000000020', status: 'success', createdAt: '2026-04-24 11:30' },
+    { taskId: '2044719741588838912', caseNo: 'U1000000020', status: 'failed', createdAt: '2026-04-24 11:31' },
+  ]
+  const matchedLog = CLAIMS_LOGS.find(l => l.taskId === taskId && l.caseNo === caseNo)
+  const logStatus = matchedLog?.status || 'success'
+  const logCreatedAt = matchedLog?.createdAt || ''
+
   const [activeTab, setActiveTab] = useState('影像展示')
   const [activeCategory, setActiveCategory] = useState('全部')
   const [viewMode, setViewMode] = useState<'group' | 'category'>('category')
@@ -239,7 +285,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/agent/claims/logs')}
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#595959', fontSize: 14 }}
           >
             <ArrowLeftOutlined /> 返回
@@ -863,22 +909,31 @@ const AgentClaimsTaskDetail: React.FC = () => {
               <div>
                 <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 8 }}>响应码</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000e0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21.801 10A10 10 0 1 1 17 3.335" />
-                    <path d="m9 11 3 3L22 4" />
-                  </svg>
-                  <span style={{ fontSize: 20, fontWeight: 600, color: '#22c55e' }}>0</span>
+                  {logStatus === 'success' ? (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000e0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21.801 10A10 10 0 1 1 17 3.335" />
+                      <path d="m9 11 3 3L22 4" />
+                    </svg>
+                  ) : (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff4d4f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="m15 9-6 6" /><path d="m9 9 6 6" />
+                    </svg>
+                  )}
+                  <span style={{ fontSize: 20, fontWeight: 600, color: logStatus === 'success' ? '#22c55e' : '#ff4d4f' }}>
+                    {logStatus === 'success' ? '0' : '-1'}
+                  </span>
                 </div>
               </div>
-              <Tag color="success" style={{ borderRadius: 6, padding: '2px 12px', fontSize: 14 }}>
-                成功
+              <Tag color={logStatus === 'success' ? 'success' : 'error'} style={{ borderRadius: 6, padding: '2px 12px', fontSize: 14 }}>
+                {logStatus === 'success' ? '成功' : '失败'}
               </Tag>
             </div>
 
             {/* 响应时间行 */}
             <div style={{ padding: '20px 24px' }}>
               <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 8 }}>响应时间</div>
-              <div style={{ fontSize: 14, color: '#1f2937' }}>2026-04-16 18:09:07</div>
+              <div style={{ fontSize: 14, color: '#1f2937' }}>{logCreatedAt}:00</div>
             </div>
           </div>
 

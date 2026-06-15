@@ -109,11 +109,11 @@ const DataAssetsSection: React.FC = () => {
           }}>
             <div style={{ fontSize:14, fontWeight: 600, color: '#1f2937', marginBottom: 8 }}>{item.name}</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-              <span style={{ color: '#9ca3af' }}>总数量</span>
+              <span style={{ color: '#1d2937' }}>总数量</span>
               <span style={{ color: '#3b82f6', fontWeight: 600 }}>{item.total}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginTop: 2 }}>
-              <span style={{ color: '#9ca3af' }}>使用量</span>
+              <span style={{ color: '#1d2937' }}>使用量</span>
               <span style={{ color: '#fb923c', fontWeight: 600 }}>{item.usage}</span>
             </div>
           </div>
