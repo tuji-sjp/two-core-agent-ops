@@ -212,3 +212,26 @@ body {
   padding: 0 !important;
   border-radius: 8px !important;
 }
+
+/* Agent claims logs: table scroll wrapper - always show horizontal scrollbar */
+.table-scroll-wrapper {
+  overflow-x: scroll !important;
+  overflow-y: hidden !important;
+  margin-bottom: 16px;
+}
+.table-scroll-wrapper::-webkit-scrollbar {
+  height: 10px !important;
+  display: block !important;
+}
+.table-scroll-wrapper::-webkit-scrollbar-track {
+  background: #ffffff !important;
+  border-radius: 5px !important;
+}
+.table-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: #d9d9d9 !important;
+  border-radius: 5px !important;
+  border: 2px solid #ffffff !important;
+}
+.table-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf !important;
+}

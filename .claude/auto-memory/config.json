@@ -1,5 +1,5 @@
 {
-  "triggerMode": "default",
+  "triggerMode": "gitmode",
   "memoryFiles": ["CLAUDE.md", "AGENTS.md"],
   "autoCommit": false,
   "autoPush": false
