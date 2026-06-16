@@ -14,17 +14,85 @@ const statusMap: Record<string, { color: string; label: string }> = {
 }
 
 function buildColumns(
+  tab: 'claims' | 'underwriting',
   onPreview: (doc: KnowledgeItem) => void,
   onEdit: (doc: KnowledgeItem) => void,
 ): ColumnsType<KnowledgeItem> {
+  if (tab === 'underwriting') {
+    // 核保知识库：原始 6 列表头
+    return [
+      {
+        title: '文档名称',
+        dataIndex: 'name',
+        key: 'name',
+        width: '30%',
+        render: (text: string, record: KnowledgeItem) => (
+          <span style={{ fontWeight: 500, color: '#1f2937' }}>
+            {record.docType === 'sheet' ? (
+              <TableOutlined style={{ marginRight: 6, color: '#22c55e', fontSize: 14 }} />
+            ) : (
+              <FileTextOutlined style={{ marginRight: 6, color: '#3b82f6', fontSize: 14 }} />
+            )}
+            {text}
+          </span>
+        ),
+      },
+      {
+        title: '版本',
+        dataIndex: 'version',
+        key: 'version',
+        width: '8%',
+        align: 'center' as const,
+      },
+      {
+        title: '状态',
+        dataIndex: 'status',
+        key: 'status',
+        width: '10%',
+        align: 'center' as const,
+        render: (status: string) => {
+          const s = statusMap[status] || statusMap.active
+          return <Tag color={s.color} style={{ borderRadius: 6 }}>{s.label}</Tag>
+        },
+      },
+      {
+        title: '知识提供方',
+        dataIndex: 'author',
+        key: 'author',
+        width: '14%',
+      },
+      {
+        title: '最近更新',
+        dataIndex: 'updatedAt',
+        key: 'updatedAt',
+        width: '12%',
+        align: 'center' as const,
+      },
+      {
+        title: '操作',
+        key: 'actions',
+        width: '12%',
+        align: 'center' as const,
+        render: (_: unknown, record: KnowledgeItem) => (
+          <Space size={8}>
+            <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => onPreview(record)} style={{ padding: 0 }}>预览</Button>
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => onEdit(record)} style={{ padding: 0 }}>编辑</Button>
+          </Space>
+        ),
+      },
+    ]
+  }
+
+  // 理赔知识库：9 列表头
+  const CELL_COLOR = '#000000e0'
   return [
     {
       title: '文档名称',
       dataIndex: 'name',
       key: 'name',
-      width: '30%',
+      width: '14%',
       render: (text: string, record: KnowledgeItem) => (
-        <span style={{ fontWeight: 500, color: '#1f2937' }}>
+        <span style={{ fontWeight: 500, color: CELL_COLOR }}>
           {record.docType === 'sheet' ? (
             <TableOutlined style={{ marginRight: 6, color: '#22c55e', fontSize: 14 }} />
           ) : (
@@ -35,41 +103,73 @@ function buildColumns(
       ),
     },
     {
-      title: '版本',
+      title: '知识分类',
+      dataIndex: 'category',
+      key: 'category',
+      width: '8%',
+      render: (text: string) => (
+        <Tag color="blue" style={{ borderRadius: 6, margin: 0 }}>{text}</Tag>
+      ),
+    },
+    {
+      title: '内容简述',
+      dataIndex: 'summary',
+      key: 'summary',
+      width: '16%',
+      ellipsis: true,
+      render: (text: string) => (
+        <span style={{ color: CELL_COLOR, fontSize: 12 }}>{text}</span>
+      ),
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: '9%',
+      render: (text: string) => <span style={{ color: CELL_COLOR }}>{text}</span>,
+    },
+    {
+      title: '创建人',
+      dataIndex: 'creator',
+      key: 'creator',
+      width: '9%',
+      render: (text: string) => <span style={{ color: CELL_COLOR }}>{text}</span>,
+    },
+    {
+      title: '最新版本',
       dataIndex: 'version',
       key: 'version',
-      width: '8%',
-      align: 'center' as const,
+      width: '7%',
+      render: (text: string) => <span style={{ color: CELL_COLOR }}>{text}</span>,
+    },
+    {
+      title: '更新时间',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
+      width: '9%',
+      render: (text: string) => <span style={{ color: CELL_COLOR }}>{text}</span>,
+    },
+    {
+      title: '更新人',
+      dataIndex: 'author',
+      key: 'author',
+      width: '9%',
+      render: (text: string) => <span style={{ color: CELL_COLOR }}>{text}</span>,
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: '10%',
-      align: 'center' as const,
+      width: '7%',
       render: (status: string) => {
         const s = statusMap[status] || statusMap.active
         return <Tag color={s.color} style={{ borderRadius: 6 }}>{s.label}</Tag>
       },
     },
     {
-      title: '知识提供方',
-      dataIndex: 'author',
-      key: 'author',
-      width: '14%',
-    },
-    {
-      title: '最近更新',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-      width: '12%',
-      align: 'center' as const,
-    },
-    {
       title: '操作',
       key: 'actions',
-      width: '12%',
-      align: 'center' as const,
+      width: '10%',
       render: (_: unknown, record: KnowledgeItem) => (
         <Space size={8}>
           <Button
@@ -501,7 +601,7 @@ const DocModal: React.FC<{
 }
 
 // ========== DocTable ==========
-function DocTable({ items }: { items: KnowledgeItem[] }) {
+function DocTable({ items, activeTab }: { items: KnowledgeItem[]; activeTab: 'claims' | 'underwriting' }) {
   const [modalOpen, setModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'view' | 'edit'>('view')
   const [currentDoc, setCurrentDoc] = useState<KnowledgeItem | null>(null)
@@ -533,16 +633,21 @@ function DocTable({ items }: { items: KnowledgeItem[] }) {
     setCurrentDoc(updatedDoc)
   }
 
+  const minWidth = activeTab === 'claims' ? 1280 : 900
   return (
     <>
-      <Table
-        columns={buildColumns(handlePreview, handleEdit)}
-        dataSource={paginatedDocs}
-        rowKey="id"
-        size="middle"
-        pagination={false}
-        style={{ fontSize: 13 }}
-      />
+      <div className="table-scroll-wrapper">
+        <div style={{ minWidth }}>
+          <Table
+            columns={buildColumns(activeTab, handlePreview, handleEdit)}
+            dataSource={paginatedDocs}
+            rowKey="id"
+            size="middle"
+            pagination={false}
+            style={{ fontSize: 13 }}
+          />
+        </div>
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <span style={{ fontSize: 12, color: '#000000e0' }}>共 {docs.length} 条数据</span>
@@ -602,22 +707,28 @@ const PillTag: React.FC<{ label: string; active: boolean; onClick: () => void }>
 }
 
 /** 知识库区块 */
-const KnowledgeSection: React.FC<{ groups: { name: string; items: KnowledgeItem[] }[] }> = ({ groups }) => {
-  const [activeGroup, setActiveGroup] = useState(groups[0].name)
+const KnowledgeSection: React.FC<{ groups: { name: string; items: KnowledgeItem[] }[]; activeTab: 'claims' | 'underwriting' }> = ({ groups, activeTab }) => {
+  const ALL_LABEL = '全部'
+  const [activeGroup, setActiveGroup] = useState(ALL_LABEL)
   const [searchKeyword, setSearchKeyword] = useState('')
 
-  React.useEffect(() => { setActiveGroup(groups[0].name); setSearchKeyword('') }, [groups])
+  React.useEffect(() => { setActiveGroup(ALL_LABEL); setSearchKeyword('') }, [groups])
 
   const allItems = groups.reduce<KnowledgeItem[]>((acc, g) => [...acc, ...g.items], [])
-  const currentItems = (searchKeyword
+  const filteredItems = (searchKeyword
     ? allItems.filter(item => item.name.toLowerCase().includes(searchKeyword.toLowerCase()))
-    : groups.find(g => g.name === activeGroup)?.items || []
+    : activeGroup === ALL_LABEL
+      ? allItems
+      : groups.find(g => g.name === activeGroup)?.items || []
   )
+  // 按更新时间倒序（近→远）
+  const currentItems = [...filteredItems].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <PillTag key={ALL_LABEL} label={ALL_LABEL} active={activeGroup === ALL_LABEL} onClick={() => setActiveGroup(ALL_LABEL)} />
           {groups.map(g => (
             <PillTag key={g.name} label={g.name} active={activeGroup === g.name} onClick={() => setActiveGroup(g.name)} />
           ))}
@@ -634,7 +745,7 @@ const KnowledgeSection: React.FC<{ groups: { name: string; items: KnowledgeItem[
         </div>
       </div>
       <div style={{ marginTop: 16 }}>
-        <DocTable key={searchKeyword || activeGroup} items={currentItems} />
+        <DocTable key={searchKeyword || activeGroup} items={currentItems} activeTab={activeTab} />
       </div>
     </div>
   )
@@ -649,9 +760,9 @@ const KnowledgeBaseCards: React.FC<{ activeTab: 'claims' | 'underwriting' }> = (
         <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>{isClaims ? '理赔知识库' : '核保知识库'}</span>
       </div>
       {isClaims ? (
-        <KnowledgeSection key="claims" groups={claimsKnowledge.groups} />
+        <KnowledgeSection key="claims" groups={claimsKnowledge.groups} activeTab="claims" />
       ) : (
-        <KnowledgeSection key="underwriting" groups={underwritingKnowledge.groups} />
+        <KnowledgeSection key="underwriting" groups={underwritingKnowledge.groups} activeTab="underwriting" />
       )}
     </div>
   )
