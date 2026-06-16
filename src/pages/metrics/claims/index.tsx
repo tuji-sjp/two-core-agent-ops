@@ -5,17 +5,17 @@ import { useNavigate } from 'react-router-dom'
 import MetricCard from '../../dashboard/components/smart-services/metric-card'
 import CaseProcessingChart from '../../dashboard/components/smart-services/case-processing-chart'
 
-const METRICS_CLAIMS: { label: string; value: string }[] = [
-  { label: 'Tokens使用量', value: '12.8万' },
-  { label: '处理案件总数', value: '3,245' },
-  { label: '服务调用总数', value: '8,712' },
-  { label: '平均调用成功率', value: '96.3%' },
-  { label: '平均处理时长', value: '4.2s' },
-  { label: '采集环节自动化率', value: '94.5%' },
-  { label: '立案环节自动化率', value: '87.2%' },
-  { label: '扣费环节自动化率', value: '91.8%' },
-  { label: '理算环节自动化率', value: '85.6%' },
-  { label: '审核环节自动化率', value: '92.1%' },
+const METRICS_CLAIMS: { label: string; value: string; change: { direction: 'up' | 'down'; value: string } }[] = [
+  { label: 'Tokens使用量', value: '12.8万', change: { direction: 'up', value: '15.2%' } },
+  { label: '处理案件总数', value: '3,245', change: { direction: 'up', value: '8.7%' } },
+  { label: '服务调用总数', value: '8,712', change: { direction: 'up', value: '12.3%' } },
+  { label: '平均调用成功率', value: '96.3%', change: { direction: 'up', value: '1.2%' } },
+  { label: '平均处理时长', value: '4.2s', change: { direction: 'down', value: '0.8s' } },
+  { label: '采集环节自动化率', value: '94.5%', change: { direction: 'up', value: '3.2%' } },
+  { label: '立案环节自动化率', value: '87.2%', change: { direction: 'up', value: '2.5%' } },
+  { label: '扣费环节自动化率', value: '91.8%', change: { direction: 'up', value: '1.8%' } },
+  { label: '理算环节自动化率', value: '85.6%', change: { direction: 'down', value: '1.1%' } },
+  { label: '审核环节自动化率', value: '92.1%', change: { direction: 'up', value: '4.3%' } },
 ]
 
 const STATUS_MAP: Record<string, { color: string; text: string }> = {

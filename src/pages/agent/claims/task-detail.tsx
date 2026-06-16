@@ -265,7 +265,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [caseNo, taskId])
 
-  // 匹配采集日志获取对应状态和创建时间
+  // 匹配采集日志获取对应状态和调用时间
   const CLAIMS_LOGS = [
     { taskId: '2044719745388838912', caseNo: 'A1000000000', status: 'success', createdAt: '2026-06-02 10:23', imageCount: 23 },
     { taskId: '2044719745288838912', caseNo: 'A1000000000', status: 'success', createdAt: '2026-06-02 10:25', imageCount: 34 },

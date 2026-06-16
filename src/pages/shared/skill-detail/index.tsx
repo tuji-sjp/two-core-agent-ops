@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeftOutlined, EditOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons'
+import { allSkills, mySkills } from '../skills'
 
 // ==================== Skill mock 数据 ====================
 interface SkillContent {
@@ -908,6 +909,7 @@ const SkillDetail: React.FC = () => {
 
   const currentName = name || '票据OCR识别'
   const [isEditing, setIsEditing] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // 可编辑状态的本地副本
   const [editContent, setEditContent] = useState<SkillContent | null>(null)
@@ -975,6 +977,16 @@ const SkillDetail: React.FC = () => {
     setIsEditing(false)
   }
 
+  const handleDelete = () => {
+    delete skillContentMap[currentName]
+    const idx1 = allSkills.findIndex(s => s.name === currentName)
+    if (idx1 >= 0) allSkills.splice(idx1, 1)
+    const idx2 = mySkills.findIndex(s => s.name === currentName)
+    if (idx2 >= 0) mySkills.splice(idx2, 1)
+    setShowDeleteConfirm(false)
+    navigate('/skills/market')
+  }
+
   const handleSubmit = () => {
     if (editContent) {
       skillContentMap[currentName] = editContent
@@ -1029,7 +1041,7 @@ const SkillDetail: React.FC = () => {
         </nav>
       </div>
 
-      {/* 编辑/取消按钮 */}
+      {/* 编辑/取消/删除按钮 */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <button
           onClick={handleEdit}
@@ -1048,6 +1060,22 @@ const SkillDetail: React.FC = () => {
         >
           <EditOutlined style={{ fontSize: 12 }} /> 编辑
         </button>
+        {!isEditing && (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              padding: '6px 16px', border: '1px solid #9ca3af', borderRadius: 6,
+              background: '#fff',
+              color: '#9ca3af',
+              fontSize: 13, fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            <DeleteOutlined style={{ fontSize: 12 }} /> 删除
+          </button>
+        )}
         {isEditing && (
           <button
             onClick={handleCancel}
@@ -1065,6 +1093,34 @@ const SkillDetail: React.FC = () => {
           </button>
         )}
       </div>
+
+      {/* 删除确认弹窗 */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <div
+            style={{
+              background: '#fff', borderRadius: 12, padding: 24, width: 360,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>
+              确定要删除「{currentName}」Skill 吗？此操作不可恢复。
+            </div>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: '6px 16px', border: '1px solid #d9d9d9', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, cursor: 'pointer' }}>取消</button>
+              <button onClick={handleDelete} style={{ padding: '6px 16px', border: 'none', borderRadius: 6, background: '#ff4d4f', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>确认删除</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 概述 */}
       <section
@@ -1115,10 +1171,10 @@ const SkillDetail: React.FC = () => {
               ))}
               <button
                 onClick={() => updateField('features', [...content.features, ''])}
-                style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12, marginTop: 4, marginBottom: 12 }}
+                style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12, marginTop: 4 }}
               >+ 添加功能</button>
             </div>
-            <div style={{ marginTop: 16 }}>
+            <div style={{ marginTop: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>分类标签：</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {['OCR识别', '数据采集', '立案定责', '核保评估'].map(tag => {
@@ -1405,4 +1461,5 @@ const SkillDetail: React.FC = () => {
   )
 }
 
+export { skillContentMap }
 export default SkillDetail

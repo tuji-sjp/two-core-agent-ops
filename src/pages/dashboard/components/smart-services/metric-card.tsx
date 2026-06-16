@@ -1,20 +1,14 @@
 import React from 'react'
+import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons'
 
 interface MetricItem {
   label: string
   value: string
+  change?: { direction: 'up' | 'down'; value: string }
 }
 
 interface Props {
   metric: MetricItem
-}
-
-function getValueColor(value: string): string {
-  const num = parseFloat(value.replace(/[%,]/g, ''))
-  if (value.includes('%')) {
-    return num >= 90 ? '#22c55e' : num >= 70 ? '#f59e0b' : '#ef4444'
-  }
-  return '#3b82f6'
 }
 
 const MetricCard: React.FC<Props> = ({ metric }) => {
@@ -30,16 +24,35 @@ const MetricCard: React.FC<Props> = ({ metric }) => {
       justifyContent: 'center',
       height: '100%',
     }}>
+      {/* 指标名称 */}
+      <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginBottom: 8 }}>{metric.label}</div>
+      {/* 指标数值 */}
       <div style={{
-        fontSize: 22,
+        fontSize: 24,
         fontWeight: 700,
-        color: getValueColor(metric.value),
+        color: '#111827',
         lineHeight: 1,
-        marginBottom: 8,
+        marginBottom: 10,
       }}>
         {metric.value}
       </div>
-      <div style={{ fontSize: 14, color: '#1d2129', fontWeight: 700, textAlign: 'center' }}>{metric.label}</div>
+      {/* 较上周变化 */}
+      {metric.change && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12 }}>
+          <span style={{ color: '#9ca3af' }}>较上周</span>
+          {metric.change.direction === 'up' ? (
+            <>
+              <ArrowUpOutlined style={{ color: '#ef4444', fontSize: 11 }} />
+              <span style={{ color: '#ef4444', fontWeight: 600 }}>{metric.change.value}</span>
+            </>
+          ) : (
+            <>
+              <ArrowDownOutlined style={{ color: '#22c55e', fontSize: 11 }} />
+              <span style={{ color: '#22c55e', fontWeight: 600 }}>{metric.change.value}</span>
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }

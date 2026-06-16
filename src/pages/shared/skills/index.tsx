@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Row, Col } from 'antd'
 import { useNavigate } from 'react-router-dom'
+import { skillContentMap } from '../skill-detail'
 import {
   StarOutlined,
   ClockCircleOutlined,
@@ -8,6 +9,8 @@ import {
   RightOutlined,
   LinkOutlined,
   PlusOutlined,
+  CloseOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons'
 
 // ==================== 使用案例数据 ====================
@@ -47,7 +50,7 @@ interface SkillItem {
   publisher: string
 }
 
-const allSkills: SkillItem[] = [
+export const allSkills: SkillItem[] = [
   { name: '票据OCR识别', description: '智能识别并提取发票、收据中的关键字段信息，支持多版式票据的自动识别与结构化输出', likes: 18, downloads: '1.2K', updated: '3天前更新', category: 'OCR识别', version: 'v1.2.0', publisher: '科技部-何军' },
   { name: '医疗文档OCR识别', description: '自动识别病历、检验报告等医疗文档内容，提取关键诊断指标和检验数据', likes: 32, downloads: '2.1K', updated: '5天前更新', category: 'OCR识别', version: 'v2.0.1', publisher: '科技部-张伟' },
   { name: '身份证OCR识别', description: '身份证正反面信息自动识别与校验，支持批量处理和真伪验证', likes: 45, downloads: '3.4K', updated: '2天前更新', category: 'OCR识别', version: 'v1.5.3', publisher: '科技部-何军' },
@@ -63,10 +66,33 @@ const allSkills: SkillItem[] = [
 ]
 
 // 个人 Skills mock 数据（公共 Skills 的子集）
-const mySkills: SkillItem[] = [
+export const mySkills: SkillItem[] = [
   { name: '理赔案件自动立案', description: '理赔案件自动立案，根据报案信息智能匹配保险条款，完成责任初判', likes: 56, downloads: '4.2K', updated: '1天前更新', category: '立案定责', version: 'v2.3.0', publisher: '理赔部-马丽' },
   { name: '体检报告解读', description: '体检报告智能解读，对照核保手册自动给出风险评估和加费建议', likes: 47, downloads: '3.3K', updated: '3天前更新', category: '核保评估', version: 'v2.0.0', publisher: '核保部-王芳' },
 ]
+
+// 新 Skill 表单数据结构
+interface NewSkillForm {
+  name: string
+  overview: string
+  features: string[]
+  categories: string[]
+  skillMd: string
+  apis: { api: string; desc: string; fields: string }[]
+  errors: { code: string; desc: string; solution: string }[]
+  versions: { version: string; date: string; changes: string }[]
+}
+
+const emptyNewSkill: NewSkillForm = {
+  name: '',
+  overview: '',
+  features: [''],
+  categories: [],
+  skillMd: '',
+  apis: [{ api: '', desc: '', fields: '' }],
+  errors: [{ code: '', desc: '', solution: '' }],
+  versions: [{ version: '', date: '', changes: '' }],
+}
 
 const LOAD_COUNT = 9
 const categoryList = ['全部', 'OCR识别', '数据采集', '立案定责', '核保评估', '我的收藏']
@@ -237,6 +263,9 @@ const SharedSkillsMarket: React.FC = () => {
   const [searchKeyword, setSearchKeyword] = useState('')
   const [likedSkills, setLikedSkills] = useState<Set<string>>(new Set())
   const [displayCount, setDisplayCount] = useState(LOAD_COUNT)
+  const [showPublishModal, setShowPublishModal] = useState(false)
+  const [newSkill, setNewSkill] = useState<NewSkillForm>(emptyNewSkill)
+  const navigate = useNavigate()
 
   const toggleLike = (name: string) => {
     setLikedSkills(prev => {
@@ -245,6 +274,50 @@ const SharedSkillsMarket: React.FC = () => {
       else next.add(name)
       return next
     })
+  }
+
+  const handlePublish = () => {
+    // 必填校验
+    if (!newSkill.name.trim()) { alert('请填写 Skill 名称'); return }
+    if (!newSkill.overview.trim()) { alert('请填写概述'); return }
+    if (newSkill.features.filter(f => f.trim()).length === 0) { alert('请至少添加一个功能特性'); return }
+    if (newSkill.categories.length === 0) { alert('请选择至少一个分类标签'); return }
+    if (!newSkill.skillMd.trim()) { alert('请填写 SKILL.md 内容'); return }
+    if (newSkill.versions.filter(v => v.version.trim()).length === 0) { alert('请至少添加一个版本'); return }
+    if (newSkill.apis.filter(a => a.api.trim()).length === 0) { alert('请至少添加一个 API 接口'); return }
+    if (newSkill.errors.filter(e => e.code.trim()).length === 0) { alert('请至少添加一个错误码'); return }
+
+    // 保存到 skillContentMap
+    skillContentMap[newSkill.name] = {
+      overview: newSkill.overview,
+      features: newSkill.features.filter(f => f.trim()),
+      category: newSkill.categories,
+      publisher: '当前用户',
+      versions: newSkill.versions.filter(v => v.version.trim()).map(v => ({ ...v, publisher: '当前用户' })),
+      skillMd: newSkill.skillMd,
+      apis: newSkill.apis.filter(a => a.api.trim()),
+      errors: newSkill.errors.filter(e => e.code.trim()),
+    }
+    // 添加到 allSkills 和 我的 Skills
+    const newItem = {
+      name: newSkill.name,
+      description: newSkill.overview.slice(0, 60) + '...',
+      likes: 0,
+      downloads: '0',
+      updated: '刚刚发布',
+      category: newSkill.categories[0] || '未分类',
+      version: newSkill.versions[0]?.version || 'v1.0.0',
+      publisher: '当前用户',
+    }
+    allSkills.push(newItem)
+    mySkills.push(newItem)
+    setShowPublishModal(false)
+    setNewSkill(emptyNewSkill)
+    navigate(`/skills/skill/${newSkill.name}`)
+  }
+
+  const updateField = (field: keyof NewSkillForm, value: any) => {
+    setNewSkill(prev => ({ ...prev, [field]: value }))
   }
 
   const filteredSkills = allSkills.filter(skill => {
@@ -292,11 +365,13 @@ const SharedSkillsMarket: React.FC = () => {
           <div style={titleBarStyle} />
           <span style={titleTextStyle}>我的 Skills</span>
         </div>
-        <button style={{
-          marginBottom: 20, display: 'flex', alignItems: 'center', gap: 4,
-          padding: '6px 16px', border: '1px solid #3b82f6', borderRadius: 6,
-          background: '#fff', color: '#3b82f6', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-        }}>
+        <button
+          onClick={() => setShowPublishModal(true)}
+          style={{
+            marginBottom: 20, display: 'flex', alignItems: 'center', gap: 4,
+            padding: '6px 16px', border: '1px solid #3b82f6', borderRadius: 6,
+            background: '#fff', color: '#3b82f6', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          }}>
           <PlusOutlined style={{ fontSize: 12 }} /> 发布新 Skill
         </button>
         <Row gutter={[20, 20]}>
@@ -368,6 +443,162 @@ const SharedSkillsMarket: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* 发布新 Skill 弹窗 */}
+      {showPublishModal && (
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+          onClick={() => setShowPublishModal(false)}
+        >
+          <div
+            style={{
+              background: '#fff', borderRadius: 16, width: '90%', maxWidth: 700,
+              maxHeight: '85vh', overflow: 'auto', padding: 24,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* 弹窗标题 */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>发布新 Skill</span>
+              <CloseOutlined onClick={() => setShowPublishModal(false)} style={{ fontSize: 18, color: '#6b7280', cursor: 'pointer' }} />
+            </div>
+
+            {/* Skill 名称 */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Skill 名称 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <input value={newSkill.name} onChange={e => updateField('name', e.target.value)} placeholder="请输入 Skill 名称" style={{ width: '100%', padding: '8px 12px', fontSize: 14, border: '1px solid #d9d9d9', borderRadius: 8 }} />
+            </div>
+
+            {/* 概述 */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>概述 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <textarea value={newSkill.overview} onChange={e => updateField('overview', e.target.value)} placeholder="请输入 Skill 概述" style={{ width: '100%', minHeight: 60, padding: 12, fontSize: 14, border: '1px solid #d9d9d9', borderRadius: 8, resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+
+            {/* 功能特性 */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>功能特性 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              {newSkill.features.map((f, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                  <span style={{ color: '#9ca3af', fontSize: 12, flexShrink: 0 }}>{i + 1}.</span>
+                  <input value={f} onChange={e => { const nf = [...newSkill.features]; nf[i] = e.target.value; updateField('features', nf) }} placeholder={f === '' ? '输入功能描述' : ''} style={{ flex: 1, padding: '6px 10px', fontSize: 13, border: '1px solid #d9d9d9', borderRadius: 6 }} />
+                  <button onClick={() => updateField('features', newSkill.features.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}><DeleteOutlined /></button>
+                </div>
+              ))}
+              <button onClick={() => updateField('features', [...newSkill.features, ''])} style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12 }}>+ 添加功能</button>
+            </div>
+
+            {/* 分类标签 */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>分类标签 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {['OCR识别', '数据采集', '立案定责', '核保评估'].map(tag => {
+                  const active = newSkill.categories.includes(tag)
+                  return (
+                    <div key={tag} onClick={() => {
+                      const nc = active ? newSkill.categories.filter(c => c !== tag) : [...newSkill.categories, tag]
+                      updateField('categories', nc)
+                    }} style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: active ? 600 : 400,
+                      border: `1px solid ${active ? '#3b82f6' : '#d9d9d9'}`, background: active ? '#eff6ff' : '#fff',
+                      color: active ? '#3b82f6' : '#000000e0', cursor: 'pointer', transition: 'all 0.2s ease',
+                    }}>
+                      {tag}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* SKILL.md */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>SKILL.md <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <div style={{
+                background: '#fff', borderRadius: 8, overflow: 'hidden',
+                border: '1px solid #e5e7eb',
+              }}>
+                <div style={{
+                  background: '#f9fafb', padding: '6px 12px', fontSize: 12, color: '#6b7280',
+                  borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 8,
+                }}>
+                  <span style={{ color: '#3b82f6', fontWeight: 600 }}>SKILL.md</span>
+                </div>
+                <textarea
+                  value={newSkill.skillMd}
+                  onChange={e => updateField('skillMd', e.target.value)}
+                  placeholder="# 在此输入 SKILL.md 内容&#10;&#10;name: your-skill-name&#10;description: 描述你的 Skill&#10;version: 1.0.0"
+                  style={{
+                    width: '100%', minHeight: 200, padding: 16, fontSize: 12,
+                    border: 'none', borderRadius: 0, resize: 'vertical',
+                    fontFamily: 'Consolas, Monaco, monospace', lineHeight: 1.8,
+                    color: '#374151', background: '#fff', outline: 'none',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* 版本历史 */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>版本历史 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              {newSkill.versions.map((v, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
+                  <input value={v.version} onChange={e => {
+                    const nv = [...newSkill.versions]; nv[i] = { ...nv[i], version: e.target.value }; updateField('versions', nv)
+                  }} placeholder="版本号" style={{ width: 100, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
+                  <input value={v.date} onChange={e => {
+                    const nv = [...newSkill.versions]; nv[i] = { ...nv[i], date: e.target.value }; updateField('versions', nv)
+                  }} placeholder="日期" style={{ width: 130, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
+                  <input value={v.changes} onChange={e => {
+                    const nv = [...newSkill.versions]; nv[i] = { ...nv[i], changes: e.target.value }; updateField('versions', nv)
+                  }} placeholder="更新内容" style={{ flex: 1, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
+                  <button onClick={() => updateField('versions', newSkill.versions.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}><DeleteOutlined /></button>
+                </div>
+              ))}
+              <button onClick={() => updateField('versions', [...newSkill.versions, { version: '', date: '', changes: '' }])} style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12 }}>+ 添加版本</button>
+            </div>
+
+            {/* API 参考 */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>API 参考 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              {newSkill.apis.map((item, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
+                  <input value={item.api} onChange={e => { const na = [...newSkill.apis]; na[i] = { ...na[i], api: e.target.value }; updateField('apis', na) }} placeholder="接口名" style={{ width: 150, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
+                  <input value={item.desc} onChange={e => { const na = [...newSkill.apis]; na[i] = { ...na[i], desc: e.target.value }; updateField('apis', na) }} placeholder="功能描述" style={{ width: 130, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
+                  <input value={item.fields} onChange={e => { const na = [...newSkill.apis]; na[i] = { ...na[i], fields: e.target.value }; updateField('apis', na) }} placeholder="返回字段" style={{ flex: 1, padding: '6px 10px', fontSize: 11, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
+                  <button onClick={() => updateField('apis', newSkill.apis.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}><DeleteOutlined /></button>
+                </div>
+              ))}
+              <button onClick={() => updateField('apis', [...newSkill.apis, { api: '', desc: '', fields: '' }])} style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12 }}>+ 添加接口</button>
+            </div>
+
+            {/* 错误码 */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>错误码 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              {newSkill.errors.map((item, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
+                  <input value={item.code} onChange={e => { const ne = [...newSkill.errors]; ne[i] = { ...ne[i], code: e.target.value }; updateField('errors', ne) }} placeholder="错误码" style={{ width: 120, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
+                  <input value={item.desc} onChange={e => { const ne = [...newSkill.errors]; ne[i] = { ...ne[i], desc: e.target.value }; updateField('errors', ne) }} placeholder="描述" style={{ width: 160, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
+                  <input value={item.solution} onChange={e => { const ne = [...newSkill.errors]; ne[i] = { ...ne[i], solution: e.target.value }; updateField('errors', ne) }} placeholder="解决方案" style={{ flex: 1, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
+                  <button onClick={() => updateField('errors', newSkill.errors.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}><DeleteOutlined /></button>
+                </div>
+              ))}
+              <button onClick={() => updateField('errors', [...newSkill.errors, { code: '', desc: '', solution: '' }])} style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12 }}>+ 添加错误码</button>
+            </div>
+
+            {/* 按钮组 */}
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', paddingTop: 16, borderTop: '1px solid #e8e8e8' }}>
+              <button onClick={() => setShowPublishModal(false)} style={{ padding: '6px 16px', border: '1px solid #d9d9d9', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>取消</button>
+              <button onClick={handlePublish} style={{ padding: '6px 16px', border: 'none', borderRadius: 6, background: '#3b82f6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>发布</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

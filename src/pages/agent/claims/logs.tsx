@@ -122,7 +122,7 @@ const AgentClaimsLogs: React.FC = () => {
         </Tag>
       ),
     },
-    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170 },
+    { title: '调用时间', dataIndex: 'createdAt', key: 'createdAt', width: 170 },
     { title: '平台耗时', dataIndex: 'platformTime', key: 'platformTime', width: 120 },
     { title: '引擎耗时', dataIndex: 'engineTime', key: 'engineTime', width: 120 },
     { title: '引擎返回消息', dataIndex: 'engineMsg', key: 'engineMsg', width: 140, ellipsis: true },
