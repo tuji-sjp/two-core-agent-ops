@@ -440,7 +440,7 @@ const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory; caseNo?: strin
       width: 18,
       height: 18,
       borderRadius: '50%',
-      border: node.isCompleted ? '1.5px solid #52c41a' : '1.5px solid #9ca3af',
+      border: node.isCompleted ? '1.5px solid #52c41a' : 'none',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -472,11 +472,36 @@ const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory; caseNo?: strin
     const displayName = node.label
     const timeText = nodeTime !== undefined ? `${nodeTime}s` : '--'
 
+    // 未执行节点：旋转加载动画（6 个圆点环形排列）
+    const renderLoadingSpinner = (): React.ReactNode => {
+      const totalPositions = 8
+      const gapPosition = 1  // 缺口在右上（1:30 方向）
+      const radius = 6
+      const dotR = 1.6
+      const dots: React.ReactNode[] = []
+      for (let di = 0; di < totalPositions; di++) {
+        if (di === gapPosition) continue
+        const angle = (di / totalPositions) * Math.PI * 2 - Math.PI / 2
+        const cx = 9 + radius * Math.cos(angle)
+        const cy = 9 + radius * Math.sin(angle)
+        dots.push(<circle key={di} cx={cx} cy={cy} r={dotR} fill="#9ca3af" />)
+      }
+      return (
+        <svg width={18} height={18} viewBox="0 0 18 18">
+          {dots}
+        </svg>
+      )
+    }
+
     const cardContent = (
       <div style={cardStyle}>
         <div style={rowStyle}>
           <div style={iconCircleStyle}>
-            <span style={iconTextStyle}>{node.isCompleted ? '✓' : '·'}</span>
+            {node.isCompleted ? (
+              <span style={iconTextStyle}>✓</span>
+            ) : (
+              renderLoadingSpinner()
+            )}
           </div>
           <span style={labelStyle}>{displayName}</span>
         </div>
@@ -495,7 +520,7 @@ const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory; caseNo?: strin
       height: CARD_HEIGHT,
     }
 
-    if (MIDDLE_NODES.includes(node.label)) {
+    if (MIDDLE_NODES.includes(node.label) && node.isCompleted) {
       return (
         <div key={i} style={wrapperStyle}>
           <Popover

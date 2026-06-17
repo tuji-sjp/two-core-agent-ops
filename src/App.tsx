@@ -12,6 +12,7 @@ import SharedSkillsMarket from './pages/shared/skills'
 import SkillDetail from './pages/shared/skill-detail'
 import AgentClaimsLogs from './pages/agent/claims/logs'
 import AgentClaimsTaskDetail from './pages/agent/claims/task-detail'
+import AgentClaimsDeductionLogDetail from './pages/agent/claims/deduction-log-detail'
 
 const PagePlaceholder: React.FC = () => (
   <div style={{ padding: 24, color: '#8c8c8c' }}>页面开发中</div>
@@ -33,6 +34,7 @@ const App: React.FC = () => {
         <Route path="agent/claims/overview" element={<PagePlaceholder />} />
         <Route path="agent/claims/logs" element={<AgentClaimsLogs />} />
         <Route path="agent/claims/task-detail" element={<AgentClaimsTaskDetail />} />
+        <Route path="agent/claims/deduction-log-detail" element={<AgentClaimsDeductionLogDetail />} />
         <Route path="agent/claims/case-analysis" element={<PagePlaceholder />} />
         <Route path="agent/underwriting/overview" element={<PagePlaceholder />} />
         <Route path="agent/underwriting/logs" element={<PagePlaceholder />} />

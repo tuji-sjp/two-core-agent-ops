@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
-import { Table, Tag, Pagination, Input, Button, Space } from 'antd'
+import { Table, Tag, Pagination, Input, Button, Space, Select } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { EyeOutlined, DownloadOutlined } from '@ant-design/icons'
 
 const AGENT_TABS = ['采集', '立案', '扣费', '理算', '审核'] as const
@@ -74,7 +74,7 @@ interface DeductionLogRecord {
   billNo: string
   callTime: string
   completeTime: string
-  execStatus: 'success' | 'failed' | 'timeout'
+  execStatus: 'success' | 'failed' | 'processing' | 'timeout'
   platformTime: string
   medicalTime: string
   commercialTime: string
@@ -89,25 +89,25 @@ interface DeductionLogRecord {
 
 const MOCK_DEDUCTION_LOGS: DeductionLogRecord[] = [
   { key: '1', taskId: '2044719745388838912', requestId: 'req-d001', caseNo: 'A1000000000', billNo: 'BLL-2026060201', callTime: '2026-06-02 10:23:15', completeTime: '2026-06-02 10:23:40', execStatus: 'success', platformTime: '25s 137ms', medicalTime: '12s 456ms', commercialTime: '12s 681ms', policyCore: '医保', insuranceCode: 'INS-MED-001', clauseName: '基本医疗保险条款', liabilityType: '医保内', totalItems: 48, deductionItems: 3, aiRiskItems: 2 },
-  { key: '2', taskId: '2044719745288838912', requestId: 'req-d002', caseNo: 'A1000000000', billNo: 'BLL-2026060202', callTime: '2026-06-02 10:25:30', completeTime: '2026-06-02 10:26:02', execStatus: 'success', platformTime: '32s 174ms', medicalTime: '15s 892ms', commercialTime: '16s 282ms', policyCore: '商保', insuranceCode: 'INS-COM-002', clauseName: '商业医疗保险附加条款', liabilityType: '商保内', totalItems: 36, deductionItems: 5, aiRiskItems: 3 },
-  { key: '3', taskId: '2044719745188838912', requestId: 'req-d003', caseNo: 'B1000000001', billNo: 'BLL-2026060101', callTime: '2026-06-01 09:15:00', completeTime: '—', execStatus: 'timeout', platformTime: '60s 211ms', medicalTime: '—', commercialTime: '—', policyCore: '医保', insuranceCode: 'INS-MED-003', clauseName: '重大疾病保险条款', liabilityType: '医保外', totalItems: 52, deductionItems: 0, aiRiskItems: 0 },
+  { key: '2', taskId: '2044719745288838912', requestId: 'req-d002', caseNo: 'A1000000000', billNo: 'BLL-2026060202', callTime: '2026-06-02 10:25:30', completeTime: '—', execStatus: 'processing', platformTime: '32s 174ms', medicalTime: '—', commercialTime: '—', policyCore: '商保', insuranceCode: 'INS-COM-002', clauseName: '商业医疗保险附加条款', liabilityType: '商保内', totalItems: 36, deductionItems: 0, aiRiskItems: 0 },
+  { key: '3', taskId: '2044719745188838912', requestId: 'req-d003', caseNo: 'B1000000001', billNo: 'BLL-2026060101', callTime: '2026-06-01 09:15:00', completeTime: '—', execStatus: 'timeout', platformTime: '12m 35s 211ms', medicalTime: '—', commercialTime: '—', policyCore: '医保', insuranceCode: 'INS-MED-003', clauseName: '重大疾病保险条款', liabilityType: '医保外', totalItems: 52, deductionItems: 0, aiRiskItems: 0 },
   { key: '4', taskId: '2044719745088838912', requestId: 'req-d004', caseNo: 'B1000000001', billNo: 'BLL-2026060102', callTime: '2026-06-01 09:16:22', completeTime: '2026-06-01 09:17:08', execStatus: 'success', platformTime: '46s 248ms', medicalTime: '22s 110ms', commercialTime: '24s 138ms', policyCore: '商保', insuranceCode: 'INS-COM-004', clauseName: '意外伤害保险条款', liabilityType: '商保内', totalItems: 28, deductionItems: 2, aiRiskItems: 1 },
-  { key: '5', taskId: '2044719744988838912', requestId: 'req-d005', caseNo: 'B1000000001', billNo: 'BLL-2026060103', callTime: '2026-06-01 09:17:45', completeTime: '2026-06-01 09:18:38', execStatus: 'success', platformTime: '53s 285ms', medicalTime: '26s 500ms', commercialTime: '26s 785ms', policyCore: '医保', insuranceCode: 'INS-MED-005', clauseName: '住院医疗保险条款', liabilityType: '医保内', totalItems: 64, deductionItems: 8, aiRiskItems: 4 },
+  { key: '5', taskId: '2044719744988838912', requestId: 'req-d005', caseNo: 'B1000000001', billNo: 'BLL-2026060103', callTime: '2026-06-01 09:17:45', completeTime: '—', execStatus: 'failed', platformTime: '18s 285ms', medicalTime: '—', commercialTime: '—', policyCore: '医保', insuranceCode: 'INS-MED-005', clauseName: '住院医疗保险条款', liabilityType: '医保内', totalItems: 64, deductionItems: 0, aiRiskItems: 0 },
   { key: '6', taskId: '2044719744888838912', requestId: 'req-d006', caseNo: 'B1000000001', billNo: 'BLL-2026060104', callTime: '2026-06-01 09:18:10', completeTime: '—', execStatus: 'failed', platformTime: '18s 322ms', medicalTime: '—', commercialTime: '—', policyCore: '商保', insuranceCode: 'INS-COM-006', clauseName: '门诊医疗保险条款', liabilityType: '责任控费', totalItems: 15, deductionItems: 0, aiRiskItems: 0 },
   { key: '7', taskId: '2044719744788838912', requestId: 'req-d007', caseNo: 'C1000000002', billNo: 'BLL-2026053001', callTime: '2026-05-30 14:10:05', completeTime: '2026-05-30 14:11:12', execStatus: 'success', platformTime: '1m 7s 359ms', medicalTime: '33s 200ms', commercialTime: '34s 159ms', policyCore: '医保', insuranceCode: 'INS-MED-007', clauseName: '城乡居民基本医疗保险条款', liabilityType: '医保内', totalItems: 72, deductionItems: 6, aiRiskItems: 3 },
-  { key: '8', taskId: '2044719744688838912', requestId: 'req-d008', caseNo: 'D1000000003', billNo: 'BLL-2026052701', callTime: '2026-05-27 11:00:30', completeTime: '2026-05-27 11:01:43', execStatus: 'success', platformTime: '1m 14s 396ms', medicalTime: '36s 800ms', commercialTime: '37s 596ms', policyCore: '商保', insuranceCode: 'INS-COM-008', clauseName: '高端医疗保险条款', liabilityType: '商保内', totalItems: 40, deductionItems: 4, aiRiskItems: 2 },
-  { key: '9', taskId: '2044719744588838912', requestId: 'req-d009', caseNo: 'D1000000003', billNo: 'BLL-2026052702', callTime: '2026-05-27 11:01:15', completeTime: '—', execStatus: 'timeout', platformTime: '60s 433ms', medicalTime: '—', commercialTime: '—', policyCore: '医保', insuranceCode: 'INS-MED-009', clauseName: '大病保险补充条款', liabilityType: '医保外', totalItems: 88, deductionItems: 0, aiRiskItems: 0 },
+  { key: '8', taskId: '2044719744688838912', requestId: 'req-d008', caseNo: 'D1000000003', billNo: 'BLL-2026052701', callTime: '2026-05-27 11:00:30', completeTime: '—', execStatus: 'processing', platformTime: '1m 14s 396ms', medicalTime: '—', commercialTime: '—', policyCore: '商保', insuranceCode: 'INS-COM-008', clauseName: '高端医疗保险条款', liabilityType: '商保内', totalItems: 40, deductionItems: 0, aiRiskItems: 0 },
+  { key: '9', taskId: '2044719744588838912', requestId: 'req-d009', caseNo: 'D1000000003', billNo: 'BLL-2026052702', callTime: '2026-05-27 11:01:15', completeTime: '—', execStatus: 'timeout', platformTime: '15m 22s 433ms', medicalTime: '—', commercialTime: '—', policyCore: '医保', insuranceCode: 'INS-MED-009', clauseName: '大病保险补充条款', liabilityType: '医保外', totalItems: 88, deductionItems: 0, aiRiskItems: 0 },
   { key: '10', taskId: '2044719744488838912', requestId: 'req-d010', caseNo: 'E1000000004', billNo: 'BLL-2026052401', callTime: '2026-05-24 08:30:00', completeTime: '2026-05-24 08:31:27', execStatus: 'success', platformTime: '1m 28s 470ms', medicalTime: '44s 100ms', commercialTime: '44s 370ms', policyCore: '商保', insuranceCode: 'INS-COM-010', clauseName: '团体医疗保险条款', liabilityType: '商保内', totalItems: 55, deductionItems: 7, aiRiskItems: 5 },
   { key: '11', taskId: '2044719744388838912', requestId: 'req-d011', caseNo: 'E1000000004', billNo: 'BLL-2026052402', callTime: '2026-05-24 08:31:45', completeTime: '2026-05-24 08:33:20', execStatus: 'success', platformTime: '1m 35s 507ms', medicalTime: '47s 200ms', commercialTime: '48s 307ms', policyCore: '医保', insuranceCode: 'INS-MED-011', clauseName: '职工基本医疗保险条款', liabilityType: '医保内', totalItems: 33, deductionItems: 2, aiRiskItems: 1 },
   { key: '12', taskId: '2044719744288838912', requestId: 'req-d012', caseNo: 'E1000000004', billNo: 'BLL-2026052403', callTime: '2026-05-24 08:32:30', completeTime: '—', execStatus: 'failed', platformTime: '22s 544ms', medicalTime: '—', commercialTime: '—', policyCore: '商保', insuranceCode: 'INS-COM-012', clauseName: '特药医疗保险条款', liabilityType: '责任控费', totalItems: 19, deductionItems: 0, aiRiskItems: 0 },
   { key: '13', taskId: '2044719744188838912', requestId: 'req-d013', caseNo: 'F1000000005', billNo: 'BLL-2026052201', callTime: '2026-05-22 16:00:00', completeTime: '2026-05-22 16:00:29', execStatus: 'success', platformTime: '29s 581ms', medicalTime: '14s 600ms', commercialTime: '14s 981ms', policyCore: '医保', insuranceCode: 'INS-MED-013', clauseName: '新农合医疗保险条款', liabilityType: '医保内', totalItems: 27, deductionItems: 1, aiRiskItems: 0 },
-  { key: '14', taskId: '2044719744088838912', requestId: 'req-d014', caseNo: 'G1000000006', billNo: 'BLL-2026052001', callTime: '2026-05-20 13:00:00', completeTime: '2026-05-20 13:00:36', execStatus: 'success', platformTime: '36s 618ms', medicalTime: '18s 100ms', commercialTime: '18s 518ms', policyCore: '商保', insuranceCode: 'INS-COM-014', clauseName: '百万医疗保险条款', liabilityType: '商保内', totalItems: 45, deductionItems: 9, aiRiskItems: 6 },
-  { key: '15', taskId: '2044719743988838912', requestId: 'req-d015', caseNo: 'G1000000006', billNo: 'BLL-2026052002', callTime: '2026-05-20 13:01:20', completeTime: '—', execStatus: 'timeout', platformTime: '60s 655ms', medicalTime: '—', commercialTime: '—', policyCore: '医保', insuranceCode: 'INS-MED-015', clauseName: '生育保险条款', liabilityType: '医保外', totalItems: 12, deductionItems: 0, aiRiskItems: 0 },
+  { key: '14', taskId: '2044719744088838912', requestId: 'req-d014', caseNo: 'G1000000006', billNo: 'BLL-2026052001', callTime: '2026-05-20 13:00:00', completeTime: '—', execStatus: 'processing', platformTime: '36s 618ms', medicalTime: '—', commercialTime: '—', policyCore: '商保', insuranceCode: 'INS-COM-014', clauseName: '百万医疗保险条款', liabilityType: '商保内', totalItems: 45, deductionItems: 0, aiRiskItems: 0 },
+  { key: '15', taskId: '2044719743988838912', requestId: 'req-d015', caseNo: 'G1000000006', billNo: 'BLL-2026052002', callTime: '2026-05-20 13:01:20', completeTime: '—', execStatus: 'timeout', platformTime: '11m 48s 655ms', medicalTime: '—', commercialTime: '—', policyCore: '医保', insuranceCode: 'INS-MED-015', clauseName: '生育保险条款', liabilityType: '医保外', totalItems: 12, deductionItems: 0, aiRiskItems: 0 },
   { key: '16', taskId: '2044719743888838912', requestId: 'req-d016', caseNo: 'H1000000007', billNo: 'BLL-2026051701', callTime: '2026-05-17 10:00:00', completeTime: '2026-05-17 10:00:50', execStatus: 'success', platformTime: '50s 692ms', medicalTime: '25s 200ms', commercialTime: '25s 492ms', policyCore: '商保', insuranceCode: 'INS-COM-016', clauseName: '重疾险附加医疗条款', liabilityType: '商保内', totalItems: 60, deductionItems: 4, aiRiskItems: 2 },
   { key: '17', taskId: '2044719743788838912', requestId: 'req-d017', caseNo: 'I1000000008', billNo: 'BLL-2026051601', callTime: '2026-05-16 09:00:00', completeTime: '2026-05-16 09:00:57', execStatus: 'success', platformTime: '57s 729ms', medicalTime: '28s 800ms', commercialTime: '28s 929ms', policyCore: '医保', insuranceCode: 'INS-MED-017', clauseName: '工伤保险条款', liabilityType: '医保内', totalItems: 38, deductionItems: 3, aiRiskItems: 1 },
   { key: '18', taskId: '2044719743688838912', requestId: 'req-d018', caseNo: 'I1000000008', billNo: 'BLL-2026051602', callTime: '2026-05-16 09:01:30', completeTime: '—', execStatus: 'failed', platformTime: '15s 766ms', medicalTime: '—', commercialTime: '—', policyCore: '商保', insuranceCode: 'INS-COM-018', clauseName: '留学人员医疗保险条款', liabilityType: '责任控费', totalItems: 22, deductionItems: 0, aiRiskItems: 0 },
   { key: '19', taskId: '2044719743588838912', requestId: 'req-d019', caseNo: 'J1000000009', billNo: 'BLL-2026051401', callTime: '2026-05-14 14:30:00', completeTime: '2026-05-14 14:31:11', execStatus: 'success', platformTime: '1m 11s 803ms', medicalTime: '35s 500ms', commercialTime: '36s 303ms', policyCore: '医保', insuranceCode: 'INS-MED-019', clauseName: '失业保险医疗补助条款', liabilityType: '医保内', totalItems: 50, deductionItems: 5, aiRiskItems: 3 },
-  { key: '20', taskId: '2044719743488838912', requestId: 'req-d020', caseNo: 'J1000000009', billNo: 'BLL-2026051402', callTime: '2026-05-14 14:31:40', completeTime: '2026-05-14 14:32:58', execStatus: 'success', platformTime: '1m 18s 840ms', medicalTime: '39s 100ms', commercialTime: '39s 740ms', policyCore: '商保', insuranceCode: 'INS-COM-020', clauseName: '防癌医疗保险条款', liabilityType: '商保内', totalItems: 44, deductionItems: 6, aiRiskItems: 4 },
+  { key: '20', taskId: '2044719743488838912', requestId: 'req-d020', caseNo: 'J1000000009', billNo: 'BLL-2026051402', callTime: '2026-05-14 14:31:40', completeTime: '—', execStatus: 'processing', platformTime: '1m 18s 840ms', medicalTime: '—', commercialTime: '—', policyCore: '商保', insuranceCode: 'INS-COM-020', clauseName: '防癌医疗保险条款', liabilityType: '商保内', totalItems: 44, deductionItems: 0, aiRiskItems: 0 },
 ]
 
 const titleStyle: React.CSSProperties = {
@@ -134,12 +134,15 @@ const titleTextStyle: React.CSSProperties = {
 const deductionStatusMap: Record<string, { color: string; text: string }> = {
   success: { color: 'success', text: '成功' },
   failed: { color: 'error', text: '失败' },
+  processing: { color: 'processing', text: '处理中' },
   timeout: { color: 'warning', text: '超时' },
 }
 
 const AgentClaimsLogs: React.FC = () => {
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<AgentTab>('采集')
+  const [searchParams] = useSearchParams()
+  const defaultTab = (searchParams.get('tab') as AgentTab) || '采集'
+  const [activeTab, setActiveTab] = useState<AgentTab>(defaultTab)
   const [pageSize, setPageSize] = useState(10)
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -154,6 +157,7 @@ const AgentClaimsLogs: React.FC = () => {
   const [deductionPolicyCore, setDeductionPolicyCore] = useState('')
   const [deductionInsuranceCode, setDeductionInsuranceCode] = useState('')
   const [deductionItemsCount, setDeductionItemsCount] = useState('')
+  const [deductionExecStatus, setDeductionExecStatus] = useState('')
 
   // 采集数据
   const filteredCollection = useMemo(() => {
@@ -176,9 +180,10 @@ const AgentClaimsLogs: React.FC = () => {
       (!deductionBillNo || r.billNo.includes(deductionBillNo)) &&
       (!deductionPolicyCore || r.policyCore.includes(deductionPolicyCore)) &&
       (!deductionInsuranceCode || r.insuranceCode.includes(deductionInsuranceCode)) &&
-      (deductionItemsCount === '' || String(r.deductionItems).includes(deductionItemsCount))
+      (deductionItemsCount === '' || String(r.deductionItems).includes(deductionItemsCount)) &&
+      (deductionExecStatus === '' || r.execStatus === deductionExecStatus)
     )
-  }, [deductionTaskId, deductionCaseNo, deductionBillNo, deductionPolicyCore, deductionInsuranceCode, deductionItemsCount])
+  }, [deductionTaskId, deductionCaseNo, deductionBillNo, deductionPolicyCore, deductionInsuranceCode, deductionItemsCount, deductionExecStatus])
 
   const pagedDeduction = useMemo(
     () => filteredDeduction.slice((currentPage - 1) * pageSize, currentPage * pageSize),
@@ -198,6 +203,7 @@ const AgentClaimsLogs: React.FC = () => {
     setDeductionPolicyCore('')
     setDeductionInsuranceCode('')
     setDeductionItemsCount('')
+    setDeductionExecStatus('')
     setCurrentPage(1)
   }
 
@@ -217,7 +223,7 @@ const AgentClaimsLogs: React.FC = () => {
       key: 'status',
       width: 75,
       render: (status: string) => (
-        <Tag color={status === 'success' ? 'success' : 'error'} style={{ borderRadius: 6 }}>
+        <Tag color={status === 'success' ? 'success' : 'error'} style={{ borderRadius: 6, minWidth: 50, textAlign: 'center' }}>
           {status === 'success' ? '成功' : '失败'}
         </Tag>
       ),
@@ -258,7 +264,7 @@ const AgentClaimsLogs: React.FC = () => {
       width: 75,
       render: (status: string) => {
         const cfg = deductionStatusMap[status] || { color: 'default', text: status }
-        return <Tag color={cfg.color} style={{ borderRadius: 6 }}>{cfg.text}</Tag>
+        return <Tag color={cfg.color} style={{ borderRadius: 6, minWidth: 50, textAlign: 'center' }}>{cfg.text}</Tag>
       },
     },
     { title: '平台耗时', dataIndex: 'platformTime', key: 'platformTime', width: 100 },
@@ -278,7 +284,7 @@ const AgentClaimsLogs: React.FC = () => {
       render: (_: unknown, record: DeductionLogRecord) => (
         <Space size={8}>
           <EyeOutlined
-            onClick={() => navigate(`/agent/claims/task-detail?caseNo=${record.caseNo}&taskId=${record.taskId}`)}
+            onClick={() => navigate(`/agent/claims/deduction-log-detail?caseNo=${record.caseNo}&taskId=${record.taskId}`)}
             style={{ color: '#1677ff', cursor: 'pointer', fontSize: 14 }}
           />
         </Space>
@@ -416,6 +422,20 @@ const AgentClaimsLogs: React.FC = () => {
             onChange={e => { setDeductionItemsCount(e.target.value); setCurrentPage(1) }}
             allowClear
             style={{ width: 150 }}
+          />
+          <Select
+            placeholder="执行状态"
+            value={deductionExecStatus || undefined}
+            onChange={val => { setDeductionExecStatus(val || ''); setCurrentPage(1) }}
+            allowClear
+            options={[
+              { label: '成功', value: 'success' },
+              { label: '失败', value: 'failed' },
+              { label: '处理中', value: 'processing' },
+              { label: '超时', value: 'timeout' },
+            ]}
+            style={{ width: 120 }}
+            rootClassName="filter-select"
           />
           <Button onClick={clearDeductionFilters}>重置</Button>
         </div>
