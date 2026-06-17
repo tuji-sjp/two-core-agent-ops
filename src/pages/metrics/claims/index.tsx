@@ -30,14 +30,7 @@ interface FlowTrajectory {
   nodes: { label: string; status: NodeStatus }[]
 }
 
-const STATUS_COLORS: Record<NodeStatus, string> = {
-  processing: '#91caff',
-  completed: '#95de64',
-}
-
 const NODE_LABELS = ['开始', '采集', '立案', '理算', '扣费', '审核', '结束']
-
-// ========== 动态流程轨迹生成 ==========
 function generateFlowTrajectory(caseNo: string, status: string): FlowTrajectory {
   const lastChar = parseInt(caseNo.slice(-2), 10)
   const nodes: { label: string; status: NodeStatus }[] = NODE_LABELS.map(label => ({ label, status: 'processing' as NodeStatus }))
@@ -295,7 +288,6 @@ const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory; caseNo?: strin
   const handleViewDetail = (nodeName: string, callTime: string) => {
     const route = NODE_ROUTE_MAP[nodeName]
     if (route && caseNo) {
-      // 通过 caseNo + 调用时间匹配采集日志，找到对应 taskId
       const matchedLog = CLAIMS_LOGS.find(
         log => log.caseNo === caseNo && callTime.startsWith(log.createdAt)
       )
@@ -304,7 +296,6 @@ const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory; caseNo?: strin
         navigate(`${route}?caseNo=${caseNo}&taskId=${taskId}`)
       }
     }
-    // 其他节点暂未开发，不跳转
   }
 
   const renderPopoverContent = (label: string): React.ReactNode => {
@@ -336,69 +327,238 @@ const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory; caseNo?: strin
     )
   }
 
-  const renderNode = (label: string, i: number): React.ReactNode => {
+  // 卡片式节点渲染 - 交错布局
+  const CARD_GAP_X = 36  // 横向间距
+  const CARD_GAP_Y = 20  // 纵向交错偏移
+  const CARD_MIN_WIDTH = 110
+  const CARD_HEIGHT = 60
+  const ROW_HEIGHT = CARD_HEIGHT + CARD_GAP_Y  // 每行高度
+
+  const nodes = NODE_LABELS.map((label, i) => {
     const node = trajectory.nodes[i] || { label, status: 'processing' as NodeStatus }
-    const cx = 20 + i * NODE_GAP
-    const cy = SVG_H / 2
     const isCompleted = node.status === 'completed'
-    const color = isCompleted ? STATUS_COLORS.completed : PENDING_COLOR
-    const icon = isCompleted ? '✓' : '·'
-    const iconSize = isCompleted ? 16 : 10
     const nodeTime = isCompleted && nodeTimes ? nodeTimes[label] : undefined
     const labelText = nodeTime !== undefined ? `${label} (${nodeTime}s)` : label
+    return { label, isCompleted, labelText, icon: isCompleted ? '✓' : '·' }
+  })
 
-    const circle = (
-      <circle cx={cx} cy={cy} r={NODE_R} fill={isCompleted ? color : 'none'} stroke={color} strokeWidth={2} />
-    )
-    const iconText = (
-      <text x={cx} y={cy} textAnchor="middle" dy="0.35em" fill={isCompleted ? '#fff' : color} fontSize={iconSize} fontWeight="bold">{icon}</text>
-    )
-    const labelTextEl = (
-      <text x={cx} y={cy + NODE_R + 20} textAnchor="middle" fill="#000000e0" fontSize={12}>{labelText}</text>
-    )
+  // 交错布局：偶数索引在上，奇数索引在下
+  const isTop = (i: number) => i % 2 === 0
+  const getCardY = (i: number) => isTop(i) ? 0 : CARD_GAP_Y
 
-    // 中间节点可悬停
-    if (MIDDLE_NODES.includes(label)) {
-      return (
-        <g key={i}>
-          {i > 0 && (
-            <line x1={20 + (i - 1) * NODE_GAP + NODE_R} y1={cy} x2={cx - NODE_R} y2={cy} stroke="#d1d5db" strokeWidth={2} />
-          )}
-          <Popover
-            content={renderPopoverContent(label)}
-            trigger="hover"
-            placement="top"
-            rootClassName="node-call-popover"
-          >
-            <g style={{ cursor: 'pointer' }}>
-              {circle}
-              {iconText}
-            </g>
-          </Popover>
-          {labelTextEl}
-        </g>
-      )
-    }
+  const containerWidth = nodes.length * CARD_MIN_WIDTH + (nodes.length - 1) * CARD_GAP_X
+  const containerHeight = ROW_HEIGHT  // 交错布局总高度 = 一行卡片 + 纵向偏移
+
+  // 计算每个卡片的中心坐标
+  const cardCenters = nodes.map((_, i) => ({
+    x: CARD_MIN_WIDTH / 2 + i * (CARD_MIN_WIDTH + CARD_GAP_X),
+    y: getCardY(i) + CARD_HEIGHT / 2,
+  }))
+
+  // 生成平滑 S 形曲线连接（纯三次贝塞尔，无直线段）
+  const renderCurve = (i: number): React.ReactNode => {
+    const p1 = cardCenters[i]
+    const p2 = cardCenters[i + 1]
+    const x1 = p1.x + CARD_MIN_WIDTH / 2  // 卡片 i 右侧边缘
+    const x2 = p2.x - CARD_MIN_WIDTH / 2  // 卡片 i+1 左侧边缘
+    const y1 = p1.y
+    const y2 = p2.y
+
+    // 真正的 S 形：控制点水平偏移，让曲线从水平方向开始/结束
+    const offset = Math.abs(x2 - x1) * 0.4  // 控制点偏移量（40% 的跨度）
+    const cp1X = x1 + offset
+    const cp1Y = y1  // 第一个控制点与起点同高（水平出发）
+    const cp2X = x2 - offset
+    const cp2Y = y2  // 第二个控制点与终点同高（水平到达）
+
+    const pathD = `M ${x1} ${y1} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${x2} ${y2}`
+
+    // 连线颜色：已完成→已完成 绿色，其他 灰色
+    const n1 = nodes[i]
+    const n2 = nodes[i + 1]
+    const isGreen = n1.isCompleted && n2.isCompleted
+    const lineColorStart = isGreen ? '#b7eb8f' : '#e5e7eb'
+    const lineColorEnd = isGreen ? '#52c41a' : '#9ca3af'
+
+    // 渐变 ID：用 caseNo 做前缀，避免多个案件展开时 ID 冲突
+    const gradientId = `curve-grad-${caseNo || 'default'}-${i}`
 
     return (
-      <g key={i}>
-        {i > 0 && (
-          <line x1={20 + (i - 1) * NODE_GAP + NODE_R} y1={cy} x2={cx - NODE_R} y2={cy} stroke="#d1d5db" strokeWidth={2} />
-        )}
-        {circle}
-        {iconText}
-        {labelTextEl}
+      <g key={`curve-${i}`}>
+        <defs>
+          <linearGradient id={gradientId} x1={x1} y1={y1} x2={x2} y2={y2} gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor={lineColorStart} />
+            <stop offset="100%" stopColor={lineColorEnd} />
+          </linearGradient>
+        </defs>
+        <path
+          d={pathD}
+          fill="none"
+          stroke={`url(#${gradientId})`}
+          strokeWidth={2}
+          strokeDasharray="5 5"
+          strokeLinecap="round"
+        />
+        {/* 圆点在终点处（连接后一个卡片处） */}
+        <circle
+          cx={x2}
+          cy={y2}
+          r={3.5}
+          fill={lineColorEnd}
+          stroke="#fff"
+          strokeWidth={1}
+        />
       </g>
     )
   }
 
+  const renderCard = (node: typeof nodes[0], i: number): React.ReactNode => {
+    const cardStyle: React.CSSProperties = {
+      width: CARD_MIN_WIDTH,
+      height: CARD_HEIGHT,
+      borderRadius: 12,
+      border: node.isCompleted ? '1.5px solid #95de64' : '1px solid #e5e7eb',
+      background: node.isCompleted ? '#f6ffed' : '#fff',
+      padding: '10px 12px',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'flex-start',
+      gap: 6,
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+      boxSizing: 'border-box',
+    }
+
+    const rowStyle: React.CSSProperties = {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      width: '100%',
+    }
+
+    const iconCircleStyle: React.CSSProperties = {
+      width: 18,
+      height: 18,
+      borderRadius: '50%',
+      border: node.isCompleted ? '1.5px solid #52c41a' : '1.5px solid #9ca3af',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    }
+
+    const iconTextStyle: React.CSSProperties = {
+      fontSize: 11,
+      fontWeight: 'bold',
+      color: node.isCompleted ? '#52c41a' : '#9ca3af',
+      lineHeight: 1,
+    }
+
+    const labelStyle: React.CSSProperties = {
+      fontSize: 13,
+      fontWeight: 600,
+      color: '#1f2937',
+      lineHeight: 1.2,
+    }
+
+    const timeStyle: React.CSSProperties = {
+      fontSize: 11,
+      color: '#6b7280',
+      lineHeight: 1.2,
+    }
+
+    // 提取节点名和处理时间
+    const nodeTime = node.isCompleted && nodeTimes ? nodeTimes[node.label] : undefined
+    const displayName = node.label
+    const timeText = nodeTime !== undefined ? `${nodeTime}s` : '--'
+
+    const cardContent = (
+      <div style={cardStyle}>
+        <div style={rowStyle}>
+          <div style={iconCircleStyle}>
+            <span style={iconTextStyle}>{node.isCompleted ? '✓' : '·'}</span>
+          </div>
+          <span style={labelStyle}>{displayName}</span>
+        </div>
+        <div style={{ ...rowStyle }}>
+          <span style={timeStyle}>处理时间：{timeText}</span>
+        </div>
+      </div>
+    )
+
+    // 用外层 div 占位（flex 布局），内部卡片绝对定位到正确位置
+    const wrapperStyle: React.CSSProperties = {
+      position: 'absolute',
+      left: i * (CARD_MIN_WIDTH + CARD_GAP_X),
+      top: getCardY(i),
+      width: CARD_MIN_WIDTH,
+      height: CARD_HEIGHT,
+    }
+
+    if (MIDDLE_NODES.includes(node.label)) {
+      return (
+        <div key={i} style={wrapperStyle}>
+          <Popover
+            content={renderPopoverContent(node.label)}
+            trigger="hover"
+            placement="top"
+            rootClassName="node-call-popover"
+            getPopupContainer={() => document.body}
+          >
+            <div style={{ cursor: 'pointer', width: '100%', height: '100%' }}>
+              {cardContent}
+            </div>
+          </Popover>
+        </div>
+      )
+    }
+
+    return (
+      <div key={i} style={wrapperStyle}>
+        {cardContent}
+      </div>
+    )
+  }
+
   return (
-    <div style={{ padding: '24px', background: '#f9fafb', borderRadius: 8 }}>
-      <svg width={SVG_W} height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ overflow: 'visible' }}>
-        {NODE_LABELS.map((label, i) => renderNode(label, i))}
-      </svg>
+    <div style={{ padding: '24px', background: '#f9fafb', borderRadius: 8, overflow: 'auto' }}>
+      <div style={{ position: 'relative', minWidth: containerWidth, height: containerHeight }}>
+        {/* 卡片层 */}
+        <div style={{ position: 'relative', zIndex: 0 }}>
+          {nodes.map((node, i) => renderCard(node, i))}
+        </div>
+        {/* SVG 曲线层（渲染在卡片之上，圆点覆盖卡片） */}
+        <svg
+          width={containerWidth}
+          height={containerHeight}
+          style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible', zIndex: 1, pointerEvents: 'none' }}
+        >
+          {nodes.map((_, i) => i < nodes.length - 1 && renderCurve(i))}
+        </svg>
+      </div>
     </div>
   )
+}
+
+const titleStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  marginBottom: 16,
+  marginTop: 10,
+}
+
+const titleBarStyle: React.CSSProperties = {
+  width: 4,
+  height: 20,
+  background: '#3b82f6',
+  borderRadius: 10,
+  marginRight: 10,
+}
+
+const titleTextStyle: React.CSSProperties = {
+  fontSize: 18,
+  fontWeight: 700,
+  color: '#1f2937',
 }
 
 // ========== 主组件 ==========
@@ -436,33 +596,6 @@ const MOCK_CASES: CaseRecord[] = [
   { key: '19', caseNo: 'T1000000019', claimNo: '0000000019', branch: '深圳分公司', accidentDate: '2026-04-24', claimDate: '2026-04-26', currentNode: '扣费智能体', status: 'processing' },
   { key: '20', caseNo: 'U1000000020', claimNo: '0000000020', branch: '杭州分公司', accidentDate: '2026-04-22', claimDate: '2026-04-24', currentNode: '审核智能体', status: 'completed' },
 ]
-
-const NODE_R = 14
-const NODE_GAP = 74
-const SVG_W = NODE_LABELS.length * NODE_GAP + 20
-const SVG_H = 60
-const PENDING_COLOR = '#9ca3af'
-
-const titleStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  marginBottom: 16,
-  marginTop: 10,
-}
-
-const titleBarStyle: React.CSSProperties = {
-  width: 4,
-  height: 20,
-  background: '#3b82f6',
-  borderRadius: 10,
-  marginRight: 10,
-}
-
-const titleTextStyle: React.CSSProperties = {
-  fontSize: 18,
-  fontWeight: 700,
-  color: '#1f2937',
-}
 
 const MetricsClaims: React.FC = () => {
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([])
