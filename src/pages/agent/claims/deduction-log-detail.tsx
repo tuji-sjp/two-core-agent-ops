@@ -161,7 +161,7 @@ const EndPoint: React.FC<{ label: string }> = ({ label }) => (
     borderRadius: 20, padding: '6px 16px',
   }}>
     <span style={{ fontSize: 14 }}>{label === '开始' ? '▶' : ''}</span>
-    <span style={{ fontSize: 13, fontWeight: 500, color: '#3b82f6' }}>{label}</span>
+    <span style={{ fontSize: 14, fontWeight: 500, color: '#3b82f6' }}>{label}</span>
   </div>
 )
 
@@ -472,19 +472,19 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
                       <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', margin: 0 }}>{selected.name}</h2>
                       <Tag color={resultTagColor[selected.result]} style={{ borderRadius: 6, minWidth: 50, textAlign: 'center', fontSize: 12 }}>{selected.result}</Tag>
                     </div>
-                    <p style={{ fontSize: 12, color: '#6b7280', margin: '2px 0 0' }}>所属分类：{selected.category}</p>
+                    <p style={{ fontSize: 12, color: '#6b7280', margin: '6px 0 0' }}>所属分类：{selected.category}</p>
                   </div>
-                  <dl style={{ marginLeft: 'auto', display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '4px 24px', fontSize: 12 }}>
-                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>单价</dt><dd style={{ fontWeight: 500, color: '#1f2937', margin: 0 }}>¥{selected.unitPrice}</dd></div>
-                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>数量</dt><dd style={{ fontWeight: 500, color: '#1f2937', margin: 0 }}>{selected.quantity}{selected.spec}</dd></div>
-                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>金额</dt><dd style={{ fontWeight: 500, color: '#1f2937', margin: 0 }}>¥{selected.amount.toFixed(2)}</dd></div>
-                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>扣费金额</dt><dd style={{ fontWeight: 600, color: selected.deductAmount > 0 ? '#d97706' : '#1f2937', margin: 0 }}>¥{selected.deductAmount.toFixed(2)}</dd></div>
+                  <dl style={{ marginLeft: 'auto', display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '4px 24px' }}>
+                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>单价</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>¥{selected.unitPrice}</dd></div>
+                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>数量</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>{selected.quantity}{selected.spec}</dd></div>
+                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>金额</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>¥{selected.amount.toFixed(2)}</dd></div>
+                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>扣费金额</dt><dd style={{ fontSize: 12, fontWeight: 600, color: selected.deductAmount > 0 ? '#d97706' : '#1f2937', margin: 0 }}>¥{selected.deductAmount.toFixed(2)}</dd></div>
                   </dl>
                 </div>
               </div>
 
               {/* 决策链标题 */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 16px 0', fontSize: 13, color: '#6b7280' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 16px 0', fontSize: 12, color: '#6b7280' }}>
                 <AlertOutlined style={{ fontSize: 14 }} />
                 扣费智能体判定决策链（鼠标悬停在节点处查看结论）
               </div>

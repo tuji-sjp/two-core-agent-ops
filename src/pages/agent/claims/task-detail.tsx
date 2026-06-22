@@ -6,63 +6,119 @@ import { ArrowLeftOutlined, FolderOutlined, AppstoreOutlined, CopyOutlined } fro
 const CATEGORIES = [
   { name: '全部', count: 91 },
   { name: '病案首页', count: 5 },
+  { name: '病案首页附页', count: 3 },
   { name: '居民身份证', count: 8 },
+  { name: '银行卡', count: 2 },
   { name: '费用清单', count: 15 },
+  { name: '结算单', count: 10 },
+  { name: '医疗票据', count: 4 },
+  { name: '增值税发票', count: 7 },
   { name: '其他_自然场景', count: 3 },
   { name: '手术记录', count: 6 },
   { name: '诊断证明', count: 6 },
+  { name: '门诊病历', count: 4 },
   { name: '超声检查报告', count: 8 },
   { name: 'MRI检查报告', count: 5 },
+  { name: 'CT检查报告', count: 6 },
   { name: '血凝检查', count: 4 },
   { name: '出院小结', count: 5 },
   { name: '住院证', count: 2 },
+  { name: '入院记录_住院记录', count: 3 },
   { name: '理赔申请书', count: 4 },
+  { name: '理赔须知', count: 2 },
   { name: '其他化验检查', count: 6 },
   { name: '血生化检查', count: 3 },
   { name: '血常规检查', count: 4 },
   { name: '心电图', count: 3 },
-  { name: '医疗票据', count: 4 },
 ]
 
-// 分组结构（不含 count，count 由 IMAGES 动态计算）
+// 分组结构：支持三级嵌套
+// 已分组：住院组/门诊组 -> 病历组/票据组 -> 具体分类
+// 待分组：平铺分类
+// 无需分组：平铺分类
 const GROUPS_STRUCTURE = [
   {
-    name: '住院组_1',
+    name: '已分组',
+    type: 'nested' as const,
     children: [
-      { name: '费用清单' },
-      { name: '超声检查报告' },
-      { name: '居民身份证' },
-      { name: '手术记录' },
-      { name: '其他化验检查' },
-      { name: '血凝检查' },
-      { name: '理赔申请书' },
-      { name: 'MRI检查报告' },
-      { name: '病案首页' },
-      { name: '其他_自然场景' },
+      {
+        name: '住院组',
+        children: [
+          {
+            name: '病历组',
+            children: [
+              { name: '出院小结' },
+              { name: '诊断证明' },
+            ],
+          },
+          {
+            name: '票据组',
+            children: [
+              { name: '医疗票据' },
+              { name: '增值税发票' },
+              { name: '费用清单' },
+              { name: '结算单' },
+            ],
+          },
+        ],
+      },
+      {
+        name: '门诊组',
+        children: [
+          {
+            name: '病历组',
+            children: [
+              { name: '门诊病历' },
+            ],
+          },
+          {
+            name: '票据组',
+            children: [
+              { name: '医疗票据' },
+              { name: '增值税发票' },
+              { name: '费用清单' },
+              { name: '结算单' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    name: '待分组',
+    type: 'flat' as const,
+    children: [
       { name: '出院小结' },
-      { name: '住院证' },
-      { name: '血常规检查' },
-      { name: '血生化检查' },
-      { name: '心电图' },
+      { name: '诊断证明' },
+      { name: '门诊病历' },
       { name: '医疗票据' },
+      { name: '增值税发票' },
+      { name: '费用清单' },
+      { name: '结算单' },
     ],
   },
   {
-    name: '门诊组_2',
+    name: '无需分组',
+    type: 'flat' as const,
     children: [
-      { name: '诊断证明' },
-    ],
-  },
-  {
-    name: '住院组_3',
-    children: [
-      { name: '出院小结' },
-    ],
-  },
-  {
-    name: '未分组_4',
-    children: [
-      { name: '诊断证明' },
+      { name: '病案首页' },
+      { name: '病案首页附页' },
+      { name: '手术记录' },
+      { name: '超声检查报告' },
+      { name: 'MRI检查报告' },
+      { name: 'CT检查报告' },
+      { name: '血凝检查' },
+      { name: '血生化检查' },
+      { name: '血常规检查' },
+      { name: '心电图' },
+      { name: '其他化验检查' },
+      { name: '住院证' },
+      { name: '入院记录_住院记录' },
+      { name: '理赔申请书' },
+      { name: '理赔须知' },
+      { name: '居民身份证' },
+      { name: '银行卡' },
+      { name: '其他_自然场景' },
     ],
   },
 ]
@@ -71,97 +127,98 @@ const TABS = ['影像展示', '引擎结果', 'LIC系统响应']
 
 // 模拟图片数据
 const IMAGES: { name: string; category: string; group: string }[] = [
-  { name: '病案首页', category: '病案首页', group: '住院组_1' },
-  { name: '病案首页', category: '病案首页', group: '住院组_1' },
-  { name: '病案首页', category: '病案首页', group: '住院组_1' },
-  { name: '病案首页', category: '病案首页', group: '住院组_1' },
-  { name: '病案首页', category: '病案首页', group: '住院组_1' },
-  { name: '居民身份证', category: '居民身份证', group: '住院组_1' },
-  { name: '居民身份证', category: '居民身份证', group: '住院组_1' },
-  { name: '居民身份证', category: '居民身份证', group: '住院组_1' },
-  { name: '居民身份证', category: '居民身份证', group: '住院组_1' },
-  { name: '居民身份证', category: '居民身份证', group: '住院组_1' },
-  { name: '居民身份证', category: '居民身份证', group: '住院组_1' },
-  { name: '居民身份证', category: '居民身份证', group: '住院组_1' },
-  { name: '居民身份证', category: '居民身份证', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '费用清单', category: '费用清单', group: '住院组_1' },
-  { name: '其他_自然场景', category: '其他_自然场景', group: '住院组_1' },
-  { name: '其他_自然场景', category: '其他_自然场景', group: '住院组_1' },
-  { name: '其他_自然场景', category: '其他_自然场景', group: '住院组_1' },
-  { name: '手术记录', category: '手术记录', group: '住院组_1' },
-  { name: '手术记录', category: '手术记录', group: '住院组_1' },
-  { name: '手术记录', category: '手术记录', group: '住院组_1' },
-  { name: '手术记录', category: '手术记录', group: '住院组_1' },
-  { name: '手术记录', category: '手术记录', group: '住院组_1' },
-  { name: '手术记录', category: '手术记录', group: '住院组_1' },
-  { name: '诊断证明', category: '诊断证明', group: '门诊组_2' },
-  { name: '诊断证明', category: '诊断证明', group: '未分组_4' },
-  { name: '诊断证明', category: '诊断证明', group: '门诊组_2' },
-  { name: '诊断证明', category: '诊断证明', group: '未分组_4' },
-  { name: '诊断证明', category: '诊断证明', group: '门诊组_2' },
-  { name: '诊断证明', category: '诊断证明', group: '未分组_4' },
-  { name: '超声检查报告', category: '超声检查报告', group: '住院组_1' },
-  { name: '超声检查报告', category: '超声检查报告', group: '住院组_1' },
-  { name: '超声检查报告', category: '超声检查报告', group: '住院组_1' },
-  { name: '超声检查报告', category: '超声检查报告', group: '住院组_1' },
-  { name: '超声检查报告', category: '超声检查报告', group: '住院组_1' },
-  { name: '超声检查报告', category: '超声检查报告', group: '住院组_1' },
-  { name: '超声检查报告', category: '超声检查报告', group: '住院组_1' },
-  { name: '超声检查报告', category: '超声检查报告', group: '住院组_1' },
-  { name: 'MRI检查报告', category: 'MRI检查报告', group: '住院组_1' },
-  { name: 'MRI检查报告', category: 'MRI检查报告', group: '住院组_1' },
-  { name: 'MRI检查报告', category: 'MRI检查报告', group: '住院组_1' },
-  { name: 'MRI检查报告', category: 'MRI检查报告', group: '住院组_1' },
-  { name: 'MRI检查报告', category: 'MRI检查报告', group: '住院组_1' },
-  { name: '血凝检查', category: '血凝检查', group: '住院组_1' },
-  { name: '血凝检查', category: '血凝检查', group: '住院组_1' },
-  { name: '血凝检查', category: '血凝检查', group: '住院组_1' },
-  { name: '血凝检查', category: '血凝检查', group: '住院组_1' },
-  { name: '出院小结', category: '出院小结', group: '住院组_1' },
-  { name: '出院小结', category: '出院小结', group: '住院组_1' },
-  { name: '出院小结', category: '出院小结', group: '住院组_1' },
-  { name: '出院小结', category: '出院小结', group: '住院组_1' },
-  { name: '出院小结', category: '出院小结', group: '住院组_1' },
-  { name: '住院证', category: '住院证', group: '住院组_1' },
-  { name: '住院证', category: '住院证', group: '住院组_1' },
-  { name: '理赔申请书', category: '理赔申请书', group: '住院组_1' },
-  { name: '理赔申请书', category: '理赔申请书', group: '住院组_1' },
-  { name: '理赔申请书', category: '理赔申请书', group: '住院组_1' },
-  { name: '理赔申请书', category: '理赔申请书', group: '住院组_1' },
-  { name: '其他化验检查', category: '其他化验检查', group: '住院组_1' },
-  { name: '其他化验检查', category: '其他化验检查', group: '住院组_1' },
-  { name: '其他化验检查', category: '其他化验检查', group: '住院组_1' },
-  { name: '其他化验检查', category: '其他化验检查', group: '住院组_1' },
-  { name: '其他化验检查', category: '其他化验检查', group: '住院组_1' },
-  { name: '其他化验检查', category: '其他化验检查', group: '住院组_1' },
-  { name: '血生化检查', category: '血生化检查', group: '住院组_1' },
-  { name: '血生化检查', category: '血生化检查', group: '住院组_1' },
-  { name: '血生化检查', category: '血生化检查', group: '住院组_1' },
-  { name: '血常规检查', category: '血常规检查', group: '住院组_1' },
-  { name: '血常规检查', category: '血常规检查', group: '住院组_1' },
-  { name: '血常规检查', category: '血常规检查', group: '住院组_1' },
-  { name: '血常规检查', category: '血常规检查', group: '住院组_1' },
-  { name: '心电图', category: '心电图', group: '住院组_1' },
-  { name: '心电图', category: '心电图', group: '住院组_1' },
-  { name: '心电图', category: '心电图', group: '住院组_1' },
-  { name: '医疗票据', category: '医疗票据', group: '住院组_1' },
-  { name: '医疗票据', category: '医疗票据', group: '住院组_1' },
-  { name: '医疗票据', category: '医疗票据', group: '住院组_1' },
-  { name: '医疗票据', category: '医疗票据', group: '住院组_1' }
+  { name: '出院小结', category: '出院小结', group: '住院组' },
+  { name: '出院小结', category: '出院小结', group: '住院组' },
+  { name: '诊断证明', category: '诊断证明', group: '住院组' },
+  { name: '诊断证明', category: '诊断证明', group: '住院组' },
+  { name: '医疗票据', category: '医疗票据', group: '住院组' },
+  { name: '医疗票据', category: '医疗票据', group: '住院组' },
+  { name: '增值税发票', category: '增值税发票', group: '住院组' },
+  { name: '增值税发票', category: '增值税发票', group: '住院组' },
+  { name: '费用清单', category: '费用清单', group: '住院组' },
+  { name: '费用清单', category: '费用清单', group: '住院组' },
+  { name: '结算单', category: '结算单', group: '住院组' },
+  { name: '结算单', category: '结算单', group: '住院组' },
+  { name: '门诊病历', category: '门诊病历', group: '门诊组' },
+  { name: '门诊病历', category: '门诊病历', group: '门诊组' },
+  { name: '医疗票据', category: '医疗票据', group: '门诊组' },
+  { name: '医疗票据', category: '医疗票据', group: '门诊组' },
+  { name: '增值税发票', category: '增值税发票', group: '门诊组' },
+  { name: '增值税发票', category: '增值税发票', group: '门诊组' },
+  { name: '费用清单', category: '费用清单', group: '门诊组' },
+  { name: '费用清单', category: '费用清单', group: '门诊组' },
+  { name: '结算单', category: '结算单', group: '门诊组' },
+  { name: '结算单', category: '结算单', group: '门诊组' },
+  { name: '出院小结', category: '出院小结', group: '待分组' },
+  { name: '出院小结', category: '出院小结', group: '待分组' },
+  { name: '诊断证明', category: '诊断证明', group: '待分组' },
+  { name: '诊断证明', category: '诊断证明', group: '待分组' },
+  { name: '门诊病历', category: '门诊病历', group: '待分组' },
+  { name: '门诊病历', category: '门诊病历', group: '待分组' },
+  { name: '医疗票据', category: '医疗票据', group: '待分组' },
+  { name: '医疗票据', category: '医疗票据', group: '待分组' },
+  { name: '增值税发票', category: '增值税发票', group: '待分组' },
+  { name: '增值税发票', category: '增值税发票', group: '待分组' },
+  { name: '费用清单', category: '费用清单', group: '待分组' },
+  { name: '费用清单', category: '费用清单', group: '待分组' },
+  { name: '结算单', category: '结算单', group: '待分组' },
+  { name: '结算单', category: '结算单', group: '待分组' },
+  { name: '病案首页', category: '病案首页', group: '无需分组' },
+  { name: '病案首页', category: '病案首页', group: '无需分组' },
+  { name: '病案首页', category: '病案首页', group: '无需分组' },
+  { name: '病案首页', category: '病案首页', group: '无需分组' },
+  { name: '病案首页', category: '病案首页', group: '无需分组' },
+  { name: '病案首页附页', category: '病案首页附页', group: '无需分组' },
+  { name: '病案首页附页', category: '病案首页附页', group: '无需分组' },
+  { name: '病案首页附页', category: '病案首页附页', group: '无需分组' },
+  { name: '手术记录', category: '手术记录', group: '无需分组' },
+  { name: '手术记录', category: '手术记录', group: '无需分组' },
+  { name: '手术记录', category: '手术记录', group: '无需分组' },
+  { name: '手术记录', category: '手术记录', group: '无需分组' },
+  { name: '超声检查报告', category: '超声检查报告', group: '无需分组' },
+  { name: '超声检查报告', category: '超声检查报告', group: '无需分组' },
+  { name: '超声检查报告', category: '超声检查报告', group: '无需分组' },
+  { name: '超声检查报告', category: '超声检查报告', group: '无需分组' },
+  { name: '超声检查报告', category: '超声检查报告', group: '无需分组' },
+  { name: 'MRI检查报告', category: 'MRI检查报告', group: '无需分组' },
+  { name: 'MRI检查报告', category: 'MRI检查报告', group: '无需分组' },
+  { name: 'MRI检查报告', category: 'MRI检查报告', group: '无需分组' },
+  { name: 'CT检查报告', category: 'CT检查报告', group: '无需分组' },
+  { name: 'CT检查报告', category: 'CT检查报告', group: '无需分组' },
+  { name: 'CT检查报告', category: 'CT检查报告', group: '无需分组' },
+  { name: 'CT检查报告', category: 'CT检查报告', group: '无需分组' },
+  { name: '血凝检查', category: '血凝检查', group: '无需分组' },
+  { name: '血凝检查', category: '血凝检查', group: '无需分组' },
+  { name: '血凝检查', category: '血凝检查', group: '无需分组' },
+  { name: '血生化检查', category: '血生化检查', group: '无需分组' },
+  { name: '血生化检查', category: '血生化检查', group: '无需分组' },
+  { name: '血常规检查', category: '血常规检查', group: '无需分组' },
+  { name: '血常规检查', category: '血常规检查', group: '无需分组' },
+  { name: '血常规检查', category: '血常规检查', group: '无需分组' },
+  { name: '心电图', category: '心电图', group: '无需分组' },
+  { name: '心电图', category: '心电图', group: '无需分组' },
+  { name: '其他化验检查', category: '其他化验检查', group: '无需分组' },
+  { name: '其他化验检查', category: '其他化验检查', group: '无需分组' },
+  { name: '其他化验检查', category: '其他化验检查', group: '无需分组' },
+  { name: '其他化验检查', category: '其他化验检查', group: '无需分组' },
+  { name: '住院证', category: '住院证', group: '无需分组' },
+  { name: '住院证', category: '住院证', group: '无需分组' },
+  { name: '入院记录_住院记录', category: '入院记录_住院记录', group: '无需分组' },
+  { name: '入院记录_住院记录', category: '入院记录_住院记录', group: '无需分组' },
+  { name: '理赔申请书', category: '理赔申请书', group: '无需分组' },
+  { name: '理赔申请书', category: '理赔申请书', group: '无需分组' },
+  { name: '理赔申请书', category: '理赔申请书', group: '无需分组' },
+  { name: '理赔须知', category: '理赔须知', group: '无需分组' },
+  { name: '理赔须知', category: '理赔须知', group: '无需分组' },
+  { name: '居民身份证', category: '居民身份证', group: '无需分组' },
+  { name: '居民身份证', category: '居民身份证', group: '无需分组' },
+  { name: '居民身份证', category: '居民身份证', group: '无需分组' },
+  { name: '居民身份证', category: '居民身份证', group: '无需分组' },
+  { name: '居民身份证', category: '居民身份证', group: '无需分组' },
+  { name: '银行卡', category: '银行卡', group: '无需分组' },
+  { name: '银行卡', category: '银行卡', group: '无需分组' },
+  { name: '其他_自然场景', category: '其他_自然场景', group: '无需分组' },
+  { name: '其他_自然场景', category: '其他_自然场景', group: '无需分组' },
 ]
 
 const ENGINE_RESULT_JSON = JSON.stringify({
@@ -341,20 +398,59 @@ const AgentClaimsTaskDetail: React.FC = () => {
 
   const filteredImages = (() => {
     if (viewMode === 'group' && activeSubItem && activeGroupForItem) {
-      return taskImages.filter(img => img.category === activeSubItem && img.group === activeGroupForItem)
+      // activeSubItem 格式为 "住院组 - 病历组 - 出院小结"，需提取分类名（最后一部分）
+      const category = activeSubItem.split('-').pop() || activeSubItem
+      return taskImages.filter(img => img.category === category && img.group === activeGroupForItem)
     }
     if (activeCategory === '全部') return taskImages
     return taskImages.filter(img => img.category === activeCategory)
   })()
 
   // 动态计算 GROUPS count（基于 taskImages 数据）
-  const dynamicGroups = GROUPS_STRUCTURE.map(group => ({
-    ...group,
-    children: group.children.map(child => ({
-      ...child,
-      count: taskImages.filter(img => img.category === child.name && img.group === group.name).length,
-    })).filter(child => child.count > 0),
-  })).filter(group => group.children.length > 0)
+  // 支持三级嵌套结构：已分组 (nested) -> 住院组/门诊组 -> 病历组/票据组 -> 具体分类
+  // 支持二级平铺结构：待分组/无需分组 (flat) -> 具体分类
+  const dynamicGroups = GROUPS_STRUCTURE.map(group => {
+    if (group.type === 'nested') {
+      // 三级嵌套：递归计算 count，根据父节点确定 group 过滤值
+      const processNode = (node: any, parentGroup?: string): any => {
+        // 住院组/门诊组 设置 group 过滤值
+        const currentGroup = node.name === '住院组' || node.name === '门诊组' ? node.name : parentGroup
+        if (node.children) {
+          // 有子节点，递归处理
+          const processedChildren = node.children.map((child: any) => processNode(child, currentGroup))
+          // 过滤掉 count 为 0 的叶子节点，以及没有有效子节点的中间节点
+          const filteredChildren = processedChildren.filter((child: any) =>
+            child.children ? child.children.length > 0 : child.count > 0
+          )
+          return {
+            ...node,
+            children: filteredChildren,
+          }
+        } else {
+          // 叶子节点：按 category + group 过滤
+          return {
+            ...node,
+            count: taskImages.filter(img => img.category === node.name && img.group === currentGroup).length,
+          }
+        }
+      }
+      return { ...group, children: group.children.map(child => processNode(child)) }
+    } else {
+      // 平铺结构：按 group 名称过滤
+      const groupFilter = group.name // "待分组" 或 "无需分组"
+      return {
+        ...group,
+        children: group.children.map(child => ({
+          ...child,
+          count: taskImages.filter(img => img.category === child.name && img.group === groupFilter).length,
+        })).filter(child => child.count > 0),
+      }
+    }
+  }).filter(group =>
+    group.type === 'nested'
+      ? group.children.some((c: any) => c.children ? c.children.length > 0 : c.count > 0)
+      : group.children.length > 0
+  )
 
   // 动态计算 CATEGORIES count
   const dynamicCategories = CATEGORIES.map(cat => {
@@ -368,7 +464,9 @@ const AgentClaimsTaskDetail: React.FC = () => {
   const previewDetail = previewImage ? IMAGE_DETAIL_MOCK[previewImage.category] || IMAGE_DETAIL_MOCK['医疗票据'] : null
   const imageId = previewImage ? `180647${String(previewIndex).padStart(3, '0')}` : ''
 
-  const groupTitle = viewMode === 'group' && activeGroupForItem ? `${activeGroupForItem} · ${activeSubItem}` : activeCategory
+  const groupTitle = viewMode === 'group' && activeGroupForItem && activeSubItem
+    ? `${activeGroupForItem} · ${activeSubItem.split('-').slice(1).join(' · ')}`
+    : activeCategory
   const groupImageCount = filteredImages.length
 
   return (
@@ -398,7 +496,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
             <span style={{ fontWeight: 600, color: '#1F2937' }}>任务号：</span><span style={{ fontWeight: 400 }}>{taskId}</span>
           </span>
           <span style={{ fontSize: 16 }}>
-            <span style={{ fontWeight: 600, color: '#1F2937' }}>案件号：</span><span style={{ fontWeight: 400 }}>{caseNo}</span>
+            <span style={{ fontWeight: 600, color: '#1F2937' }}>索赔号：</span><span style={{ fontWeight: 400 }}>{caseNo}</span>
           </span>
         </div>
       </div>
@@ -497,13 +595,23 @@ const AgentClaimsTaskDetail: React.FC = () => {
             </div>
 
             {/* 列表区域 */}
-            <div style={{ maxHeight: 600, overflowY: 'auto', padding: '8px 0' }}>
+            <div style={{ padding: '8px 0' }}>
               {viewMode === 'group' ? (
                 /* 分组树形列表 */
                 <div>
                   {dynamicGroups.map((group) => {
                     const isExpanded = expandedGroups.has(group.name)
-                    const groupTotal = group.children.reduce((sum, c) => sum + c.count, 0)
+                    // 计算总数
+                    const countTotal = (node: any): number => {
+                      if (node.children && node.children.length > 0) {
+                        return node.children.reduce((sum: number, c: any) => sum + countTotal(c), 0)
+                      }
+                      return node.count || 0
+                    }
+                    const groupTotal = group.type === 'nested'
+                      ? group.children.reduce((sum: number, c: any) => sum + countTotal(c), 0)
+                      : group.children.reduce((sum: number, c: any) => sum + c.count, 0)
+
                     return (
                       <div key={group.name} style={{ marginBottom: 4 }}>
                         {/* 分组标题 */}
@@ -546,41 +654,183 @@ const AgentClaimsTaskDetail: React.FC = () => {
                         {/* 子项列表 */}
                         {isExpanded && (
                           <div style={{ padding: '2px 0' }}>
-                            {group.children.map((child) => {
-                              const isActive = activeGroupForItem === group.name && activeSubItem === child.name
-                              return (
-                                <div
-                                  key={`${group.name}-${child.name}`}
-                                  onClick={() => { setActiveSubItem(child.name); setActiveGroupForItem(group.name) }}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '6px 12px 6px 36px',
-                                    margin: '0 8px',
-                                    borderRadius: 6,
-                                    fontSize: 13,
-                                    color: isActive ? '#fff' : '#000000e0',
-                                    background: isActive ? '#65a5ff' : 'transparent',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.15s',
-                                  }}
-                                >
-                                  <span>{child.name}</span>
-                                  <span style={{
-                                    fontSize: 12,
-                                    color: isActive ? '#fff' : '#9ca3af',
-                                    background: isActive ? 'rgba(255,255,255,0.3)' : '#f3f4f6',
-                                    borderRadius: 10,
-                                    padding: '1px 8px',
-                                    minWidth: 20,
-                                    textAlign: 'center',
-                                  }}>
-                                    {child.count}
-                                  </span>
-                                </div>
-                              )
-                            })}
+                            {group.type === 'nested' ? (
+                              /* 三级嵌套：住院组/门诊组 -> 病历组/票据组 -> 分类 */
+                              group.children.map((subGroup: any) => {
+                                const subExpanded = expandedGroups.has(subGroup.name)
+                                const subTotal = countTotal(subGroup)
+                                return (
+                                  <div key={subGroup.name}>
+                                    {/* 二级标题：住院组/门诊组 */}
+                                    <div
+                                      onClick={() => toggleGroup(subGroup.name)}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '6px 12px 6px 24px',
+                                        margin: '0 8px',
+                                        borderRadius: 6,
+                                        fontSize: 13,
+                                        fontWeight: 500,
+                                        color: '#000000e0',
+                                        background: subExpanded ? '#f0f7ff' : 'transparent',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s',
+                                      }}
+                                    >
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                                          style={{ transform: subExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}>
+                                          <path d="M9 18l6-6-6-6" />
+                                        </svg>
+                                        <span>{subGroup.name}</span>
+                                      </div>
+                                      <span style={{
+                                        fontSize: 11,
+                                        color: '#9ca3af',
+                                        background: '#f3f4f6',
+                                        borderRadius: 10,
+                                        padding: '1px 6px',
+                                        minWidth: 18,
+                                        textAlign: 'center',
+                                      }}>
+                                        {subTotal}
+                                      </span>
+                                    </div>
+                                    {subExpanded && (
+                                      <div style={{ padding: '2px 0' }}>
+                                        {subGroup.children.map((categoryGroup: any) => {
+                                          // 使用组合 key 区分不同父组下的同名子组
+                                          const catKey = `${subGroup.name}-${categoryGroup.name}`
+                                          const catExpanded = expandedGroups.has(catKey)
+                                          const catTotal = countTotal(categoryGroup)
+                                          return (
+                                            <div key={catKey}>
+                                              {/* 三级标题：病历组/票据组 */}
+                                              <div
+                                                onClick={() => toggleGroup(catKey)}
+                                                style={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'space-between',
+                                                  padding: '6px 12px 6px 40px',
+                                                  margin: '0 8px',
+                                                  borderRadius: 6,
+                                                  fontSize: 13,
+                                                  fontWeight: 500,
+                                                  color: '#000000e0',
+                                                  background: catExpanded ? '#f0f7ff' : 'transparent',
+                                                  cursor: 'pointer',
+                                                  transition: 'all 0.15s',
+                                                }}
+                                              >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                                                    style={{ transform: catExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}>
+                                                    <path d="M9 18l6-6-6-6" />
+                                                  </svg>
+                                                  <span>{categoryGroup.name}</span>
+                                                </div>
+                                                <span style={{
+                                                  fontSize: 11,
+                                                  color: '#9ca3af',
+                                                  background: '#f3f4f6',
+                                                  borderRadius: 10,
+                                                  padding: '1px 6px',
+                                                  minWidth: 18,
+                                                  textAlign: 'center',
+                                                }}>
+                                                  {catTotal}
+                                                </span>
+                                              </div>
+                                              {catExpanded && (
+                                                <div style={{ padding: '2px 0' }}>
+                                                  {categoryGroup.children.map((item: any) => {
+                                                    // 使用完整路径 key 区分不同分组下的同名项目，并展示完整层级
+                                                    const itemKey = `${subGroup.name}-${categoryGroup.name}-${item.name}`
+                                                    const isActive = activeSubItem === itemKey
+                                                    return (
+                                                      <div
+                                                        key={item.name}
+                                                        onClick={() => { setActiveSubItem(itemKey); setActiveGroupForItem(subGroup.name) }}
+                                                        style={{
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          justifyContent: 'space-between',
+                                                          padding: '6px 12px 6px 56px',
+                                                          margin: '0 8px',
+                                                          borderRadius: 6,
+                                                          fontSize: 13,
+                                                          color: isActive ? '#fff' : '#000000e0',
+                                                          background: isActive ? '#65a5ff' : 'transparent',
+                                                          cursor: 'pointer',
+                                                          transition: 'all 0.15s',
+                                                        }}
+                                                      >
+                                                        <span>{item.name}</span>
+                                                        <span style={{
+                                                          fontSize: 12,
+                                                          color: isActive ? '#fff' : '#9ca3af',
+                                                          background: isActive ? 'rgba(255,255,255,0.3)' : '#f3f4f6',
+                                                          borderRadius: 10,
+                                                          padding: '1px 8px',
+                                                          minWidth: 20,
+                                                          textAlign: 'center',
+                                                        }}>
+                                                          {item.count}
+                                                        </span>
+                                                      </div>
+                                                    )
+                                                  })}
+                                                </div>
+                                              )}
+                                            </div>
+                                          )
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })
+                            ) : (
+                              /* 平铺结构：待分组/无需分组 */
+                              group.children.map((child: any) => {
+                                const isActive = activeSubItem === child.name && activeGroupForItem === group.name
+                                return (
+                                  <div
+                                    key={`${group.name}-${child.name}`}
+                                    onClick={() => { setActiveSubItem(child.name); setActiveGroupForItem(group.name) }}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      padding: '6px 12px 6px 24px',
+                                      margin: '0 8px',
+                                      borderRadius: 6,
+                                      fontSize: 13,
+                                      color: isActive ? '#fff' : '#000000e0',
+                                      background: isActive ? '#65a5ff' : 'transparent',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.15s',
+                                    }}
+                                  >
+                                    <span>{child.name}</span>
+                                    <span style={{
+                                      fontSize: 12,
+                                      color: isActive ? '#fff' : '#9ca3af',
+                                      background: isActive ? 'rgba(255,255,255,0.3)' : '#f3f4f6',
+                                      borderRadius: 10,
+                                      padding: '1px 8px',
+                                      minWidth: 20,
+                                      textAlign: 'center',
+                                    }}>
+                                      {child.count}
+                                    </span>
+                                  </div>
+                                )
+                              })
+                            )}
                           </div>
                         )}
                       </div>
