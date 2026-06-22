@@ -125,6 +125,34 @@ const GROUPS_STRUCTURE = [
 
 const TABS = ['影像展示', '引擎结果', 'LIC系统响应']
 
+// 标签类型与配色
+const TAG_TYPES = ['重复', '切割', '矫正'] as const
+type ImageTag = typeof TAG_TYPES[number]
+const TAG_STYLES: Record<ImageTag, { bg: string; color: string }> = {
+  '重复': { bg: 'rgba(255,152,0,0.9)', color: '#fff' },
+  '切割': { bg: 'rgba(59,130,246,0.9)', color: '#fff' },
+  '矫正': { bg: 'rgba(34,197,94,0.9)', color: '#fff' },
+}
+
+// 为每张图随机分配 0~2 个标签（种子化伪随机，保证刷新后稳定）
+function seededRandom(seed: number) {
+  let s = seed
+  return () => {
+    s = (s * 16807 + 0) % 2147483647
+    return s / 2147483647
+  }
+}
+
+function assignTags(images: { name: string; category: string; group: string }[]): { name: string; category: string; group: string; tags: ImageTag[] }[] {
+  const rand = seededRandom(42)
+  return images.map((img) => {
+    const tagCount = rand() < 0.35 ? 0 : rand() < 0.65 ? 1 : 2
+    const shuffled = [...TAG_TYPES].sort(() => rand() - 0.5)
+    const tags = shuffled.slice(0, tagCount)
+    return { ...img, tags }
+  })
+}
+
 // 模拟图片数据
 const IMAGES: { name: string; category: string; group: string }[] = [
   { name: '出院小结', category: '出院小结', group: '住院组' },
@@ -221,6 +249,8 @@ const IMAGES: { name: string; category: string; group: string }[] = [
   { name: '其他_自然场景', category: '其他_自然场景', group: '无需分组' },
 ]
 
+const IMAGES_WITH_TAGS = assignTags(IMAGES)
+
 const ENGINE_RESULT_JSON = JSON.stringify({
   imageList: [
     {
@@ -287,6 +317,22 @@ const IMAGE_DETAIL_MOCK: Record<string, {
       { name: '主诊医师', value: '王明华' },
     ],
   },
+  '病案首页附页': {
+    logId: '2044719119107231747',
+    category: '病历材料',
+    subCategory: '病案首页附页',
+    confidence: 97.20,
+    clarity: 80.10,
+    completeness: 93.50,
+    authenticity: 98.50,
+    fields: [
+      { name: '住院号', value: 'ZY20260301001' },
+      { name: '附页类型', value: '手术及操作信息' },
+      { name: '手术名称', value: '冠状动脉支架植入术' },
+      { name: '手术日期', value: '2026年02月15日' },
+      { name: '术者', value: '李建国' },
+    ],
+  },
   '居民身份证': {
     logId: '2044719119107231746',
     category: '身份材料',
@@ -304,6 +350,372 @@ const IMAGE_DETAIL_MOCK: Record<string, {
       { name: '住址', value: '河南省南阳市唐河县' },
     ],
   },
+  '银行卡': {
+    logId: '2044719119107231748',
+    category: '身份材料',
+    subCategory: '银行卡',
+    confidence: 98.70,
+    clarity: 88.40,
+    completeness: 96.20,
+    authenticity: 97.80,
+    fields: [
+      { name: '银行名称', value: '中国工商银行' },
+      { name: '卡号', value: '6222 0217 **** 1950' },
+      { name: '持卡人', value: '刘兴' },
+      { name: '卡类型', value: '借记卡' },
+    ],
+  },
+  '费用清单': {
+    logId: '2044719119107231749',
+    category: '医疗材料',
+    subCategory: '费用清单',
+    confidence: 99.10,
+    clarity: 75.30,
+    completeness: 94.80,
+    authenticity: 92.50,
+    fields: [
+      { name: '住院号', value: 'ZY20260301001' },
+      { name: '姓名', value: '刘兴' },
+      { name: '费用类别', value: '西药费' },
+      { name: '金额', value: '3,256.80' },
+      { name: '记账日期', value: '2026年02月11日-03月15日' },
+    ],
+  },
+  '结算单': {
+    logId: '2044719119107231750',
+    category: '医疗材料',
+    subCategory: '结算单',
+    confidence: 98.40,
+    clarity: 79.60,
+    completeness: 95.30,
+    authenticity: 93.10,
+    fields: [
+      { name: '住院号', value: 'ZY20260301001' },
+      { name: '姓名', value: '刘兴' },
+      { name: '总费用', value: '42,568.50' },
+      { name: '医保支付', value: '35,200.00' },
+      { name: '个人支付', value: '7,368.50' },
+      { name: '结算日期', value: '2026年03月15日' },
+    ],
+  },
+  '增值税发票': {
+    logId: '2044719119107231751',
+    category: '医疗材料',
+    subCategory: '增值税发票',
+    confidence: 99.50,
+    clarity: 83.70,
+    completeness: 97.10,
+    authenticity: 95.20,
+    fields: [
+      { name: '发票代码', value: '044032100411' },
+      { name: '发票号码', value: '38572914' },
+      { name: '开票日期', value: '2026年03月20日' },
+      { name: '金额', value: '1,280.00' },
+      { name: '销售方', value: '某某医药有限公司' },
+    ],
+  },
+  '出院小结': {
+    logId: '2044719119107231752',
+    category: '病历材料',
+    subCategory: '出院小结',
+    confidence: 98.80,
+    clarity: 81.40,
+    completeness: 96.50,
+    authenticity: 97.30,
+    fields: [
+      { name: '住院号', value: 'ZY20260301001' },
+      { name: '姓名', value: '刘兴' },
+      { name: '入院日期', value: '2026年02月11日' },
+      { name: '出院日期', value: '2026年03月15日' },
+      { name: '入院诊断', value: '冠心病' },
+      { name: '出院诊断', value: '冠心病（支架术后）' },
+      { name: '主治医师', value: '王明华' },
+    ],
+  },
+  '诊断证明': {
+    logId: '2044719119107231753',
+    category: '病历材料',
+    subCategory: '诊断证明',
+    confidence: 97.90,
+    clarity: 78.20,
+    completeness: 94.60,
+    authenticity: 96.10,
+    fields: [
+      { name: '姓名', value: '刘兴' },
+      { name: '性别', value: '男' },
+      { name: '年龄', value: '61岁' },
+      { name: '诊断', value: '冠状动脉粥样硬化性心脏病' },
+      { name: '出具日期', value: '2026年03月15日' },
+      { name: '医师', value: '王明华' },
+    ],
+  },
+  '门诊病历': {
+    logId: '2044719119107231754',
+    category: '病历材料',
+    subCategory: '门诊病历',
+    confidence: 97.60,
+    clarity: 76.50,
+    completeness: 93.80,
+    authenticity: 95.40,
+    fields: [
+      { name: '姓名', value: '刘兴' },
+      { name: '就诊日期', value: '2026年02月08日' },
+      { name: '科室', value: '心血管内科' },
+      { name: '主诉', value: '反复胸闷气促3月' },
+      { name: '诊断', value: '冠心病' },
+      { name: '医师', value: '张丽华' },
+    ],
+  },
+  '手术记录': {
+    logId: '2044719119107231755',
+    category: '病历材料',
+    subCategory: '手术记录',
+    confidence: 98.20,
+    clarity: 80.80,
+    completeness: 95.90,
+    authenticity: 96.80,
+    fields: [
+      { name: '住院号', value: 'ZY20260301001' },
+      { name: '姓名', value: '刘兴' },
+      { name: '手术名称', value: '经皮冠状动脉介入治疗（PCI）' },
+      { name: '手术日期', value: '2026年02月15日' },
+      { name: '术者', value: '李建国' },
+      { name: '麻醉方式', value: '局部麻醉' },
+    ],
+  },
+  '超声检查报告': {
+    logId: '2044719119107231756',
+    category: '检验报告',
+    subCategory: '超声检查报告',
+    confidence: 98.60,
+    clarity: 82.90,
+    completeness: 96.10,
+    authenticity: 97.50,
+    fields: [
+      { name: '姓名', value: '刘兴' },
+      { name: '检查部位', value: '心脏' },
+      { name: '检查日期', value: '2026年02月12日' },
+      { name: '超声所见', value: '左室壁节段性运动异常，EF 52%' },
+      { name: '检查医师', value: '赵伟' },
+    ],
+  },
+  'MRI检查报告': {
+    logId: '2044719119107231757',
+    category: '检验报告',
+    subCategory: 'MRI检查报告',
+    confidence: 98.10,
+    clarity: 81.30,
+    completeness: 95.50,
+    authenticity: 97.10,
+    fields: [
+      { name: '姓名', value: '刘兴' },
+      { name: '检查部位', value: '颅脑' },
+      { name: '检查日期', value: '2026年02月13日' },
+      { name: '检查所见', value: '脑实质未见明显异常信号' },
+      { name: '检查医师', value: '孙明' },
+    ],
+  },
+  'CT检查报告': {
+    logId: '2044719119107231758',
+    category: '检验报告',
+    subCategory: 'CT检查报告',
+    confidence: 98.30,
+    clarity: 83.20,
+    completeness: 95.80,
+    authenticity: 97.30,
+    fields: [
+      { name: '姓名', value: '刘兴' },
+      { name: '检查部位', value: '胸部' },
+      { name: '检查日期', value: '2026年02月11日' },
+      { name: '检查所见', value: '双肺纹理清晰，未见明显实质性病变' },
+      { name: '检查医师', value: '孙明' },
+    ],
+  },
+  '血凝检查': {
+    logId: '2044719119107231759',
+    category: '检验报告',
+    subCategory: '血凝检查',
+    confidence: 97.80,
+    clarity: 79.40,
+    completeness: 94.30,
+    authenticity: 96.40,
+    fields: [
+      { name: '姓名', value: '刘兴' },
+      { name: '标本类型', value: '静脉血' },
+      { name: '检验日期', value: '2026年02月12日' },
+      { name: 'PT', value: '12.8s' },
+      { name: 'APTT', value: '30.5s' },
+      { name: 'INR', value: '1.05' },
+    ],
+  },
+  '血生化检查': {
+    logId: '2044719119107231760',
+    category: '检验报告',
+    subCategory: '血生化检查',
+    confidence: 98.00,
+    clarity: 80.60,
+    completeness: 95.00,
+    authenticity: 96.70,
+    fields: [
+      { name: '姓名', value: '刘兴' },
+      { name: '标本类型', value: '静脉血' },
+      { name: '检验日期', value: '2026年02月12日' },
+      { name: 'ALT', value: '28 U/L' },
+      { name: 'AST', value: '32 U/L' },
+      { name: '肌酐', value: '82 μmol/L' },
+      { name: '总胆固醇', value: '5.8 mmol/L' },
+    ],
+  },
+  '血常规检查': {
+    logId: '2044719119107231761',
+    category: '检验报告',
+    subCategory: '血常规检查',
+    confidence: 98.20,
+    clarity: 81.80,
+    completeness: 95.40,
+    authenticity: 96.90,
+    fields: [
+      { name: '姓名', value: '刘兴' },
+      { name: '标本类型', value: '静脉血' },
+      { name: '检验日期', value: '2026年02月12日' },
+      { name: 'WBC', value: '6.8×10⁹/L' },
+      { name: 'RBC', value: '4.5×10¹²/L' },
+      { name: 'HGB', value: '138 g/L' },
+      { name: 'PLT', value: '215×10⁹/L' },
+    ],
+  },
+  '心电图': {
+    logId: '2044719119107231762',
+    category: '检验报告',
+    subCategory: '心电图',
+    confidence: 97.50,
+    clarity: 77.30,
+    completeness: 93.60,
+    authenticity: 95.80,
+    fields: [
+      { name: '姓名', value: '刘兴' },
+      { name: '检查日期', value: '2026年02月11日' },
+      { name: '心率', value: '72 bpm' },
+      { name: '节律', value: '窦性心律' },
+      { name: '诊断意见', value: 'ST-T段改变，建议结合临床' },
+      { name: '检查医师', value: '周丽' },
+    ],
+  },
+  '其他化验检查': {
+    logId: '2044719119107231763',
+    category: '检验报告',
+    subCategory: '其他化验检查',
+    confidence: 96.80,
+    clarity: 76.10,
+    completeness: 92.70,
+    authenticity: 95.10,
+    fields: [
+      { name: '姓名', value: '刘兴' },
+      { name: '标本类型', value: '静脉血' },
+      { name: '检验日期', value: '2026年02月13日' },
+      { name: '检验项目', value: 'BNP' },
+      { name: '结果', value: '356 pg/mL' },
+    ],
+  },
+  '住院证': {
+    logId: '2044719119107231764',
+    category: '病历材料',
+    subCategory: '住院证',
+    confidence: 97.30,
+    clarity: 78.90,
+    completeness: 94.10,
+    authenticity: 96.20,
+    fields: [
+      { name: '姓名', value: '刘兴' },
+      { name: '性别', value: '男' },
+      { name: '年龄', value: '61岁' },
+      { name: '拟住科室', value: '心血管内科' },
+      { name: '收治日期', value: '2026年02月11日' },
+      { name: '门诊医师', value: '张丽华' },
+    ],
+  },
+  '入院记录_住院记录': {
+    logId: '2044719119107231765',
+    category: '病历材料',
+    subCategory: '入院记录_住院记录',
+    confidence: 98.70,
+    clarity: 82.50,
+    completeness: 96.80,
+    authenticity: 97.60,
+    fields: [
+      { name: '住院号', value: 'ZY20260301001' },
+      { name: '姓名', value: '刘兴' },
+      { name: '性别', value: '男' },
+      { name: '年龄', value: '61岁' },
+      { name: '入院日期', value: '2026年02月11日' },
+      { name: '主诉', value: '反复胸闷气促3月' },
+      { name: '现病史', value: '患者3月前无明显诱因出现胸闷气促...' },
+      { name: '入院诊断', value: '冠心病' },
+    ],
+  },
+  '理赔申请书': {
+    logId: '2044719119107231766',
+    category: '医疗材料',
+    subCategory: '理赔申请书',
+    confidence: 99.20,
+    clarity: 85.30,
+    completeness: 97.40,
+    authenticity: 98.10,
+    fields: [
+      { name: '申请人', value: '刘兴' },
+      { name: '保单号', value: 'P20240001568' },
+      { name: '申请日期', value: '2026年04月01日' },
+      { name: '理赔类型', value: '住院医疗' },
+      { name: '事故日期', value: '2026年02月11日' },
+    ],
+  },
+  '理赔须知': {
+    logId: '2044719119107231767',
+    category: '医疗材料',
+    subCategory: '理赔须知',
+    confidence: 97.80,
+    clarity: 80.40,
+    completeness: 94.90,
+    authenticity: 96.50,
+    fields: [
+      { name: '文件名称', value: '理赔申请材料清单' },
+      { name: '适用险种', value: '住院医疗保险' },
+      { name: '发出日期', value: '2026年03月28日' },
+    ],
+  },
+  '其他_自然场景': {
+    logId: '2044719119107231768',
+    category: '其他',
+    subCategory: '其他_自然场景',
+    confidence: 85.60,
+    clarity: 68.40,
+    completeness: 88.20,
+    authenticity: 82.50,
+    fields: [
+      { name: '图片描述', value: '自然场景拍摄' },
+      { name: '备注', value: '非标准医疗文档' },
+    ],
+  },
+}
+
+// 矫正前分类 mock（key = 矫正后分类）
+const CORRECTION_BEFORE: Record<string, { category: string; subCategory: string; confidence: number }> = {
+  '出院小结': { category: '病历材料', subCategory: '诊断证明', confidence: 72.30 },
+  '诊断证明': { category: '病历材料', subCategory: '门诊病历', confidence: 68.50 },
+  '医疗票据': { category: '病历材料', subCategory: '费用清单', confidence: 61.20 },
+  '增值税发票': { category: '病历材料', subCategory: '医疗票据', confidence: 55.80 },
+  '费用清单': { category: '病历材料', subCategory: '结算单', confidence: 74.10 },
+  '结算单': { category: '病历材料', subCategory: '医疗票据', confidence: 66.40 },
+  '病案首页': { category: '病历材料', subCategory: '出院小结', confidence: 58.90 },
+  '居民身份证': { category: '病历材料', subCategory: '银行卡', confidence: 45.60 },
+  '银行卡': { category: '病历材料', subCategory: '居民身份证', confidence: 52.30 },
+  '门诊病历': { category: '病历材料', subCategory: '出院小结', confidence: 70.10 },
+  '超声检查报告': { category: '病历材料', subCategory: 'CT检查报告', confidence: 63.40 },
+  'MRI检查报告': { category: '病历材料', subCategory: '超声检查报告', confidence: 59.70 },
+  'CT检查报告': { category: '病历材料', subCategory: 'MRI检查报告', confidence: 67.20 },
+  '手术记录': { category: '病历材料', subCategory: '出院小结', confidence: 54.80 },
+  '入院记录_住院记录': { category: '病历材料', subCategory: '门诊病历', confidence: 62.50 },
+  '理赔申请书': { category: '病历材料', subCategory: '理赔须知', confidence: 71.30 },
 }
 
 const AgentClaimsTaskDetail: React.FC = () => {
@@ -394,7 +806,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
 
   // 根据任务匹配获取图片数量
   const taskImageCount = matchedLog?.imageCount || 33
-  const taskImages = IMAGES.slice(0, taskImageCount)
+  const taskImages = IMAGES_WITH_TAGS.slice(0, taskImageCount)
 
   const filteredImages = (() => {
     if (viewMode === 'group' && activeSubItem && activeGroupForItem) {
@@ -950,6 +1362,41 @@ const AgentClaimsTaskDetail: React.FC = () => {
                       borderRadius: 2,
                       filter: 'blur(1px)',
                     }} />
+                    {/* 右上角标签角标 */}
+                    {img.tags.length > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 3,
+                        alignItems: 'flex-end',
+                      }}>
+                        {img.tags.map((tag) => {
+                          const style = TAG_STYLES[tag]
+                          return (
+                            <span
+                              key={tag}
+                              style={{
+                                display: 'inline-block',
+                                padding: '1px 6px',
+                                fontSize: 10,
+                                fontWeight: 600,
+                                lineHeight: '16px',
+                                borderRadius: 3,
+                                background: style.bg,
+                                color: style.color,
+                                letterSpacing: 1,
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                              }}
+                            >
+                              {tag}
+                            </span>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
                   <div style={{
                     padding: '8px 10px',
@@ -988,7 +1435,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
           <div
             style={{
               width: '90vw',
-              maxWidth: 1100,
+              maxWidth: 1300,
               maxHeight: '90vh',
               background: '#fff',
               borderRadius: 16,
@@ -1056,7 +1503,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
                 )}
                 {/* 图片占位 */}
                 <div style={{
-                  width: 320,
+                  width: 500,
                   aspectRatio: '3/4',
                   background: 'linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 50%, #e5e7eb 100%)',
                   borderRadius: 8,
@@ -1064,6 +1511,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   position: 'relative',
+                  overflow: 'hidden',
                 }}>
                   <div style={{
                     width: '80%',
@@ -1083,6 +1531,76 @@ const AgentClaimsTaskDetail: React.FC = () => {
                     </svg>
                     预览
                   </div>
+                  {/* 预览大图角标 */}
+                  {previewImage && previewImage.tags.length > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 10,
+                      right: 10,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 4,
+                      alignItems: 'flex-end',
+                      zIndex: 2,
+                    }}>
+                      {previewImage.tags.map((tag) => {
+                        const style = TAG_STYLES[tag]
+                        return (
+                          <span
+                            key={tag}
+                            style={{
+                              display: 'inline-block',
+                              padding: '2px 8px',
+                              fontSize: 12,
+                              fontWeight: 600,
+                              lineHeight: '18px',
+                              borderRadius: 4,
+                              background: style.bg,
+                              color: style.color,
+                              letterSpacing: 1,
+                              boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  )}
+                  {/* 切割红框 */}
+                  {previewImage && previewImage.tags.includes('切割') && (() => {
+                    const cutRand = seededRandom(previewIndex * 1000 + 7)
+                    const blockCount = 2 + Math.floor(cutRand() * 3) // 2~4 个区块
+                    const blocks = Array.from({ length: blockCount }, () => {
+                      const w = 25 + cutRand() * 45 // 25%~70%
+                      const h = 20 + cutRand() * 40 // 20%~60%
+                      const x = cutRand() * (100 - w)
+                      const y = cutRand() * (100 - h)
+                      return { x: `${x}%`, y: `${y}%`, w: `${w}%`, h: `${h}%` }
+                    })
+                    return (
+                      <svg style={{
+                        position: 'absolute',
+                        inset: 0,
+                        width: '100%',
+                        height: '100%',
+                        pointerEvents: 'none',
+                        zIndex: 1,
+                      }}>
+                        {blocks.map((b, i) => (
+                          <rect
+                            key={i}
+                            x={b.x} y={b.y}
+                            width={b.w} height={b.h}
+                            fill="none"
+                            stroke="#ef4444"
+                            strokeWidth="2"
+                            opacity="0.85"
+                          />
+                        ))}
+                      </svg>
+                    )
+                  })()}
                 </div>
                 {/* 下一张 */}
                 {previewIndex < filteredImages.length - 1 && (
@@ -1110,35 +1628,83 @@ const AgentClaimsTaskDetail: React.FC = () => {
                 padding: 24,
               }}>
                 {/* 图像分类 */}
-                <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12 }}>图像分类</div>
-                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 16 }}>{previewDetail.logId}</div>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 8 }}>图像分类</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>{previewDetail.logId}</div>
+                  {previewImage?.tags.includes('矫正') && CORRECTION_BEFORE[previewImage.category] && (() => {
+                    const before = CORRECTION_BEFORE[previewImage.category]
+                    return (
+                      <div style={{ marginBottom: 12 }}>
+                        {/* 矫正前 */}
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8,
+                        }}>
+                          <span style={{
+                            fontSize: 12, fontWeight: 600, color: '#9ca3af',
+                            //background: '#f3f4f6', borderRadius: 4, padding: '1px 6px',
+                          }}>矫正前：</span>
+                        </div>
+                        <div style={{
+                          display: 'flex', justifyContent: 'space-between',
+                          padding: '8px 16px', background: '#f9fafb', borderRadius: 8, marginBottom: 8,
+                          //border: '1px solid #fecaca'
+                        }}>
+                          <span style={{ fontSize: 13, color: '#6b7280' }}>大类</span>
+                          <span style={{ fontSize: 13, color: '#6b7280' }}>{before.category}</span>
+                        </div>
+                        <div style={{
+                          display: 'flex', justifyContent: 'space-between',
+                          padding: '8px 16px', background: '#f9fafb', borderRadius: 8,
+                          //border: '1px solid #fecaca'
+                        }}>
+                          <span style={{ fontSize: 13, color: '#6b7280' }}>小类</span>
+                          <span style={{ fontSize: 13, color: '#6b7280' }}>{before.subCategory}</span>
+                        </div>
+                      </div>
+                    )
+                  })()}
+                  {/* 矫正后 / 默认分类 */}
+                  {previewImage?.tags.includes('矫正') && CORRECTION_BEFORE[previewImage.category] && (
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8,
+                    }}>
+                      <span style={{
+                        fontSize: 12, fontWeight: 600, color: '#16a34a',
+                        //background: '#f0fdf4', borderRadius: 4, padding: '1px 6px',
+                      }}>矫正后：</span>
+                    </div>
+                  )}
                   <div style={{
                     display: 'flex', justifyContent: 'space-between',
-                    padding: '10px 16px', background: '#f9fafb', borderRadius: 8, marginBottom: 8,
+                    padding: '10px 16px',
+                    background: previewImage?.tags.includes('矫正') ? '#f0fdf4' : '#f9fafb',
+                    borderRadius: 8, marginBottom: 8,
+                    //border: previewImage?.tags.includes('矫正') ? '1px solid #bbf7d0' : 'none',
                   }}>
-                    <span style={{ fontSize: 14, color: '#6b7280' }}>大类</span>
-                    <span style={{ fontSize: 14, color: '#1f2937', fontWeight: 500 }}>{previewDetail.category}</span>
+                    <span style={{ fontSize: 13, color: '#6b7280' }}>大类</span>
+                    <span style={{ fontSize: 13, color: previewImage?.tags.includes('矫正') ? '#16a34a' : '#1f2937', fontWeight: 500 }}>{previewDetail.category}</span>
                   </div>
                   <div style={{
                     display: 'flex', justifyContent: 'space-between',
-                    padding: '10px 16px', background: '#f9fafb', borderRadius: 8,
+                    padding: '10px 16px',
+                    background: previewImage?.tags.includes('矫正') ? '#f0fdf4' : '#f9fafb',
+                    borderRadius: 8, marginBottom: 8,
+                    //border: previewImage?.tags.includes('矫正') ? '1px solid #bbf7d0' : 'none',
                   }}>
-                    <span style={{ fontSize: 14, color: '#6b7280' }}>小类</span>
-                    <span style={{ fontSize: 14, color: '#1f2937', fontWeight: 500 }}>{previewDetail.subCategory}</span>
+                    <span style={{ fontSize: 13, color: '#6b7280' }}>小类</span>
+                    <span style={{ fontSize: 13, color: previewImage?.tags.includes('矫正') ? '#16a34a' : '#1f2937', fontWeight: 500 }}>{previewDetail.subCategory}</span>
                   </div>
-                </div>
-
-                {/* 置信度 */}
-                <div style={{
-                  padding: '12px 16px', background: '#eff6ff', borderRadius: 8, marginBottom: 24,
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span style={{ fontSize: 14, color: '#6b7280' }}>置信度</span>
-                    <span style={{ fontSize: 14, color: '#3b82f6', fontWeight: 600 }}>{previewDetail.confidence}%</span>
-                  </div>
-                  <div style={{ height: 6, background: '#dbeafe', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${previewDetail.confidence}%`, background: '#3b82f6', borderRadius: 3 }} />
+                  {/* 置信度 */}
+                  <div style={{
+                    padding: '12px 16px', background: '#eff6ff', borderRadius: 8,
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ fontSize: 13, color: '#6b7280' }}>置信度</span>
+                      <span style={{ fontSize: 13, color: '#3b82f6', fontWeight: 600 }}>{previewDetail.confidence}%</span>
+                    </div>
+                    <div style={{ height: 6, background: '#dbeafe', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${previewDetail.confidence}%`, background: '#3b82f6', borderRadius: 3 }} />
+                    </div>
                   </div>
                 </div>
 
