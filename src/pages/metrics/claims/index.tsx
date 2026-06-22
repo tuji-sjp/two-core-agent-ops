@@ -30,7 +30,7 @@ interface FlowTrajectory {
   nodes: { label: string; status: NodeStatus }[]
 }
 
-const NODE_LABELS = ['开始', '采集', '立案', '理算', '扣费', '审核', '结束']
+const NODE_LABELS = ['开始', '采集', '立案', '扣费', '理算', '审核', '结束']
 function generateFlowTrajectory(caseNo: string, status: string): FlowTrajectory {
   const lastChar = parseInt(caseNo.slice(-2), 10)
   const nodes: { label: string; status: NodeStatus }[] = NODE_LABELS.map(label => ({ label, status: 'processing' as NodeStatus }))
@@ -59,147 +59,147 @@ const NODE_CALL_RECORDS: Record<string, Record<string, CallRecord[]>> = {
     '采集': [{ time: '2026-06-02 10:23', success: true }, { time: '2026-06-02 10:25', success: true }],
     '立案': [{ time: '2026-06-02 10:28', success: true }],
     '理算': [{ time: '2026-06-02 10:32', success: true }, { time: '2026-06-02 10:33', success: false }, { time: '2026-06-02 10:35', success: true }],
-    '扣费': [{ time: '2026-06-02 10:38', success: true }],
+    '扣费': [{ time: '2026-06-02 10:23', success: true }, { time: '2026-06-02 10:25', success: true }],
     '审核': [{ time: '2026-06-02 10:42', success: true }, { time: '2026-06-02 10:43', success: true }],
   },
   'B1000000001': {
     '采集': [{ time: '2026-06-01 09:15', success: false }, { time: '2026-06-01 09:16', success: true }, { time: '2026-06-01 09:17', success: true }, { time: '2026-06-01 09:18', success: false }],
     '立案': [{ time: '2026-06-01 09:20', success: true }],
     '理算': [{ time: '2026-06-01 09:23', success: true }, { time: '2026-06-01 09:24', success: true }],
-    '扣费': [{ time: '2026-06-01 09:26', success: true }],
+    '扣费': [{ time: '2026-06-01 09:15', success: false }, { time: '2026-06-01 09:16', success: true }, { time: '2026-06-01 09:17', success: false }, { time: '2026-06-01 09:18', success: false }],
     '审核': [{ time: '2026-06-01 09:28', success: true }],
   },
   'C1000000002': {
     '采集': [{ time: '2026-05-30 14:10', success: true }],
     '立案': [{ time: '2026-05-30 14:12', success: true }, { time: '2026-05-30 14:13', success: true }],
     '理算': [{ time: '2026-05-30 14:15', success: false }, { time: '2026-05-30 14:17', success: true }],
-    '扣费': [{ time: '2026-05-30 14:20', success: true }, { time: '2026-05-30 14:21', success: true }, { time: '2026-05-30 14:22', success: true }],
+    '扣费': [{ time: '2026-05-30 14:10', success: true }],
     '审核': [{ time: '2026-05-30 14:25', success: true }],
   },
   'D1000000003': {
     '采集': [{ time: '2026-05-27 11:00', success: true }, { time: '2026-05-27 11:01', success: false }],
     '立案': [{ time: '2026-05-27 11:05', success: true }],
     '理算': [{ time: '2026-05-27 11:08', success: true }],
-    '扣费': [{ time: '2026-05-27 11:10', success: false }, { time: '2026-05-27 11:12', success: true }],
+    '扣费': [{ time: '2026-05-27 11:00', success: true }, { time: '2026-05-27 11:01', success: false }],
     '审核': [{ time: '2026-05-27 11:15', success: true }],
   },
   'E1000000004': {
     '采集': [{ time: '2026-05-24 08:30', success: true }, { time: '2026-05-24 08:31', success: true }, { time: '2026-05-24 08:32', success: false }],
     '立案': [{ time: '2026-05-24 08:35', success: true }, { time: '2026-05-24 08:36', success: true }],
     '理算': [{ time: '2026-05-24 08:38', success: true }],
-    '扣费': [{ time: '2026-05-24 08:40', success: true }],
+    '扣费': [{ time: '2026-05-24 08:30', success: true }, { time: '2026-05-24 08:31', success: true }, { time: '2026-05-24 08:32', success: false }],
     '审核': [{ time: '2026-05-24 08:42', success: true }],
   },
   'F1000000005': {
     '采集': [{ time: '2026-05-22 16:00', success: true }],
     '立案': [{ time: '2026-05-22 16:05', success: true }, { time: '2026-05-22 16:06', success: true }],
     '理算': [{ time: '2026-05-22 16:08', success: true }],
-    '扣费': [{ time: '2026-05-22 16:10', success: true }, { time: '2026-05-22 16:11', success: true }],
+    '扣费': [{ time: '2026-05-22 16:00', success: true }],
     '审核': [{ time: '2026-05-22 16:13', success: true }],
   },
   'G1000000006': {
     '采集': [{ time: '2026-05-20 13:00', success: true }, { time: '2026-05-20 13:01', success: false }],
     '立案': [{ time: '2026-05-20 13:03', success: true }, { time: '2026-05-20 13:04', success: true }, { time: '2026-05-20 13:05', success: true }, { time: '2026-05-20 13:06', success: true }],
     '理算': [{ time: '2026-05-20 13:08', success: true }],
-    '扣费': [{ time: '2026-05-20 13:10', success: true }],
+    '扣费': [{ time: '2026-05-20 13:00', success: true }, { time: '2026-05-20 13:01', success: false }],
     '审核': [{ time: '2026-05-20 13:12', success: true }],
   },
   'H1000000007': {
     '采集': [{ time: '2026-05-17 10:00', success: true }],
     '立案': [{ time: '2026-05-17 10:03', success: true }],
     '理算': [{ time: '2026-05-17 10:05', success: true }, { time: '2026-05-17 10:06', success: true }],
-    '扣费': [{ time: '2026-05-17 10:08', success: false }],
+    '扣费': [{ time: '2026-05-17 10:00', success: true }],
     '审核': [{ time: '2026-05-17 10:10', success: true }, { time: '2026-05-17 10:11', success: true }],
   },
   'I1000000008': {
     '采集': [{ time: '2026-05-16 09:00', success: true }, { time: '2026-05-16 09:01', success: false }],
     '立案': [{ time: '2026-05-16 09:03', success: true }],
     '理算': [{ time: '2026-05-16 09:05', success: true }, { time: '2026-05-16 09:06', success: true }],
-    '扣费': [{ time: '2026-05-16 09:08', success: true }],
+    '扣费': [{ time: '2026-05-16 09:00', success: true }, { time: '2026-05-16 09:01', success: false }],
     '审核': [{ time: '2026-05-16 09:10', success: true }],
   },
   'J1000000009': {
     '采集': [{ time: '2026-05-14 14:30', success: true }, { time: '2026-05-14 14:31', success: true }, { time: '2026-05-14 14:32', success: false }],
     '立案': [{ time: '2026-05-14 14:35', success: true }],
     '理算': [{ time: '2026-05-14 14:37', success: true }],
-    '扣费': [{ time: '2026-05-14 14:39', success: true }, { time: '2026-05-14 14:40', success: true }],
+    '扣费': [{ time: '2026-05-14 14:30', success: true }, { time: '2026-05-14 14:31', success: true }],
     '审核': [{ time: '2026-05-14 14:42', success: true }, { time: '2026-05-14 14:43', success: true }, { time: '2026-05-14 14:44', success: true }],
   },
   'K1000000010': {
     '采集': [{ time: '2026-05-13 10:00', success: true }, { time: '2026-05-13 10:02', success: true }],
     '立案': [{ time: '2026-05-13 10:05', success: true }],
     '理算': [{ time: '2026-05-13 10:08', success: true }],
-    '扣费': [{ time: '2026-05-13 10:10', success: true }],
+    '扣费': [],
     '审核': [{ time: '2026-05-13 10:13', success: true }],
   },
   'L1000000011': {
     '采集': [{ time: '2026-05-12 11:00', success: false }],
     '立案': [{ time: '2026-05-12 11:03', success: true }, { time: '2026-05-12 11:04', success: true }],
     '理算': [{ time: '2026-05-12 11:06', success: true }],
-    '扣费': [{ time: '2026-05-12 11:08', success: true }],
+    '扣费': [],
     '审核': [{ time: '2026-05-12 11:10', success: true }],
   },
   'M1000000012': {
     '采集': [{ time: '2026-05-10 15:00', success: true }, { time: '2026-05-10 15:01', success: true }],
     '立案': [{ time: '2026-05-10 15:03', success: true }, { time: '2026-05-10 15:04', success: true }, { time: '2026-05-10 15:05', success: true }],
     '理算': [{ time: '2026-05-10 15:07', success: true }],
-    '扣费': [{ time: '2026-05-10 15:09', success: true }],
+    '扣费': [],
     '审核': [{ time: '2026-05-10 15:11', success: true }],
   },
   'N1000000013': {
     '采集': [{ time: '2026-05-08 09:30', success: false }],
     '立案': [{ time: '2026-05-08 09:33', success: true }],
     '理算': [{ time: '2026-05-08 09:35', success: true }, { time: '2026-05-08 09:36', success: true }],
-    '扣费': [{ time: '2026-05-08 09:38', success: true }],
+    '扣费': [],
     '审核': [{ time: '2026-05-08 09:40', success: true }, { time: '2026-05-08 09:41', success: true }],
   },
   'O1000000014': {
     '采集': [{ time: '2026-05-06 10:00', success: true }, { time: '2026-05-06 10:01', success: true }],
     '立案': [{ time: '2026-05-06 10:03', success: true }],
     '理算': [{ time: '2026-05-06 10:05', success: true }],
-    '扣费': [{ time: '2026-05-06 10:07', success: true }, { time: '2026-05-06 10:08', success: true }],
+    '扣费': [{ time: '2026-05-06 10:00', success: true }, { time: '2026-05-06 10:01', success: true }],
     '审核': [{ time: '2026-05-06 10:10', success: true }],
   },
   'P1000000015': {
     '采集': [{ time: '2026-05-04 08:00', success: false }],
     '立案': [{ time: '2026-05-04 08:03', success: true }, { time: '2026-05-04 08:04', success: true }],
     '理算': [{ time: '2026-05-04 08:06', success: true }],
-    '扣费': [{ time: '2026-05-04 08:08', success: true }, { time: '2026-05-04 08:09', success: true }],
+    '扣费': [],
     '审核': [{ time: '2026-05-04 08:11', success: true }, { time: '2026-05-04 08:12', success: true }, { time: '2026-05-04 08:13', success: true }, { time: '2026-05-04 08:14', success: true }],
   },
   'Q1000000016': {
     '采集': [{ time: '2026-05-02 12:00', success: true }, { time: '2026-05-02 12:01', success: true }, { time: '2026-05-02 12:02', success: false }],
     '立案': [{ time: '2026-05-02 12:04', success: true }],
     '理算': [{ time: '2026-05-02 12:06', success: true }],
-    '扣费': [{ time: '2026-05-02 12:08', success: true }],
+    '扣费': [],
     '审核': [{ time: '2026-05-02 12:10', success: true }],
   },
   'R1000000017': {
     '采集': [{ time: '2026-04-30 16:30', success: true }],
     '立案': [{ time: '2026-04-30 16:32', success: true }],
     '理算': [{ time: '2026-04-30 16:34', success: true }, { time: '2026-04-30 16:35', success: true }],
-    '扣费': [{ time: '2026-04-30 16:37', success: true }],
+    '扣费': [],
     '审核': [{ time: '2026-04-30 16:39', success: true }],
   },
   'S1000000018': {
     '采集': [{ time: '2026-04-28 14:00', success: true }, { time: '2026-04-28 14:01', success: false }],
     '立案': [{ time: '2026-04-28 14:03', success: true }],
     '理算': [{ time: '2026-04-28 14:05', success: true }],
-    '扣费': [{ time: '2026-04-28 14:07', success: true }, { time: '2026-04-28 14:08', success: true }],
+    '扣费': [],
     '审核': [{ time: '2026-04-28 14:10', success: true }],
   },
   'T1000000019': {
     '采集': [{ time: '2026-04-26 09:00', success: true }],
     '立案': [{ time: '2026-04-26 09:03', success: true }, { time: '2026-04-26 09:04', success: true }, { time: '2026-04-26 09:05', success: true }],
     '理算': [{ time: '2026-04-26 09:07', success: true }],
-    '扣费': [{ time: '2026-04-26 09:09', success: true }],
+    '扣费': [],
     '审核': [{ time: '2026-04-26 09:11', success: true }],
   },
   'U1000000020': {
     '采集': [{ time: '2026-04-24 11:30', success: true }, { time: '2026-04-24 11:31', success: false }],
     '立案': [{ time: '2026-04-24 11:33', success: true }],
     '理算': [{ time: '2026-04-24 11:35', success: true }],
-    '扣费': [{ time: '2026-04-24 11:37', success: true }, { time: '2026-04-24 11:38', success: true }],
+    '扣费': [],
     '审核': [{ time: '2026-04-24 11:40', success: true }],
   },
 }
@@ -237,9 +237,10 @@ const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory; caseNo?: strin
   const nodeTimes = caseNo ? NODE_PROCESSING_TIMES[caseNo] : undefined
   const nodeCalls = caseNo ? NODE_CALL_RECORDS[caseNo] : undefined
 
-  // 节点名称 → 任务详情页路由映射（仅采集节点已开发）
+  // 节点名称 → 任务详情页路由映射
   const NODE_ROUTE_MAP: Record<string, string> = {
     '采集': '/agent/claims/task-detail',
+    '扣费': '/agent/claims/deduction-log-detail',
   }
 
   // 采集日志 lookup（用于通过 caseNo + 调用时间匹配 taskId，每条采集调用对应一条日志）
@@ -285,13 +286,45 @@ const FlowTrajectoryGraph: React.FC<{ trajectory: FlowTrajectory; caseNo?: strin
     { caseNo: 'U1000000020', taskId: '2044719741588838912', createdAt: '2026-04-24 11:31' },
   ]
 
+  // 扣费日志 lookup（用于通过 caseNo + 调用时间匹配 taskId）
+  const DEDUCTION_LOGS = [
+    { caseNo: 'A1000000000', taskId: '2044719741488838912', callTime: '2026-06-02 10:23' },
+    { caseNo: 'A1000000000', taskId: '2044719741388838912', callTime: '2026-06-02 10:25' },
+    { caseNo: 'B1000000001', taskId: '2044719741288838912', callTime: '2026-06-01 09:15' },
+    { caseNo: 'B1000000001', taskId: '2044719741188838912', callTime: '2026-06-01 09:16' },
+    { caseNo: 'B1000000001', taskId: '2044719741088838912', callTime: '2026-06-01 09:17' },
+    { caseNo: 'B1000000001', taskId: '2044719740988838912', callTime: '2026-06-01 09:18' },
+    { caseNo: 'C1000000002', taskId: '2044719740888838912', callTime: '2026-05-30 14:10' },
+    { caseNo: 'D1000000003', taskId: '2044719740788838912', callTime: '2026-05-27 11:00' },
+    { caseNo: 'D1000000003', taskId: '2044719740688838912', callTime: '2026-05-27 11:01' },
+    { caseNo: 'E1000000004', taskId: '2044719740588838912', callTime: '2026-05-24 08:30' },
+    { caseNo: 'E1000000004', taskId: '2044719740488838912', callTime: '2026-05-24 08:31' },
+    { caseNo: 'E1000000004', taskId: '2044719740388838912', callTime: '2026-05-24 08:32' },
+    { caseNo: 'F1000000005', taskId: '2044719740288838912', callTime: '2026-05-22 16:00' },
+    { caseNo: 'G1000000006', taskId: '2044719740188838912', callTime: '2026-05-20 13:00' },
+    { caseNo: 'G1000000006', taskId: '2044719740088838912', callTime: '2026-05-20 13:01' },
+    { caseNo: 'H1000000007', taskId: '2044719739988838912', callTime: '2026-05-17 10:00' },
+    { caseNo: 'I1000000008', taskId: '2044719739888838912', callTime: '2026-05-16 09:00' },
+    { caseNo: 'I1000000008', taskId: '2044719739788838912', callTime: '2026-05-16 09:01' },
+    { caseNo: 'J1000000009', taskId: '2044719739688838912', callTime: '2026-05-14 14:30' },
+    { caseNo: 'J1000000009', taskId: '2044719739588838912', callTime: '2026-05-14 14:31' },
+  ]
+
   const handleViewDetail = (nodeName: string, callTime: string) => {
     const route = NODE_ROUTE_MAP[nodeName]
     if (route && caseNo) {
-      const matchedLog = CLAIMS_LOGS.find(
-        log => log.caseNo === caseNo && callTime.startsWith(log.createdAt)
-      )
-      const taskId = matchedLog ? matchedLog.taskId : ''
+      let taskId = ''
+      if (nodeName === '扣费') {
+        const matchedLog = DEDUCTION_LOGS.find(
+          log => log.caseNo === caseNo && callTime.startsWith(log.callTime)
+        )
+        taskId = matchedLog ? matchedLog.taskId : ''
+      } else {
+        const matchedLog = CLAIMS_LOGS.find(
+          log => log.caseNo === caseNo && callTime.startsWith(log.createdAt)
+        )
+        taskId = matchedLog ? matchedLog.taskId : ''
+      }
       if (taskId) {
         navigate(`${route}?caseNo=${caseNo}&taskId=${taskId}`)
       }

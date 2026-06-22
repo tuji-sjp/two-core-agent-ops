@@ -707,6 +707,7 @@ const CORRECTION_BEFORE: Record<string, { category: string; subCategory: string;
   '费用清单': { category: '病历材料', subCategory: '结算单', confidence: 74.10 },
   '结算单': { category: '病历材料', subCategory: '医疗票据', confidence: 66.40 },
   '病案首页': { category: '病历材料', subCategory: '出院小结', confidence: 58.90 },
+  '病案首页附页': { category: '病历材料', subCategory: '病案首页', confidence: 63.20 },
   '居民身份证': { category: '病历材料', subCategory: '银行卡', confidence: 45.60 },
   '银行卡': { category: '病历材料', subCategory: '居民身份证', confidence: 52.30 },
   '门诊病历': { category: '病历材料', subCategory: '出院小结', confidence: 70.10 },
@@ -716,6 +717,14 @@ const CORRECTION_BEFORE: Record<string, { category: string; subCategory: string;
   '手术记录': { category: '病历材料', subCategory: '出院小结', confidence: 54.80 },
   '入院记录_住院记录': { category: '病历材料', subCategory: '门诊病历', confidence: 62.50 },
   '理赔申请书': { category: '病历材料', subCategory: '理赔须知', confidence: 71.30 },
+  '血凝检查': { category: '病历材料', subCategory: '血常规检查', confidence: 58.40 },
+  '住院证': { category: '病历材料', subCategory: '出院小结', confidence: 49.60 },
+  '理赔须知': { category: '病历材料', subCategory: '理赔申请书', confidence: 66.80 },
+  '其他化验检查': { category: '病历材料', subCategory: '血生化检查', confidence: 53.20 },
+  '血生化检查': { category: '病历材料', subCategory: '血常规检查', confidence: 61.50 },
+  '血常规检查': { category: '病历材料', subCategory: '血凝检查', confidence: 64.70 },
+  '心电图': { category: '病历材料', subCategory: '超声检查报告', confidence: 47.90 },
+  '其他_自然场景': { category: '病历材料', subCategory: '其他化验检查', confidence: 42.10 },
 }
 
 const AgentClaimsTaskDetail: React.FC = () => {
@@ -723,6 +732,32 @@ const AgentClaimsTaskDetail: React.FC = () => {
   const [searchParams] = useSearchParams()
   const caseNo = searchParams.get('caseNo') || ''
   const taskId = searchParams.get('taskId') || ''
+
+  // caseNo → claimNo 映射（与业务应用-理赔场景案件清单保持一致）
+  const CASE_TO_CLAIM_MAP: Record<string, string> = {
+    'A1000000000': '0000000001',
+    'B1000000001': '0000000002',
+    'C1000000002': '0000000003',
+    'D1000000003': '0000000004',
+    'E1000000004': '0000000005',
+    'F1000000005': '0000000006',
+    'G1000000006': '0000000007',
+    'H1000000007': '0000000008',
+    'I1000000008': '0000000009',
+    'J1000000009': '0000000010',
+    'K1000000010': '0000000010',
+    'L1000000011': '0000000011',
+    'M1000000012': '0000000012',
+    'N1000000013': '0000000013',
+    'O1000000014': '0000000014',
+    'P1000000015': '0000000015',
+    'Q1000000016': '0000000016',
+    'R1000000017': '0000000017',
+    'S1000000018': '0000000018',
+    'T1000000019': '0000000019',
+    'U1000000020': '0000000020',
+  }
+  const claimNo = CASE_TO_CLAIM_MAP[caseNo] || caseNo
 
   // 路由参数变化时滚动到页面顶部
   useEffect(() => {
@@ -908,7 +943,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
             <span style={{ fontWeight: 600, color: '#1F2937' }}>任务号：</span><span style={{ fontWeight: 400 }}>{taskId}</span>
           </span>
           <span style={{ fontSize: 16 }}>
-            <span style={{ fontWeight: 600, color: '#1F2937' }}>索赔号：</span><span style={{ fontWeight: 400 }}>{caseNo}</span>
+            <span style={{ fontWeight: 600, color: '#1F2937' }}>索赔号：</span><span style={{ fontWeight: 400 }}>{claimNo}</span>
           </span>
         </div>
       </div>

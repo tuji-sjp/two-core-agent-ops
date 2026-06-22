@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Tag } from 'antd'
-import { ArrowLeftOutlined, FilterOutlined, OrderedListOutlined, AlertOutlined, ExperimentOutlined, ScissorOutlined, BookOutlined, SafetyOutlined, SendOutlined } from '@ant-design/icons'
+import { Tag, Table, Pagination, message } from 'antd'
+import type { ColumnsType } from 'antd/es/table'
+import { ArrowLeftOutlined, FilterOutlined, OrderedListOutlined, AlertOutlined, ExperimentOutlined, ScissorOutlined, BookOutlined, SafetyOutlined, SendOutlined, CopyOutlined } from '@ant-design/icons'
 import { getFeeItems, getBillHeader, getMbStandardize, getMbDeduct, getUnreasonableGroups, type FeeItem, type FeeResult, type NodeStatus, type DecisionChain } from './deduction-log-detail-data'
 
 type TabKey = 'items' | 'engine' | 'lic'
@@ -85,7 +86,7 @@ const ChainNodeCard: React.FC<{
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: meta.color, display: 'inline-block' }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2937' }}>{title}</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#1f2937' }}>{title}</span>
               <span style={{
                 marginLeft: 'auto', fontSize: 12, fontWeight: 500, color: meta.color,
                 background: meta.bg, border: `1px solid ${meta.border}`,
@@ -133,7 +134,7 @@ const SubNodeRow: React.FC<{ name: string; status: NodeStatus; conclusion: strin
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: meta.color }} />
               <span style={{ fontSize: 12, fontWeight: 600, color: '#1f2937' }}>{name}</span>
             </div>
-            <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.5 }}>{conclusion}</div>
+            <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>{conclusion}</div>
           </div>
         </div>
       )}
@@ -147,7 +148,7 @@ const Connector: React.FC<{ label?: string }> = ({ label }) => (
     {label && (
       <span style={{
         position: 'absolute', left: '100%', top: '50%', transform: 'translateY(-50%)',
-        marginLeft: 4, fontSize: 11, color: '#6b7280', whiteSpace: 'nowrap',
+        marginLeft: 4, fontSize: 12, color: '#6b7280', whiteSpace: 'nowrap',
       }}>{label}</span>
     )}
     <span style={{ marginTop: -2, fontSize: 10, color: '#3b82f680' }}>▼</span>
@@ -183,8 +184,8 @@ const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
           width: 36, height: 36, borderRadius: '50%', background: '#fee2e2',
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
         }}>🗄</div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#dc2626' }}>共享状态</div>
-        <div style={{ fontSize: 11, color: '#dc2626cc', lineHeight: 1.5 }}>Shared State（记忆）<br />各节点读写中间结论</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#dc2626' }}>共享状态</div>
+        <div style={{ fontSize: 12, color: '#dc2626cc', lineHeight: 1.5 }}>Shared State（记忆）<br />各节点读写中间结论</div>
       </div>
 
       <EndPoint label="开始" />
@@ -219,7 +220,7 @@ const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
         <div style={{ background: '#f9fafb', padding: '8px 14px', fontSize: 12, color: '#6b7280', lineHeight: 1.6, }}>{c.clause.conclusion}</div>
       </ChainNodeCard>
       {c.clause.reflected && (
-        <div style={{ marginTop: 4, fontSize: 11, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div style={{ marginTop: 4, fontSize: 12, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: 4 }}>
           <span>🔄</span> 反省循环：结论回写共享状态后二次判定
         </div>
       )}
@@ -263,12 +264,118 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
   const feeItems = useMemo(() => getFeeItems(), [])
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({ [groups[0]?.category]: true })
 
+  // 路由参数变化时滚动到页面顶部
+  useEffect(() => {
+    const el = document.querySelector('.ant-layout-content')
+    if (el) {
+      el.scrollTo({ top: 0, behavior: 'instant' })
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [taskNo, caseNo])
+
   const bill = getBillHeader(taskNo, caseNo, 'BILL20260615000231')
   const selected = feeItems.find(i => i.id === selectedId) ?? feeItems[0]
 
   const toggleCat = (cat: string) => setOpenCats(prev => ({ ...prev, [cat]: !prev[cat] }))
 
   const deductItems = feeItems.filter(i => i.result !== '通过')
+
+  // 扣费日志数据（用于根据taskId获取执行状态）
+  const DEDUCTION_LOG_STATUS: Record<string, 'success' | 'failed' | 'processing' | 'timeout'> = {
+    '2044719741488838912': 'success',
+    '2044719741388838912': 'processing',
+    '2044719741288838912': 'timeout',
+    '2044719741188838912': 'success',
+    '2044719741088838912': 'failed',
+    '2044719740988838912': 'failed',
+    '2044719740888838912': 'success',
+    '2044719740788838912': 'processing',
+    '2044719740688838912': 'timeout',
+    '2044719740588838912': 'success',
+    '2044719740488838912': 'success',
+    '2044719740388838912': 'failed',
+    '2044719740288838912': 'success',
+    '2044719740188838912': 'processing',
+    '2044719740088838912': 'timeout',
+    '2044719739988838912': 'success',
+    '2044719739888838912': 'success',
+    '2044719739788838912': 'failed',
+    '2044719739688838912': 'success',
+    '2044719739588838912': 'processing',
+  }
+  const execStatus = DEDUCTION_LOG_STATUS[taskNo] || 'success'
+
+  // 扣费日志平台耗时数据（用于根据taskId获取响应时间）
+  const DEDUCTION_LOG_TIME: Record<string, string> = {
+    '2044719741488838912': '25s 137ms',
+    '2044719741388838912': '32s 174ms',
+    '2044719741288838912': '12m 35s 211ms',
+    '2044719741188838912': '46s 248ms',
+    '2044719741088838912': '18s 285ms',
+    '2044719740988838912': '18s 322ms',
+    '2044719740888838912': '1m 7s 359ms',
+    '2044719740788838912': '1m 14s 396ms',
+    '2044719740688838912': '15m 22s 433ms',
+    '2044719740588838912': '1m 28s 470ms',
+    '2044719740488838912': '1m 35s 507ms',
+    '2044719740388838912': '22s 544ms',
+    '2044719740288838912': '29s 581ms',
+    '2044719740188838912': '36s 618ms',
+    '2044719740088838912': '11m 48s 655ms',
+    '2044719739988838912': '50s 692ms',
+    '2044719739888838912': '57s 729ms',
+    '2044719739788838912': '15s 766ms',
+    '2044719739688838912': '1m 11s 803ms',
+    '2044719739588838912': '1m 18s 840ms',
+  }
+  const responseTime = DEDUCTION_LOG_TIME[taskNo] || '142ms'
+
+  // LIC响应状态配置
+  const LIC_STATUS_MAP: Record<string, { text: string; code: string; bg: string; color: string; dotColor: string }> = {
+    success: { text: '回写成功', code: '200 OK', bg: '#ecfdf5', color: '#059669', dotColor: '#059669' },
+    failed: { text: '回写失败', code: '500 Error', bg: '#fef2f2', color: '#dc2626', dotColor: '#dc2626' },
+    processing: { text: '处理中', code: '202 Accepted', bg: '#eff6ff', color: '#2563eb', dotColor: '#2563eb' },
+    timeout: { text: '请求超时', code: '408 Timeout', bg: '#fffbeb', color: '#d97706', dotColor: '#d97706' },
+  }
+  const licStatus = LIC_STATUS_MAP[execStatus]
+
+  // 引擎结果列定义
+  const engineColumns: ColumnsType<{
+    key: string
+    name: string
+    category: string
+    amount: number
+    deductAmount: number
+    result: string
+    conclusion: string
+  }> = [
+    { title: '费用项目', dataIndex: 'name', key: 'name', width: 180, ellipsis: true },
+    { title: '不合理类型', dataIndex: 'category', key: 'category', width: 120 },
+    {
+      title: '金额',
+      dataIndex: 'amount',
+      key: 'amount',
+      width: 100,
+      render: (val: number) => <span style={{ color: '#1f2937' }}>¥{val.toFixed(2)}</span>,
+    },
+    {
+      title: '扣费金额',
+      dataIndex: 'deductAmount',
+      key: 'deductAmount',
+      width: 110,
+      render: (val: number) => <span style={{ fontWeight: 500, color: '#d97706' }}>¥{val.toFixed(2)}</span>,
+    },
+    {
+      title: '判定结果',
+      dataIndex: 'result',
+      key: 'result',
+      width: 90,
+      render: (status: string) => (
+        <Tag color={resultTagColor[status as FeeResult]} style={{ borderRadius: 6, minWidth: 50, textAlign: 'center' }}>{status}</Tag>
+      ),
+    },
+    { title: '扣费依据', dataIndex: 'conclusion', key: 'conclusion', width: 300, ellipsis: true },
+  ]
 
   // LIC payload
   const licPayload = {
@@ -285,6 +392,12 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
       deductAmount: i.deductAmount,
       reason: i.chain.output.conclusion.replace('标化输出：', ''),
     })),
+  }
+
+  const handleCopyLicJson = () => {
+    navigator.clipboard.writeText(JSON.stringify(licPayload, null, 2)).then(() => {
+      message.success('已复制到剪贴板')
+    })
   }
 
   return (
@@ -428,13 +541,13 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
                             style={{
                               display: 'flex', alignItems: 'center', gap: 6,
                               padding: '8px 8px', borderRadius: 6, cursor: 'pointer',
-                              fontSize: 13, fontWeight: 500, color: '#1f2937',
+                              fontSize: 14, fontWeight: 500, color: '#1f2937',
                             }}
                           >
                             <span style={{ fontSize: 10, color: '#6b7280' }}>{open ? '▼' : '▶'}</span>
                             <span style={{ flex: 1 }}>{g.category}</span>
                             <span style={{
-                              fontSize: 11, color: '#6b7280', background: '#f3f4f6',
+                              fontSize: 12, color: '#6b7280', background: '#f3f4f6',
                               borderRadius: 10, padding: '1px 8px',
                             }}>{g.items.length}</span>
                           </div>
@@ -475,10 +588,10 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
                     <p style={{ fontSize: 12, color: '#6b7280', margin: '6px 0 0' }}>所属分类：{selected.category}</p>
                   </div>
                   <dl style={{ marginLeft: 'auto', display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '4px 24px' }}>
-                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>单价</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>¥{selected.unitPrice}</dd></div>
-                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>数量</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>{selected.quantity}{selected.spec}</dd></div>
-                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>金额</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>¥{selected.amount.toFixed(2)}</dd></div>
-                    <div><dt style={{ fontSize: 11, color: '#6b7280' }}>扣费金额</dt><dd style={{ fontSize: 12, fontWeight: 600, color: selected.deductAmount > 0 ? '#d97706' : '#1f2937', margin: 0 }}>¥{selected.deductAmount.toFixed(2)}</dd></div>
+                    <div><dt style={{ fontSize: 12, color: '#6b7280' }}>单价</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>¥{selected.unitPrice}</dd></div>
+                    <div><dt style={{ fontSize: 12, color: '#6b7280' }}>数量</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>{selected.quantity}{selected.spec}</dd></div>
+                    <div><dt style={{ fontSize: 12, color: '#6b7280' }}>金额</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>¥{selected.amount.toFixed(2)}</dd></div>
+                    <div><dt style={{ fontSize: 12, color: '#6b7280' }}>扣费金额</dt><dd style={{ fontSize: 12, fontWeight: 600, color: selected.deductAmount > 0 ? '#d97706' : '#1f2937', margin: 0 }}>¥{selected.deductAmount.toFixed(2)}</dd></div>
                   </dl>
                 </div>
               </div>
@@ -499,51 +612,118 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
 
         {/* Tab 2: 引擎结果 */}
         {tab === 'engine' && (
-          <div style={{ borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', padding: 20 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 16 }}>引擎判定结果汇总</h3>
-            <div style={{ overflow: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                <thead>
-                  <tr style={{ background: '#f9fafb' }}>
-                    {['费用项目', '不合理类型', '金额', '扣费金额', '判定结果', '扣费依据'].map(h => (
-                      <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {deductItems.map(i => (
-                    <tr key={i.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                      <td style={{ padding: '10px 16px', fontWeight: 500, color: '#1f2937' }}>{i.name}</td>
-                      <td style={{ padding: '10px 16px', color: '#6b7280' }}>{i.category}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1f2937' }}>¥{i.amount.toFixed(2)}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 600, color: '#d97706' }}>¥{i.deductAmount.toFixed(2)}</td>
-                      <td style={{ padding: '10px 16px' }}>
-                        <Tag color={resultTagColor[i.result]} style={{ borderRadius: 6, minWidth: 50, textAlign: 'center', fontSize: 12 }}>{i.result}</Tag>
-                      </td>
-                      <td style={{ padding: '10px 16px', color: '#6b7280', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {i.chain.output.conclusion.replace('标化输出：', '')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 16,
+              minHeight: 28,
+            }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#1f2937', lineHeight: '22px' }}>
+                引擎判定结果汇总
+              </span>
+            </div>
+            <div className="table-scroll-wrapper">
+              <div style={{ minWidth: 1100 }}>
+                <Table
+                  columns={engineColumns}
+                  dataSource={deductItems.map(i => ({
+                    key: i.id,
+                    name: i.name,
+                    category: i.category,
+                    amount: i.amount,
+                    deductAmount: i.deductAmount,
+                    result: i.result,
+                    conclusion: i.chain.output.conclusion.replace('标化输出：', ''),
+                  }))}
+                  pagination={false}
+                  size="small"
+                />
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <span style={{ fontSize: 12, color: '#000000e0' }}>共 {deductItems.length} 条数据</span>
+                <button
+                  onClick={() => console.log('导出引擎结果')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    background: '#65a5ff',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '6px 10px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  结果导出
+                </button>
+              </div>
+              <Pagination
+                current={1}
+                pageSize={10}
+                total={deductItems.length}
+                showSizeChanger
+                showQuickJumper
+                pageSizeOptions={['10', '20', '50']}
+                size="small"
+              />
             </div>
           </div>
         )}
 
         {/* Tab 3: LIC系统响应 */}
         {tab === 'lic' && (
-          <div style={{ borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', padding: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: '#ecfdf5', borderRadius: 16, padding: '4px 12px',
-                fontSize: 12, fontWeight: 500, color: '#059669',
-              }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#059669' }} />
-                回写成功 · 200 OK
-              </span>
-              <span style={{ fontSize: 12, color: '#6b7280' }}>响应时间 142ms</span>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937', marginBottom: 16, lineHeight: '22px', minHeight: 28, display: 'flex', alignItems: 'center' }}>
+              LIC系统响应
+            </div>
+            {/* 状态栏 + 复制按钮 */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 16,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: licStatus.bg, borderRadius: 16, padding: '4px 12px',
+                  fontSize: 12, fontWeight: 500, color: licStatus.color,
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: licStatus.dotColor }} />
+                  {licStatus.text} · {licStatus.code}
+                </span>
+                <span style={{ fontSize: 12, color: '#1f2937' }}>响应时间 {responseTime}</span>
+              </div>
+              <button
+                onClick={handleCopyLicJson}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: '#65a5ff',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '6px 10px',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                <CopyOutlined style={{ fontSize: 12 }} /> 复制JSON
+              </button>
             </div>
             <pre style={{
               overflow: 'auto', borderRadius: 8, border: '1px solid #e5e7eb',
@@ -570,7 +750,7 @@ const ItemRow: React.FC<{
     style={{
       display: 'flex', alignItems: 'center', gap: 8,
       padding: indent ? '6px 8px 6px 28px' : '6px 8px 6px 12px',
-      borderRadius: 6, cursor: 'pointer', fontSize: 13,
+      borderRadius: 6, cursor: 'pointer', fontSize: 14,
       background: active ? '#65a5ff' : 'transparent',
       color: active ? '#fff' : '#1f2937',
       fontWeight: active ? 500 : 400,
