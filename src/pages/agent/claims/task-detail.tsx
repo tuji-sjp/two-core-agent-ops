@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Tag, message } from 'antd'
 import { ArrowLeftOutlined, FolderOutlined, AppstoreOutlined, CopyOutlined } from '@ant-design/icons'
@@ -823,6 +823,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
   const [activeSubItem, setActiveSubItem] = useState('')
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
+  const [selectedDuplicateIndex, setSelectedDuplicateIndex] = useState<number>(0)
 
   const toggleGroup = (groupName: string) => {
     setExpandedGroups(prev => {
@@ -844,13 +845,19 @@ const AgentClaimsTaskDetail: React.FC = () => {
   const taskImages = IMAGES_WITH_TAGS.slice(0, taskImageCount)
 
   const filteredImages = (() => {
+    let result
     if (viewMode === 'group' && activeSubItem && activeGroupForItem) {
       // activeSubItem 格式为 "住院组 - 病历组 - 出院小结"，需提取分类名（最后一部分）
       const category = activeSubItem.split('-').pop() || activeSubItem
-      return taskImages.filter(img => img.category === category && img.group === activeGroupForItem)
+      result = taskImages.filter(img => img.category === category && img.group === activeGroupForItem)
+    } else if (activeCategory === '全部') {
+      result = taskImages
+    } else {
+      result = taskImages.filter(img => img.category === activeCategory)
     }
-    if (activeCategory === '全部') return taskImages
-    return taskImages.filter(img => img.category === activeCategory)
+    // 按全部分类列表从上到下的顺序排序
+    const categoryOrder = CATEGORIES.filter(c => c.name !== '全部').map(c => c.name)
+    return [...result].sort((a, b) => categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category))
   })()
 
   // 动态计算 GROUPS count（基于 taskImages 数据）
@@ -905,15 +912,47 @@ const AgentClaimsTaskDetail: React.FC = () => {
     return { ...cat, count: taskImages.filter(img => img.category === cat.name).length }
   }).filter(cat => cat.count > 0)
 
-  const openPreview = (index: number) => { setPreviewIndex(index); setSelectedImageIndex(index) }
-  const closePreview = () => setPreviewIndex(null)
+  // 计算影像在同分类 duplicateGroup 中的位置，用于同步右图与缩略图选中态
+  const getDuplicateIndex = (imageIndex: number): number => {
+    const img = filteredImages[imageIndex]
+    if (!img || !img.tags.includes('重复')) return 0
+    const dupIdx = filteredImages
+      .map((item, idx) => ({ img: item, idx }))
+      .filter(item => item.img.category === img.category)
+      .findIndex(item => item.idx === imageIndex)
+    return dupIdx >= 0 ? dupIdx : 0
+  }
+
+  const openPreview = (index: number) => {
+    setPreviewIndex(index)
+    setSelectedImageIndex(index)
+    setSelectedDuplicateIndex(getDuplicateIndex(index))
+  }
+  const closePreview = () => { setPreviewIndex(null); setSelectedDuplicateIndex(0) }
   const previewImage = previewIndex !== null ? filteredImages[previewIndex] : null
   const previewDetail = previewImage ? IMAGE_DETAIL_MOCK[previewImage.category] || IMAGE_DETAIL_MOCK['医疗票据'] : null
   const imageId = previewImage ? `180647${String(previewIndex).padStart(3, '0')}` : ''
 
-  const groupTitle = viewMode === 'group' && activeGroupForItem && activeSubItem
-    ? `${activeGroupForItem} · ${activeSubItem.split('-').slice(1).join(' · ')}`
-    : activeCategory
+  // 获取重复影像组：展示同分类下所有影像（保证缩略图 ≥2 张），保留原始 index 用于计算 img_id
+  const duplicateGroup = useMemo(() => {
+    if (!previewImage || !previewImage.tags.includes('重复')) return null
+    return filteredImages
+      .map((img, idx) => ({ img, idx }))
+      .filter(item => item.img.category === previewImage.category)
+  }, [previewImage, previewIndex, filteredImages])
+
+  const groupTitle = (() => {
+    if (viewMode !== 'group' || !activeGroupForItem || !activeSubItem) return activeCategory
+    const parts = activeSubItem.split('-')
+    const category = parts[parts.length - 1]
+    // 嵌套分组（已分组）：activeSubItem 含 "-"（如 "住院组-病历组-出院小结"），展示 "已分组·一级·二级-分类名"
+    if (parts.length > 1) {
+      const path = parts.slice(0, -1).join(' · ')
+      return `已分组 · ${path} - ${category}`
+    }
+    // 平铺分组（待分组/无需分组）：分组名 - 分类名
+    return `${activeGroupForItem} - ${category}`
+  })()
   const groupImageCount = filteredImages.length
 
   return (
@@ -1471,7 +1510,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
             style={{
               width: '90vw',
               maxWidth: 1300,
-              maxHeight: '90vh',
+              height: '85vh',
               background: '#fff',
               borderRadius: 16,
               overflow: 'hidden',
@@ -1490,10 +1529,10 @@ const AgentClaimsTaskDetail: React.FC = () => {
             }}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: '#1f2937' }}>
-                  {previewImage?.name}
+                  {previewImage?.category}
                 </div>
                 <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
-                  {previewIndex + 1} / {filteredImages.length} - img_id: {imageId}
+                  {`${previewIndex + 1} / ${filteredImages.length} - img_id: ${imageId}`}
                 </div>
               </div>
               <div
@@ -1510,22 +1549,25 @@ const AgentClaimsTaskDetail: React.FC = () => {
 
             {/* 弹窗主体 */}
             <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-              {/* 左侧图片预览 */}
+              {/* 左侧图片区 */}
               <div style={{
                 flex: 1,
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 24,
+                flexDirection: 'column',
                 borderRight: '1px solid #e5e7eb',
                 position: 'relative',
+                overflow: 'auto',
               }}>
-                {/* 上一张 */}
+                {/* 上一张按钮（最左侧） */}
                 {previewIndex > 0 && (
                   <div
-                    onClick={() => { setPreviewIndex(previewIndex - 1); setSelectedImageIndex(previewIndex - 1) }}
+                    onClick={() => { setPreviewIndex(previewIndex - 1); setSelectedImageIndex(previewIndex - 1); setSelectedDuplicateIndex(getDuplicateIndex(previewIndex - 1)) }}
                     style={{
-                      position: 'absolute', left: 12,
+                      position: 'absolute',
+                      left: 12,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      zIndex: 10,
                       width: 40, height: 40, borderRadius: 20,
                       background: '#fff', border: '1px solid #e5e7eb',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1536,76 +1578,269 @@ const AgentClaimsTaskDetail: React.FC = () => {
                     ‹
                   </div>
                 )}
-                {/* 图片占位 */}
-                <div style={{
-                  width: 500,
-                  aspectRatio: '3/4',
-                  background: 'linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 50%, #e5e7eb 100%)',
-                  borderRadius: 8,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}>
-                  <div style={{
-                    width: '80%',
-                    height: '85%',
-                    background: 'linear-gradient(180deg, #d1d5db 0%, #e5e7eb 100%)',
-                    borderRadius: 2,
-                    filter: 'blur(1px)',
-                  }} />
-                  <div style={{
-                    position: 'absolute',
-                    display: 'flex', alignItems: 'center', gap: 4,
-                    color: '#fff', fontSize: 14, fontWeight: 500,
-                    textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                  }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" />
-                    </svg>
-                    预览
-                  </div>
-                  {/* 预览大图角标 */}
-                  {previewImage && previewImage.tags.length > 0 && (
-                    <div style={{
+                {/* 下一张按钮（最右侧） */}
+                {previewIndex < filteredImages.length - 1 && (
+                  <div
+                    onClick={() => { setPreviewIndex(previewIndex + 1); setSelectedImageIndex(previewIndex + 1); setSelectedDuplicateIndex(getDuplicateIndex(previewIndex + 1)) }}
+                    style={{
                       position: 'absolute',
-                      top: 10,
-                      right: 10,
+                      right: 12,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      zIndex: 10,
+                      width: 40, height: 40, borderRadius: 20,
+                      background: '#fff', border: '1px solid #e5e7eb',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
+                      color: '#374151', fontSize: 16,
+                    }}
+                  >
+                    ›
+                  </div>
+                )}
+
+                {duplicateGroup ? (
+                  /* 双图对比区（重复影像） */
+                  <div style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 24,
+                  }}>
+                    <div style={{
+                      width: '90%',
+                      height: '90%',
                       display: 'flex',
-                      flexDirection: 'column',
-                      gap: 4,
-                      alignItems: 'flex-end',
-                      zIndex: 2,
+                      gap: 24,
                     }}>
-                      {previewImage.tags.map((tag) => {
-                        const style = TAG_STYLES[tag]
-                        return (
-                          <span
-                            key={tag}
-                            style={{
+                      {/* 左图：质量最好的重复影像 */}
+                      <div style={{
+                        flex: 1,
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                        <div style={{
+                          height: '100%',
+                          aspectRatio: '3/4',
+                          maxWidth: '100%',
+                          background: 'linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 50%, #e5e7eb 100%)',
+                          borderRadius: 8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative',
+                          overflow: 'hidden',
+                        }}>
+                          <div style={{
+                            width: '80%',
+                            height: '85%',
+                            background: 'linear-gradient(180deg, #d1d5db 0%, #e5e7eb 100%)',
+                            borderRadius: 2,
+                            filter: 'blur(1px)',
+                          }} />
+                          <div style={{
+                            position: 'absolute',
+                            display: 'flex', alignItems: 'center', gap: 4,
+                            color: '#fff', fontSize: 14, fontWeight: 500,
+                            textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                          }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" />
+                            </svg>
+                            预览
+                          </div>
+                          {/* 切割红框（左图） */}
+                          {previewImage && previewImage.tags.includes('切割') && (() => {
+                            const cutRand = seededRandom(previewIndex * 1000 + 7)
+                            const blockCount = 1
+                            const blocks = Array.from({ length: blockCount }, () => {
+                              const w = 25 + cutRand() * 45
+                              const h = 20 + cutRand() * 40
+                              const x = cutRand() * (100 - w)
+                              const y = cutRand() * (100 - h)
+                              return { x: `${x}%`, y: `${y}%`, w: `${w}%`, h: `${h}%` }
+                            })
+                            return (
+                              <svg style={{
+                                position: 'absolute',
+                                inset: 0,
+                                width: '100%',
+                                height: '100%',
+                                pointerEvents: 'none',
+                                zIndex: 1,
+                              }}>
+                                {blocks.map((b, i) => (
+                                  <rect
+                                    key={i}
+                                    x={b.x} y={b.y}
+                                    width={b.w} height={b.h}
+                                    fill="none"
+                                    stroke="#ef4444"
+                                    strokeWidth="2"
+                                    opacity="0.85"
+                                  />
+                                ))}
+                              </svg>
+                            )
+                          })()}
+                        </div>
+                      </div>
+
+                      {/* 右图：当前选中的重复影像 */}
+                      <div style={{
+                        flex: 1,
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                        <div style={{
+                          height: '100%',
+                          aspectRatio: '3/4',
+                          maxWidth: '100%',
+                          background: 'linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 50%, #e5e7eb 100%)',
+                          borderRadius: 8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative',
+                          overflow: 'hidden',
+                        }}>
+                          <div style={{
+                            width: '80%',
+                            height: '85%',
+                            background: 'linear-gradient(180deg, #d1d5db 0%, #e5e7eb 100%)',
+                            borderRadius: 2,
+                            filter: 'blur(1px)',
+                          }} />
+                          <div style={{
+                            position: 'absolute',
+                            display: 'flex', alignItems: 'center', gap: 4,
+                            color: '#fff', fontSize: 14, fontWeight: 500,
+                            textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                          }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" />
+                            </svg>
+                            预览
+                          </div>
+                          {/* 重复标签 */}
+                          <div style={{
+                            position: 'absolute',
+                            top: 10,
+                            right: 10,
+                            zIndex: 2,
+                          }}>
+                            <span style={{
                               display: 'inline-block',
                               padding: '2px 8px',
                               fontSize: 12,
                               fontWeight: 600,
                               lineHeight: '18px',
                               borderRadius: 4,
-                              background: style.bg,
-                              color: style.color,
+                              background: TAG_STYLES['重复'].bg,
+                              color: TAG_STYLES['重复'].color,
                               letterSpacing: 1,
                               boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-                            }}
-                          >
-                            {tag}
-                          </span>
-                        )
-                      })}
+                            }}>
+                              重复
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  {/* 切割红框 */}
-                  {previewImage && previewImage.tags.includes('切割') && (() => {
-                    const cutRand = seededRandom(previewIndex * 1000 + 7)
-                    const blockCount = 2 + Math.floor(cutRand() * 3) // 2~4 个区块
+                  </div>
+                ) : (
+                  /* 单图预览区（非重复影像） */
+                  <div style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 24,
+                    position: 'relative',
+                  }}>
+                    {/* 图片占位：80%容器，保持3:4比例 */}
+                    <div style={{
+                      width: '80%',
+                      height: '80%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <div style={{
+                        height: '100%',
+                        aspectRatio: '3/4',
+                        maxWidth: '100%',
+                        background: 'linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 50%, #e5e7eb 100%)',
+                        borderRadius: 8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}>
+                        <div style={{
+                          width: '80%',
+                          height: '85%',
+                          background: 'linear-gradient(180deg, #d1d5db 0%, #e5e7eb 100%)',
+                          borderRadius: 2,
+                          filter: 'blur(1px)',
+                        }} />
+                        <div style={{
+                          position: 'absolute',
+                          display: 'flex', alignItems: 'center', gap: 4,
+                          color: '#fff', fontSize: 14, fontWeight: 500,
+                          textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                        }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" />
+                          </svg>
+                          预览
+                        </div>
+                      {/* 预览大图角标 */}
+                      {previewImage && previewImage.tags.length > 0 && (
+                        <div style={{
+                          position: 'absolute',
+                          top: 10,
+                          right: 10,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 4,
+                          alignItems: 'flex-end',
+                          zIndex: 2,
+                        }}>
+                          {previewImage.tags.map((tag) => {
+                            const style = TAG_STYLES[tag]
+                            return (
+                              <span
+                                key={tag}
+                                style={{
+                                  display: 'inline-block',
+                                  padding: '2px 8px',
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  lineHeight: '18px',
+                                  borderRadius: 4,
+                                  background: style.bg,
+                                  color: style.color,
+                                  letterSpacing: 1,
+                                  boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+                                }}
+                              >
+                                {tag}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      )}
+                      {/* 切割红框 */}
+                      {previewImage && previewImage.tags.includes('切割') && (() => {
+                        const cutRand = seededRandom(previewIndex * 1000 + 7)
+                    const blockCount = 1
                     const blocks = Array.from({ length: blockCount }, () => {
                       const w = 25 + cutRand() * 45 // 25%~70%
                       const h = 20 + cutRand() * 40 // 20%~60%
@@ -1636,23 +1871,82 @@ const AgentClaimsTaskDetail: React.FC = () => {
                       </svg>
                     )
                   })()}
-                </div>
-                {/* 下一张 */}
-                {previewIndex < filteredImages.length - 1 && (
-                  <div
-                    onClick={() => { setPreviewIndex(previewIndex + 1); setSelectedImageIndex(previewIndex + 1) }}
-                    style={{
-                      position: 'absolute', right: 12,
-                      width: 40, height: 40, borderRadius: 20,
-                      background: '#fff', border: '1px solid #e5e7eb',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
-                      color: '#374151', fontSize: 16,
-                    }}
-                  >
-                    ›
+                      </div>
+                    </div>
                   </div>
-                )}
+                  )}
+
+              {/* 重复影像缩略图行 */}
+              {duplicateGroup && (
+                <div style={{
+                  height: 130,
+                  padding: '10px 24px',
+                  borderTop: '1px solid #e5e7eb',
+                  display: 'flex',
+                  gap: 12,
+                  overflowX: 'auto',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  background: '#fafbfc',
+                }}>
+                  <div style={{
+                    width: '80%',
+                    display: 'flex',
+                    gap: 12,
+                    overflowX: 'auto',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  {duplicateGroup.map((item, dupIdx) => {
+                    const itemImageId = `180647${String(item.idx).padStart(3, '0')}`
+                    const isSelected = selectedDuplicateIndex === dupIdx
+                    return (
+                    <div
+                      key={dupIdx}
+                      onClick={() => setSelectedDuplicateIndex(dupIdx)}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 4,
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <div style={{
+                        aspectRatio: '3/4',
+                        height: 92,
+                        borderRadius: 6,
+                        border: isSelected ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                        background: 'linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'border-color 0.2s',
+                        overflow: 'hidden',
+                      }}>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <path d="m21 15-5-5L5 21" />
+                        </svg>
+                      </div>
+                      <div style={{
+                        fontSize: 10,
+                        color: isSelected ? '#3b82f6' : '#9ca3af',
+                        fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+                        whiteSpace: 'nowrap',
+                        lineHeight: 1.2,
+                        transition: 'color 0.2s',
+                      }}>
+                        {itemImageId}
+                      </div>
+                    </div>
+                    )
+                  })}
+                  </div>
+                </div>
+              )}
               </div>
 
               {/* 右侧详情面板 */}
