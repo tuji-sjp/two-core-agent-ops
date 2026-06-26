@@ -72,10 +72,10 @@ const feeItemsTemplate: FeeItem[] = [
   {
     id: 'f01', name: '针灸', category: '中草药', unreasonable: true, spec: '次', unitPrice: 28, quantity: 12, amount: 336, result: '扣费', deductAmount: 168,
     chain: {
-      rule: { status: 'hit', conclusion: '命中项目级扣费知识：针灸单日次数超过限定标准（限2次/日，实际3次/日）。', hasResult: true, sub: [
+      rule: { status: 'hit', conclusion: '命中项目级+标签级+产品级扣费知识：针灸超频次且属中医理疗限用产品。', hasResult: true, sub: [
         { key: 'project', name: '项目级扣费知识', status: 'hit', conclusion: '针灸限2次/日，超量部分不予支付。' },
-        { key: 'tag', name: '标签级扣费知识', status: 'pass', conclusion: '未命中中医理疗叠加收费标签。' },
-        { key: 'product', name: '产品级扣费知识', status: 'skip', conclusion: '已得出项目级结论，跳过产品级判定。' },
+        { key: 'tag', name: '标签级扣费知识', status: 'hit', conclusion: '命中「中医理疗叠加收费」标签。' },
+        { key: 'product', name: '产品级扣费知识', status: 'hit', conclusion: '命中针灸类限定支付产品目录。' },
       ]},
       clause: { status: 'skip', conclusion: '规则模块已得出判定结果，未进入条款判定。', reflected: false },
       risk: { status: 'pass', conclusion: '扣费金额低于人工复核阈值，无需转人工。', risks: [], toHuman: false },
@@ -85,8 +85,8 @@ const feeItemsTemplate: FeeItem[] = [
   {
     id: 'f02', name: '床位费', category: '其他', unreasonable: false, spec: '日', unitPrice: 50, quantity: 8, amount: 400, result: '通过', deductAmount: 0,
     chain: {
-      rule: { status: 'pass', conclusion: '未命中任何扣费规则知识。', hasResult: false, sub: [
-        { key: 'project', name: '项目级扣费知识', status: 'pass', conclusion: '床位费收费标准符合等级医院规定。' },
+      rule: { status: 'pass', conclusion: '', hasResult: false, sub: [
+        { key: 'project', name: '项目级扣费知识', status: 'hit', conclusion: '项目级已命中：床位费特需病房限定标准。' },
         { key: 'tag', name: '标签级扣费知识', status: 'pass', conclusion: '未命中分解收费标签。' },
         { key: 'product', name: '产品级扣费知识', status: 'pass', conclusion: '未命中产品级限制。' },
       ]},
@@ -101,7 +101,7 @@ const feeItemsTemplate: FeeItem[] = [
       rule: { status: 'hit', conclusion: '命中标签级扣费知识：耗材重复收费（同一采血已含采血管成本）。', hasResult: true, sub: [
         { key: 'project', name: '项目级扣费知识', status: 'pass', conclusion: '项目级未命中。' },
         { key: 'tag', name: '标签级扣费知识', status: 'hit', conclusion: '命中「耗材重复收费」标签，已包含于检验项目中。' },
-        { key: 'product', name: '产品级扣费知识', status: 'skip', conclusion: '已得出标签级结论，跳过产品级判定。' },
+        { key: 'product', name: '产品级扣费知识', status: 'pass', conclusion: '已得出标签级结论，跳过产品级判定。' },
       ]},
       clause: { status: 'skip', conclusion: '规则模块已得出判定结果，未进入条款判定。', reflected: false },
       risk: { status: 'pass', conclusion: '扣费金额较小，无需转人工。', risks: [], toHuman: false },
@@ -111,25 +111,25 @@ const feeItemsTemplate: FeeItem[] = [
   {
     id: 'f04', name: '真空采血管', category: '乙类传染病', unreasonable: true, spec: '支', unitPrice: 6, quantity: 6, amount: 36, result: '转人工', deductAmount: 0,
     chain: {
-      rule: { status: 'pass', conclusion: '规则知识未给出明确判定结果。', hasResult: false, sub: [
-        { key: 'project', name: '项目级扣费知识', status: 'pass', conclusion: '项目级未命中。' },
+      rule: { status: 'hit', conclusion: '命中项目级扣费知识：乙类传染病专项耗材收费限制。', hasResult: true, sub: [
+        { key: 'project', name: '项目级扣费知识', status: 'hit', conclusion: '项目级已命中：传染病专项耗材限收费目录内。' },
         { key: 'tag', name: '标签级扣费知识', status: 'pass', conclusion: '标签级证据不足，未命中。' },
         { key: 'product', name: '产品级扣费知识', status: 'pass', conclusion: '产品级未命中。' },
       ]},
-      clause: { status: 'hit', conclusion: '命中条款：乙类传染病专项耗材需符合定点收费目录，疑似超目录使用。', reflected: true },
-      risk: { status: 'hit', conclusion: '存在合规风险且证据链不完整，转人工复核。', risks: ['条款证据不充分', '传染病专项目录待核实'], toHuman: true },
+      clause: { status: 'skip', conclusion: '规则模块已得出判定结果，未进入条款判定。', reflected: false },
+      risk: { status: 'hit', conclusion: '存在合规风险且证据链不完整，转人工复核。', risks: ['规则证据需补充', '传染病专项目录待核实'], toHuman: true },
       output: { status: 'hit', conclusion: '标化输出：转人工复核，暂不扣费。' },
     },
   },
   {
     id: 'f05', name: '休感诱发电位', category: '康复治疗', unreasonable: true, spec: '次', unitPrice: 120, quantity: 3, amount: 360, result: '扣费', deductAmount: 240,
     chain: {
-      rule: { status: 'pass', conclusion: '规则知识库未覆盖该项目，无判定结果。', hasResult: false, sub: [
-        { key: 'project', name: '项目级扣费知识', status: 'pass', conclusion: '项目级未覆盖该项目。' },
+      rule: { status: 'hit', conclusion: '命中项目级扣费知识：诱发电位检查需有诊断支撑。', hasResult: true, sub: [
+        { key: 'project', name: '项目级扣费知识', status: 'hit', conclusion: '项目级已命中：诱发电位检查适应症限定。' },
         { key: 'tag', name: '标签级扣费知识', status: 'pass', conclusion: '标签级未命中。' },
         { key: 'product', name: '产品级扣费知识', status: 'pass', conclusion: '产品级未命中。' },
       ]},
-      clause: { status: 'hit', conclusion: '命中条款：诱发电位检查需有神经系统受损指征，本次病历缺少对应诊断支撑。', reflected: true },
+      clause: { status: 'skip', conclusion: '规则模块已得出判定结果，未进入条款判定。', reflected: false },
       risk: { status: 'pass', conclusion: '判定证据充分，风险可控，无需转人工。', risks: ['适应症不充分'], toHuman: false },
       output: { status: 'hit', conclusion: '标化输出：扣费 240.00 元，扣费依据=适应症不符。' },
     },
@@ -153,7 +153,7 @@ const feeItemsTemplate: FeeItem[] = [
       rule: { status: 'hit', conclusion: '命中标签级扣费知识：营养补充类药品属医保支付限制范围。', hasResult: true, sub: [
         { key: 'project', name: '项目级扣费知识', status: 'pass', conclusion: '项目级未命中。' },
         { key: 'tag', name: '标签级扣费知识', status: 'hit', conclusion: '命中「营养补充剂限支付」标签，全额不予支付。' },
-        { key: 'product', name: '产品级扣费知识', status: 'skip', conclusion: '已得出标签级结论，跳过产品级判定。' },
+        { key: 'product', name: '产品级扣费知识', status: 'pass', conclusion: '已得出标签级结论，跳过产品级判定。' },
       ]},
       clause: { status: 'skip', conclusion: '规则模块已得出判定结果，未进入条款判定。', reflected: false },
       risk: { status: 'pass', conclusion: '政策明确，无需转人工。', risks: [], toHuman: false },
@@ -163,8 +163,8 @@ const feeItemsTemplate: FeeItem[] = [
   {
     id: 'f08', name: '维生素D', category: '营养补充类', unreasonable: false, spec: '盒', unitPrice: 22, quantity: 2, amount: 44, result: '通过', deductAmount: 0,
     chain: {
-      rule: { status: 'pass', conclusion: '未命中扣费规则。', hasResult: false, sub: [
-        { key: 'project', name: '项目级扣费知识', status: 'pass', conclusion: '项目级未命中。' },
+      rule: { status: 'pass', conclusion: '', hasResult: false, sub: [
+        { key: 'project', name: '项目级扣费知识', status: 'hit', conclusion: '项目级已命中：维生素D限定支付条件。' },
         { key: 'tag', name: '标签级扣费知识', status: 'pass', conclusion: '有佝偻病诊断支撑，符合限定支付条件。' },
         { key: 'product', name: '产品级扣费知识', status: 'pass', conclusion: '产品级未命中。' },
       ]},
@@ -179,7 +179,7 @@ const feeItemsTemplate: FeeItem[] = [
       rule: { status: 'hit', conclusion: '命中项目级扣费知识：康复评估类项目超频次收费。', hasResult: true, sub: [
         { key: 'project', name: '项目级扣费知识', status: 'hit', conclusion: '平衡功能检查限3次/疗程，超量扣减。' },
         { key: 'tag', name: '标签级扣费知识', status: 'pass', conclusion: '未命中评估叠加标签。' },
-        { key: 'product', name: '产品级扣费知识', status: 'skip', conclusion: '已得出项目级结论。' },
+        { key: 'product', name: '产品级扣费知识', status: 'pass', conclusion: '已得出项目级结论。' },
       ]},
       clause: { status: 'skip', conclusion: '规则模块已得出判定结果。', reflected: false },
       risk: { status: 'pass', conclusion: '无额外风险。', risks: [], toHuman: false },
@@ -189,8 +189,8 @@ const feeItemsTemplate: FeeItem[] = [
   {
     id: 'f10', name: '步态分析检查', category: '康复治疗', unreasonable: false, spec: '次', unitPrice: 60, quantity: 2, amount: 120, result: '通过', deductAmount: 0,
     chain: {
-      rule: { status: 'pass', conclusion: '未命中扣费规则。', hasResult: false, sub: [
-        { key: 'project', name: '项目级扣费知识', status: 'pass', conclusion: '频次在合理范围。' },
+      rule: { status: 'pass', conclusion: '', hasResult: false, sub: [
+        { key: 'project', name: '项目级扣费知识', status: 'hit', conclusion: '项目级已命中：步态分析频次限定。' },
         { key: 'tag', name: '标签级扣费知识', status: 'pass', conclusion: '未命中。' },
         { key: 'product', name: '产品级扣费知识', status: 'pass', conclusion: '未命中。' },
       ]},
@@ -205,7 +205,7 @@ const feeItemsTemplate: FeeItem[] = [
       rule: { status: 'hit', conclusion: '命中项目级扣费知识：康复评定超限定频次。', hasResult: true, sub: [
         { key: 'project', name: '项目级扣费知识', status: 'hit', conclusion: '康复评定限2次/疗程，超量扣减2次。' },
         { key: 'tag', name: '标签级扣费知识', status: 'pass', conclusion: '未命中。' },
-        { key: 'product', name: '产品级扣费知识', status: 'skip', conclusion: '已得出项目级结论。' },
+        { key: 'product', name: '产品级扣费知识', status: 'pass', conclusion: '已得出项目级结论。' },
       ]},
       clause: { status: 'skip', conclusion: '规则模块已得出判定结果。', reflected: false },
       risk: { status: 'pass', conclusion: '无额外风险。', risks: [], toHuman: false },
@@ -215,8 +215,8 @@ const feeItemsTemplate: FeeItem[] = [
   {
     id: 'f12', name: '平衡功能训练', category: '康复治疗', unreasonable: false, spec: '次', unitPrice: 40, quantity: 10, amount: 400, result: '通过', deductAmount: 0,
     chain: {
-      rule: { status: 'pass', conclusion: '未命中扣费规则。', hasResult: false, sub: [
-        { key: 'project', name: '项目级扣费知识', status: 'pass', conclusion: '训练频次合理。' },
+      rule: { status: 'pass', conclusion: '', hasResult: false, sub: [
+        { key: 'project', name: '项目级扣费知识', status: 'hit', conclusion: '项目级已命中：康复训练频次限定。' },
         { key: 'tag', name: '标签级扣费知识', status: 'pass', conclusion: '未命中。' },
         { key: 'product', name: '产品级扣费知识', status: 'pass', conclusion: '未命中。' },
       ]},
@@ -228,8 +228,8 @@ const feeItemsTemplate: FeeItem[] = [
   {
     id: 'f13', name: '引导式教育训练', category: '康复治疗', unreasonable: false, spec: '次', unitPrice: 55, quantity: 8, amount: 440, result: '通过', deductAmount: 0,
     chain: {
-      rule: { status: 'pass', conclusion: '未命中扣费规则。', hasResult: false, sub: [
-        { key: 'project', name: '项目级扣费知识', status: 'pass', conclusion: '频次合理。' },
+      rule: { status: 'pass', conclusion: '', hasResult: false, sub: [
+        { key: 'project', name: '项目级扣费知识', status: 'hit', conclusion: '项目级已命中：引导式教育限定支付条件。' },
         { key: 'tag', name: '标签级扣费知识', status: 'pass', conclusion: '未命中。' },
         { key: 'product', name: '产品级扣费知识', status: 'pass', conclusion: '未命中。' },
       ]},
