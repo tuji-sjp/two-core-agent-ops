@@ -1959,7 +1959,6 @@ const AgentClaimsTaskDetail: React.FC = () => {
                 {/* 图像分类 */}
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 8 }}>图像分类</div>
-                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>{previewDetail.logId}</div>
                   {previewImage?.tags.includes('矫正') && CORRECTION_BEFORE[previewImage.category] && (() => {
                     const before = CORRECTION_BEFORE[previewImage.category]
                     return (

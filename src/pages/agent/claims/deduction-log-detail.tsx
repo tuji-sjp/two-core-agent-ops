@@ -2,34 +2,39 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Tag, Table, Pagination, message } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { ArrowLeftOutlined, CopyOutlined } from '@ant-design/icons'
+import {
+  ArrowLeftOutlined, CopyOutlined,
+  ShareAltOutlined, SafetyOutlined,
+  AppstoreOutlined,
+} from '@ant-design/icons'
 import { getFeeItems, getBillHeader, getMbStandardize, getMbDeduct, getUnreasonableGroups, type FeeItem, type FeeResult, type NodeStatus, type DecisionChain } from './deduction-log-detail-data'
 
-import icoUnreasonable from '../../../assets/icons/不合理类型.svg'
-import icoRisk from '../../../assets/icons/风控模块.svg'
-import icoShared from '../../../assets/icons/共享状态.svg'
-import icoEnd from '../../../assets/icons/结束.svg'
-import icoStart from '../../../assets/icons/开始.svg'
-import icoChain from '../../../assets/icons/扣费智能体判定决策链.svg'
-import icoAll from '../../../assets/icons/全部项目.svg'
-import icoRule from '../../../assets/icons/商保控费-规则知识判定模块.svg'
-import icoClause from '../../../assets/icons/商保控费-条款知识判定模块.svg'
-import icoOutput from '../../../assets/icons/输出标化模块.svg'
-import icoMbStd from '../../../assets/icons/医保剔费-项目标化模块.svg'
-import icoMbDed from '../../../assets/icons/医保剔费-项目剔费模块.svg'
+import icoUnreasonable from '../../../assets/icons/不合理类型.svg?raw'
+import icoEnd from '../../../assets/icons/结束.svg?raw'
+import icoStart from '../../../assets/icons/开始.svg?raw'
+import icoChain from '../../../assets/icons/扣费智能体判定决策链.svg?raw'
+import icoRule from '../../../assets/icons/商保控费-规则知识判定模块.svg?raw'
+import icoClause from '../../../assets/icons/商保控费-条款知识判定模块.svg?raw'
+import icoOutput from '../../../assets/icons/输出标化模块.svg?raw'
+import icoMbStd from '../../../assets/icons/医保剔费-项目标化模块.svg?raw'
+import icoMbDed from '../../../assets/icons/医保剔费-项目剔费模块.svg?raw'
 
+// Icon 组件：traced SVG 通过 ?raw 内联，颜色/大小通过 CSS 控制
 const Icon: React.FC<{ src: string; color: string; size?: number }> = ({ src, color, size = 14 }) => {
-  const [html, setHtml] = useState('')
-  useEffect(() => {
-    fetch(src).then(r => r.text()).then(text => {
-      // 把 fill 值替换为 currentColor（保留 none），让 div 的 color 控制图标颜色
-      let result = text.replace(/fill="[^"]+"/g, 'fill="currentColor"')
-      setHtml(result)
+  const html = useMemo(() => {
+    let s = src.replace(/^﻿/, '')
+    s = s.replace(/<svg\b([^>]*)>/, (_, attrs: string) => {
+      let a = attrs
+        .replace(/\s*width="[^"]*"/, '')
+        .replace(/\s*height="[^"]*"/, '')
+      return `<svg${a} width="1em" height="1em">`
     })
+    s = s.replace(/fill="[^"]+"/g, 'fill="currentColor"')
+    return s
   }, [src])
   return (
-    <div
-      style={{ width: size, height: size, color, display: 'inline-flex', flexShrink: 0 }}
+    <span
+      style={{ fontSize: size, color, display: 'inline-flex', lineHeight: 1, flexShrink: 0 }}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   )
@@ -81,22 +86,27 @@ const ChainNodeCard: React.FC<{
   status: NodeStatus
   badges?: React.ReactNode
   popupContent?: React.ReactNode
-  children?: React.ReactNode
+  children?: React.ReactNode | ((onSubNodeClick: (sub: { name: string; status: NodeStatus; conclusion: string }) => void) => React.ReactNode)
 }> = ({ icon, title, subtitle, status, badges, popupContent, children }) => {
   const meta = statusMeta(status)
   const [open, setOpen] = useState(false)
+  const [activeSubNode, setActiveSubNode] = useState<{ name: string; status: NodeStatus; conclusion: string } | null>(null)
   const hasPopup = !!popupContent
   useEffect(() => {
-    const close = () => setOpen(false)
+    const close = () => { setOpen(false); setActiveSubNode(null) }
     popupCloseCallbacks.add(close)
     return () => { popupCloseCallbacks.delete(close) }
   }, [])
   useEffect(() => {
-    if (!open) return
-    const close = () => setOpen(false)
+    if (!open && !activeSubNode) return
+    const close = () => { setOpen(false); setActiveSubNode(null) }
     document.addEventListener('click', close)
     return () => document.removeEventListener('click', close)
-  }, [open])
+  }, [open, activeSubNode])
+  const handleSubNodeClick = (sub: { name: string; status: NodeStatus; conclusion: string }) => {
+    closeAllPopups()
+    setActiveSubNode(prev => prev?.name === sub.name ? null : sub)
+  }
   return (
     <div style={{ position: 'relative', width: 340 }}>
       <div
@@ -104,7 +114,6 @@ const ChainNodeCard: React.FC<{
           cursor: hasPopup ? 'pointer' : 'default',
           borderRadius: 12, border: `1px solid ${meta.border}`, background: meta.bg,
           boxShadow: '0 1px 3px rgba(0,0,0,0.06)', transition: 'box-shadow 0.2s',
-          overflow: 'hidden',
         }}
         onClick={e => {
           if (!hasPopup) return
@@ -132,14 +141,14 @@ const ChainNodeCard: React.FC<{
           </div>
         </div>
         <div>
-          {children}
+          {typeof children === 'function' ? children(handleSubNodeClick) : children}
         </div>
       </div>
-      {/* 点击弹出信息卡 */}
+      {/* 点击弹出信息卡（卡片自身） */}
       {open && hasPopup && (
         <div style={{
-          position: 'absolute', right: '100%', top: 0, marginRight: 12,
-          zIndex: 100, width: 280,
+          position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)',
+          marginRight: 12, zIndex: 100, width: 280,
         }} onClick={e => e.stopPropagation()}>
           <div style={{
             background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
@@ -160,60 +169,54 @@ const ChainNodeCard: React.FC<{
           </div>
         </div>
       )}
+      {/* 子节点弹出信息卡（卡片左边上层） */}
+      {activeSubNode && (
+        <div style={{
+          position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)',
+          marginRight: 12, zIndex: 110, width: 280,
+        }} onClick={e => e.stopPropagation()}>
+          <div style={{
+            background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
+            padding: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: subNodeStatusMeta(activeSubNode.status).color }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#1f2937' }}>{activeSubNode.name}</span>
+              <span style={{
+                marginLeft: 'auto', fontSize: 11, fontWeight: 500,
+                color: subNodeStatusMeta(activeSubNode.status).color,
+                background: subNodeStatusMeta(activeSubNode.status).bg,
+                border: `1px solid ${subNodeStatusMeta(activeSubNode.status).border}`,
+                borderRadius: 4, padding: '1px 6px',
+              }}>{subNodeStatusMeta(activeSubNode.status).label}</span>
+            </div>
+            <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>{activeSubNode.conclusion}</div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-const SubNodeRow: React.FC<{ name: string; status: NodeStatus; conclusion: string }> = ({ name, status, conclusion }) => {
+const SubNodeRow: React.FC<{ name: string; status: NodeStatus; onClick?: () => void }> = ({ name, status, onClick }) => {
   const meta = subNodeStatusMeta(status)
-  const [open, setOpen] = useState(false)
-  useEffect(() => {
-    const close = () => setOpen(false)
-    popupCloseCallbacks.add(close)
-    return () => { popupCloseCallbacks.delete(close) }
-  }, [])
-  useEffect(() => {
-    if (!open) return
-    const close = () => setOpen(false)
-    document.addEventListener('click', close)
-    return () => document.removeEventListener('click', close)
-  }, [open])
   return (
     <div
-      style={{ position: 'relative' }}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+        border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff',
+        padding: '6px 10px', transition: 'border-color 0.15s',
+      }}
+      onClick={e => {
+        e.stopPropagation()
+        onClick?.()
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = meta.border }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb' }}
     >
-      <div
-        style={{
-          display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-          border: `1px solid ${open ? meta.border : '#e5e7eb'}`, borderRadius: 6, background: '#fff',
-          padding: '6px 10px', transition: 'border-color 0.15s',
-        }}
-        onClick={e => {
-          e.stopPropagation()
-          if (open) { setOpen(false) } else { closeAllPopups(); setOpen(true) }
-        }}
-      >
-        <span style={{ width: 6, height: 6, borderRadius: '50%', background: meta.color, flexShrink: 0 }} />
-        <span style={{ fontSize: 12, color: '#1f2937', flex: 1 }}>{name}</span>
-        <span style={{ fontSize: 12, color: meta.color, fontWeight: 500 }}>{meta.label}</span>
-      </div>
-      {open && (
-        <div style={{
-          position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)',
-          marginRight: 8, zIndex: 100, width: 240,
-        }} onClick={e => e.stopPropagation()}>
-          <div style={{
-            background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
-            padding: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: meta.color }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#1f2937' }}>{name}</span>
-            </div>
-            <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>{conclusion}</div>
-          </div>
-        </div>
-      )}
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: meta.color, flexShrink: 0 }} />
+      <span style={{ fontSize: 12, color: '#1f2937', flex: 1 }}>{name}</span>
+      <span style={{ fontSize: 12, color: meta.color, fontWeight: 500 }}>{meta.label}</span>
     </div>
   )
 }
@@ -248,7 +251,7 @@ const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
   const mbD = getMbDeduct(item)
 
   return (
-    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 8 }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 0 }}>
       {/* 共享状态侧节点 */}
       <div style={{
         position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
@@ -260,7 +263,7 @@ const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
           width: 36, height: 36, borderRadius: '50%', background: '#fee2e2',
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
         }}>
-          <Icon src={icoShared} color="#dc2626" />
+          <ShareAltOutlined style={{ color: '#dc2626', fontSize: 14 }} />
         </div>
         <div style={{ fontSize: 14, fontWeight: 600, color: '#dc2626' }}>共享状态</div>
         <div style={{ fontSize: 12, color: '#dc2626cc', lineHeight: 1.5 }}>Shared State（记忆）<br />各节点读写中间结论</div>
@@ -282,9 +285,11 @@ const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
       <ChainNodeCard icon={<Icon src={icoRule} color="#1f2937" />} title="商保控费-规则知识判定模块" subtitle="基于扣费知识体系，对费用项目进行合理性判定" status={c.rule.status}
         popupContent={c.rule.conclusion}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 12px 12px' }}>
-          {c.rule.sub.map(s => <SubNodeRow key={s.key} name={s.name} status={s.status} conclusion={s.conclusion} />)}
-        </div>
+        {(handleSubNodeClick: (sub: { name: string; status: NodeStatus; conclusion: string }) => void) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 12px 12px' }}>
+            {c.rule.sub.map(s => <SubNodeRow key={s.key} name={s.name} status={s.status} onClick={() => handleSubNodeClick(s)} />)}
+          </div>
+        )}
       </ChainNodeCard>
       <Connector label={c.rule.hasResult ? '有判定结果' : '无判定结果'} />
 
@@ -303,7 +308,7 @@ const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
       <Connector />
 
       <ChainNodeCard
-        icon={<Icon src={icoRisk} color="#1f2937" />} title="风控模块" subtitle="识别项目风险项、判定当前项目是否需要流转人工复核"
+        icon={<SafetyOutlined style={{ color: '#1f2937', fontSize: 14 }} />} title="风控模块" subtitle="识别项目风险项、判定当前项目是否需要流转人工复核"
         status={c.risk.status}
         badges={c.risk.status === 'hit'
           ? <Tag color="error" style={{ borderRadius: 6, minWidth: 50, textAlign: 'center', fontSize: 12, fontWeight: 500 }}>转人工</Tag>
@@ -588,7 +593,7 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
                   >
                     {mode === 'unreasonable'
                       ? <Icon src={icoUnreasonable} color={sidebarMode === mode ? '#fff' : '#6b7280'} />
-                      : <Icon src={icoAll} color={sidebarMode === mode ? '#fff' : '#6b7280'} />}
+                      : <AppstoreOutlined style={{ color: sidebarMode === mode ? '#fff' : '#6b7280', fontSize: 14 }} />}
                     {mode === 'unreasonable' ? '不合理类型' : '全部项目'}
                   </div>
                 ))}
@@ -618,7 +623,10 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
                               fontSize: 14, fontWeight: 500, color: '#1f2937',
                             }}
                           >
-                            <span style={{ fontSize: 10, color: '#6b7280' }}>{open ? '▼' : '▶'}</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                              style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', color: '#6b7280', flexShrink: 0 }}>
+                              <path d="M9 18l6-6-6-6" />
+                            </svg>
                             <span style={{ flex: 1 }}>{g.category}</span>
                             <span style={{
                               fontSize: 12, color: '#6b7280', background: '#f3f4f6',
@@ -677,7 +685,7 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
               </div>
 
               {/* 决策链图 */}
-              <div style={{ overflow: 'auto', padding: '16px 24px 32px 320px', minHeight: 500 }}>
+              <div style={{ padding: '16px 24px 32px 0px', minHeight: 500 }}>
                 <DecisionChainView key={selected.id} item={selected} />
               </div>
             </section>

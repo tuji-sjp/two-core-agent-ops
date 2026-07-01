@@ -114,8 +114,8 @@ const CaseProcessingChart: React.FC = () => {
 
   React.useEffect(() => {
     const defaults: Record<PeriodType, [Dayjs, Dayjs]> = {
-      day: [dayjs('2026-04-01'), dayjs('2026-04-30')],
-      week: [dayjs('2026-03-02'), dayjs('2026-04-05')],
+      day: [dayjs('2026-06-01'), dayjs('2026-06-07')],
+      week: [dayjs('2026-06-01'), dayjs('2026-06-29')],
       month: [dayjs('2026-01-01'), dayjs('2026-05-31')],
     }
     setDateRange(defaults[granularity])
@@ -218,7 +218,7 @@ const CaseProcessingChart: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 16,
+        marginBottom: 4,
       }}>
         <div style={{
           background: '#2c3e50',
@@ -230,7 +230,7 @@ const CaseProcessingChart: React.FC = () => {
           boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
           flexShrink: 0,
         }}>
-          智能体案件处理情况趋势图
+          理赔智能体核心指标变化趋势图
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Select
@@ -259,18 +259,15 @@ const CaseProcessingChart: React.FC = () => {
           />
         </div>
       </div>
-      <div style={{ display: 'flex', gap: 20 }}>
-        {/* 右侧图表（左对齐） */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div ref={chartRef} style={{ width: '100%', height: 432 }} />
-        </div>
-        {/* 左侧指标选择器（右对齐） */}
+      <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+        {/* 左侧指标选择器 */}
         <div style={{
-          width: 140,
+          width: 130,
           display: 'flex',
           flexDirection: 'column',
           gap: 8,
           flexShrink: 0,
+          marginTop: -30,
         }}>
           {metrics.map((metric) => {
             const isActive = metric.id === currentMetric
@@ -296,6 +293,10 @@ const CaseProcessingChart: React.FC = () => {
               </div>
             )
           })}
+        </div>
+        {/* 右侧图表 */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div ref={chartRef} style={{ width: '100%', height: 432 }} />
         </div>
       </div>
     </div>
