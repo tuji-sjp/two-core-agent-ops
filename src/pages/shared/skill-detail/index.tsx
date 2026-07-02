@@ -1134,7 +1134,7 @@ const SkillDetail: React.FC = () => {
           border: isEditing ? '2px solid #3b82f6' : '1px solid #e8e8e8',
         }}
       >
-        <h2 style={{ fontSize: 14, fontWeight: 700, color: '#1f2937', paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
           概述
         </h2>
         {isEditing ? (
@@ -1233,7 +1233,7 @@ const SkillDetail: React.FC = () => {
           border: isEditing ? '2px solid #3b82f6' : '1px solid #e8e8e8',
         }}
       >
-        <h2 style={{ fontSize: 14, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
           版本历史
         </h2>
         {isEditing ? (
@@ -1299,7 +1299,7 @@ const SkillDetail: React.FC = () => {
           border: isEditing ? '2px solid #3b82f6' : '1px solid #e8e8e8',
         }}
       >
-        <h2 style={{ fontSize: 14, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
           SKILL.md
         </h2>
         {isEditing ? (
@@ -1343,11 +1343,11 @@ const SkillDetail: React.FC = () => {
           border: isEditing ? '2px solid #3b82f6' : '1px solid #e8e8e8',
         }}
       >
-        <h2 style={{ fontSize: 14, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
           API参考
         </h2>
 
-        <h3 style={{ fontSize: 14, fontWeight: 600, color: '#1f2937', marginBottom: 12 }}>核心接口</h3>
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 12 }}>核心接口</h3>
 
         {isEditing ? (
           <div style={{ marginBottom: 20 }}>
@@ -1394,7 +1394,7 @@ const SkillDetail: React.FC = () => {
           </table>
         )}
 
-        <h3 style={{ fontSize: 14, fontWeight: 600, color: '#1f2937', marginBottom: 12 }}>错误码</h3>
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 12 }}>错误码</h3>
         {isEditing ? (
           <div>
             {content.errors.map((item, i) => (
