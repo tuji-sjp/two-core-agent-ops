@@ -1276,7 +1276,9 @@ const SkillDetail: React.FC = () => {
                 })
                 return sv.map((v, i) => (
                 <tr key={i}>
-                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace' }}>{v.version}</td>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace' }}>
+                    <span onClick={() => navigate(`/skills/skill/${encodeURIComponent(name || '')}`)} style={{ color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline' }}>{v.version}</span>
+                  </td>
                   <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{content.publisher}</td>
                   <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{v.date}</td>
                   <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{v.changes}</td>
