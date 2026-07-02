@@ -560,7 +560,6 @@ const SharedSkillsMarket: React.FC = () => {
                   <button onClick={() => updateField('versions', newSkill.versions.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}><DeleteOutlined /></button>
                 </div>
               ))}
-              <button onClick={() => updateField('versions', [...newSkill.versions, { version: '', date: '', changes: '' }])} style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12 }}>+ 添加版本</button>
             </div>
 
             {/* API 参考 */}
@@ -594,7 +593,8 @@ const SharedSkillsMarket: React.FC = () => {
             {/* 按钮组 */}
             <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', paddingTop: 16, borderTop: '1px solid #e8e8e8' }}>
               <button onClick={() => setShowPublishModal(false)} style={{ padding: '6px 16px', border: '1px solid #d9d9d9', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>取消</button>
-              <button onClick={handlePublish} style={{ padding: '6px 16px', border: 'none', borderRadius: 6, background: '#3b82f6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>发布</button>
+              <button onClick={handlePublish} style={{ padding: '6px 16px', border: '1px solid #d9d9d9', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>保存</button>
+              <button onClick={handlePublish} style={{ padding: '6px 16px', border: 'none', borderRadius: 6, background: '#3b82f6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>提交审核</button>
             </div>
           </div>
         </div>
