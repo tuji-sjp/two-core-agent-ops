@@ -904,17 +904,18 @@ function buildVersionContent(latest: SkillContent, targetVersion: string): Skill
   const v = latest.versions.find(v => v.version === targetVersion)
   const versionIndex = latest.versions.findIndex(v => v.version === targetVersion)
   const isLatest = versionIndex === 0
-  // 历史版本的概述加版本标识
   const versionTag = isLatest ? '' : `【${targetVersion} 历史版本】`
+  // versions降序排列（最新在前），历史版本条目递减
+  const trimCount = versionIndex
   return {
     overview: `${versionTag} ${v?.changes || latest.overview}`,
-    features: latest.features.slice(0, Math.max(1, latest.features.length - (latest.versions.length - 1 - versionIndex))),
+    features: latest.features.slice(0, Math.max(1, latest.features.length - trimCount)),
     category: latest.category,
     publisher: latest.publisher,
     versions: latest.versions.slice(versionIndex),
     skillMd: `---\nname: ${latest.skillMd.match(/name:\s*(\S+)/)?.[1] || 'unknown'}\nversion: ${targetVersion}\n---\n\n# ${latest.skillMd.split('\n').find(l => l.startsWith('# ')) || '# Skill'}\n\n> 此为 ${targetVersion} 版本存档`,
-    apis: latest.apis.slice(0, Math.max(1, latest.apis.length - (latest.versions.length - 1 - versionIndex))),
-    errors: latest.errors.slice(0, Math.max(1, latest.errors.length - (latest.versions.length - 1 - versionIndex))),
+    apis: latest.apis.slice(0, Math.max(1, latest.apis.length - trimCount)),
+    errors: latest.errors.slice(0, Math.max(1, latest.errors.length - trimCount)),
   }
 }
 
