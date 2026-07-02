@@ -1301,16 +1301,18 @@ const SkillDetail: React.FC = () => {
                   }
                   return 0
                 })
-                return sv.map((v, i) => (
+                return sv.map((v, i) => {
+                  const isLatest = i === sv.length - 1
+                  return (
                 <tr key={i}>
                   <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace' }}>
-                    <span onClick={() => navigate(`/skills/skill/${encodeURIComponent(name || '')}/${encodeURIComponent(v.version)}`)} style={{ color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline' }}>{v.version}</span>
+                    <span onClick={() => { if (!isLatest) navigate(`/skills/skill/${encodeURIComponent(name || '')}/${encodeURIComponent(v.version)}`) }} style={isLatest ? { fontFamily: 'Consolas, monospace', color: '#1f2937' } : { color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline' }}>{v.version}</span>
                   </td>
                   <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{content.publisher}</td>
                   <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{v.date}</td>
                   <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{v.changes}</td>
                 </tr>
-              ))})()}
+              )})})()}
             </tbody>
           </table>
         )}
