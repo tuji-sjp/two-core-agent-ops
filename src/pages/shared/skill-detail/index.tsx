@@ -1440,11 +1440,22 @@ const SkillDetail: React.FC = () => {
         )}
       </section>
 
-      {/* 提交发布按钮 */}
+      {/* 保存 + 提交审核按钮 */}
       {isEditing && (
-        <div style={{ textAlign: 'left'}}>
+        <div style={{ display: 'flex', gap: 12 }}>
           <button
             onClick={handleSubmit}
+            style={{
+              padding: '8px 20px', border: '1px solid #d9d9d9', borderRadius: 8,
+              background: '#fff', color: '#1f2937',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            保存
+          </button>
+          <button
+            onClick={() => { handleSubmit(); alert('已提交审核') }}
             style={{
               padding: '8px 20px', border: 'none', borderRadius: 8,
               background: '#3b82f6', color: '#fff',
@@ -1453,7 +1464,7 @@ const SkillDetail: React.FC = () => {
               transition: 'all 0.2s',
             }}
           >
-            提交发布
+            提交审核
           </button>
         </div>
       )}
