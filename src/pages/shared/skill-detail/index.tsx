@@ -13,6 +13,7 @@ interface SkillContent {
   skillMd: string
   apis: { api: string; desc: string; fields: string }[]
   errors: { code: string; desc: string; solution: string }[]
+  currentVersion?: string  // 当前使用的版本（回滚后更新）
 }
 
 const skillContentMap: Record<string, SkillContent> = {
@@ -931,15 +932,17 @@ const SkillDetail: React.FC = () => {
   const currentVersion = version || ''
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [rollbackTarget, setRollbackTarget] = useState<string | null>(null)
 
   // 可编辑状态的本地副本
   const [editContent, setEditContent] = useState<SkillContent | null>(null)
 
-  // 按版本参数查找内容：有版本参数时生成该版本的简化内容，否则取最新版本
+  // 按版本参数查找内容：版本参数指向最新版本时等同于无版本参数，直接取完整内容
   const latestContent = skillContentMap[currentName] || defaultSkill
+  const latestVersion = latestContent.versions[0]?.version || ''
   const content = isEditing && editContent
     ? editContent
-    : currentVersion
+    : (currentVersion && currentVersion !== latestVersion)
     ? buildVersionContent(latestContent, currentVersion)
     : latestContent
 
@@ -950,9 +953,23 @@ const SkillDetail: React.FC = () => {
     description: content.overview,
   }
 
+  // 当前正在查看的版本（URL 参数或默认最新版本）
+  const viewingVersion = currentVersion || latestContent.versions[0]?.version || ''
+  // 卡片点击选中的版本（独立状态，用于高亮反馈）
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(viewingVersion)
+  // 版本降序排列（最新在前），供右侧版本栏展示
+  const sortedVersions = [...latestContent.versions].sort((a, b) => {
+    const va = a.version.replace(/[vV]/g, '').split('.').map(Number)
+    const vb = b.version.replace(/[vV]/g, '').split('.').map(Number)
+    for (let i = 0; i < Math.max(va.length, vb.length); i++) {
+      const d = (vb[i] || 0) - (va[i] || 0)
+      if (d !== 0) return d
+    }
+    return 0
+  })
+
   const sections = [
     { key: 'overview', label: '概述' },
-    { key: 'version-history', label: '版本历史' },
     { key: 'best-practices', label: 'SKILL.md' },
     { key: 'api', label: 'API参考' },
   ]
@@ -1149,6 +1166,44 @@ const SkillDetail: React.FC = () => {
         </div>
       )}
 
+      {/* 回滚确认弹窗 */}
+      {rollbackTarget && (
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+          onClick={() => setRollbackTarget(null)}
+        >
+          <div
+            style={{
+              background: '#fff', borderRadius: 12, padding: 24, width: 360,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>
+              确定要回滚到版本「{rollbackTarget}」吗？
+            </div>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+              <button onClick={() => setRollbackTarget(null)} style={{ padding: '6px 16px', border: '1px solid #d9d9d9', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, cursor: 'pointer' }}>取消</button>
+              <button onClick={() => {
+                if (skillContentMap[currentName]) {
+                  skillContentMap[currentName].currentVersion = rollbackTarget
+                }
+                navigate(`/skills/skill/${encodeURIComponent(name || '')}/${encodeURIComponent(rollbackTarget)}`)
+                setRollbackTarget(null)
+              }} style={{ padding: '6px 16px', border: 'none', borderRadius: 6, background: '#3b82f6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>确认回滚</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 两栏布局：左侧主内容 + 右侧版本历史 */}
+      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+        {/* 左侧主内容 */}
+        <div style={{ flex: 1, minWidth: 0 }}>
       {/* 概述 */}
       <section
         id="overview"
@@ -1245,76 +1300,6 @@ const SkillDetail: React.FC = () => {
               ))}
             </div>
           </>
-        )}
-      </section>
-
-      {/* 版本历史 */}
-      <section
-        id="version-history"
-        ref={el => { sectionRefs.current['version-history'] = el }}
-        style={{
-          background: '#fff',
-          borderRadius: 12,
-          padding: 20,
-          marginBottom: 20,
-          border: isEditing ? '2px solid #3b82f6' : '1px solid #e8e8e8',
-        }}
-      >
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
-          版本历史
-        </h2>
-        {isEditing ? (
-          <div>
-            {content.versions.map((v, i) => (
-              <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'flex-start' }}>
-                <input value={v.version} onChange={e => {
-                  const nv = [...content.versions]; nv[i] = { ...nv[i], version: e.target.value }; updateField('versions', nv)
-                }} placeholder="版本号" style={{ width: 100, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
-                <input value={v.date} onChange={e => {
-                  const nv = [...content.versions]; nv[i] = { ...nv[i], date: e.target.value }; updateField('versions', nv)
-                }} style={{ width: 130, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} placeholder="日期" />
-                <input value={v.changes} onChange={e => {
-                  const nv = [...content.versions]; nv[i] = { ...nv[i], changes: e.target.value }; updateField('versions', nv)
-                }} style={{ flex: 1, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} placeholder="更新内容" />
-                <button onClick={() => updateField('versions', content.versions.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}><DeleteOutlined /></button>
-              </div>
-            ))}
-            <button onClick={() => updateField('versions', [...content.versions, { version: '', publisher: content.publisher, date: '', changes: '' }])} style={{ padding: '4px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12 }}>+ 添加版本</button>
-          </div>
-        ) : (
-          <table style={{ width: '100%', maxWidth: '800px', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: '#fafafa' }}>
-                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>版本</th>
-                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>发布者</th>
-                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>发布日期</th>
-                <th style={{ border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }}>更新内容</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(() => {
-                const sv = [...content.versions].sort((a, b) => {
-                  const va = a.version.replace(/[vV]/g, '').split('.').map(Number)
-                  const vb = b.version.replace(/[vV]/g, '').split('.').map(Number)
-                  for (let i = 0; i < Math.max(va.length, vb.length); i++) {
-                    const d = (va[i] || 0) - (vb[i] || 0); if (d !== 0) return d
-                  }
-                  return 0
-                })
-                return sv.map((v, i) => {
-                  const isLatest = i === sv.length - 1
-                  return (
-                <tr key={i}>
-                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px', fontFamily: 'Consolas, monospace' }}>
-                    <span onClick={() => { if (!isLatest) navigate(`/skills/skill/${encodeURIComponent(name || '')}/${encodeURIComponent(v.version)}`) }} style={isLatest ? { fontFamily: 'Consolas, monospace', color: '#1f2937' } : { color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline' }}>{v.version}</span>
-                  </td>
-                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{content.publisher}</td>
-                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{v.date}</td>
-                  <td style={{ border: '1px solid #e5e7eb', padding: '8px 12px' }}>{v.changes}</td>
-                </tr>
-              )})})()}
-            </tbody>
-          </table>
         )}
       </section>
 
@@ -1499,6 +1484,148 @@ const SkillDetail: React.FC = () => {
           </button>
         </div>
       )}
+        </div>
+
+        {/* 右侧版本历史栏 */}
+        <aside
+          style={{
+            width: 380,
+            flexShrink: 0,
+            position: 'sticky',
+            top: 0,
+            alignSelf: 'flex-start',
+            maxHeight: 'calc(100vh - 140px)',
+            overflowY: 'auto',
+          }}
+        >
+          <div style={{
+            background: '#fff',
+            borderRadius: 12,
+            border: isEditing ? '2px solid #3b82f6' : '1px solid #e8e8e8',
+            padding: 20,
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              paddingBottom: 12, borderBottom: '1px solid #e8e8e8', marginBottom: 16,
+            }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                版本历史
+              </h2>
+              <span style={{ fontSize: 12, color: '#9ca3af' }}>
+                共 {sortedVersions.length} 个版本
+              </span>
+            </div>
+
+            {isEditing ? (
+              <div>
+                {(editContent || content).versions.map((v, i) => (
+                  <div key={i} style={{
+                    border: '1px solid #e8e8e8',
+                    borderRadius: 8,
+                    padding: 14,
+                    marginBottom: 10,
+                    background: '#fafbfc',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <input value={v.version} onChange={e => {
+                        const nv = [...(editContent || content).versions]; nv[i] = { ...nv[i], version: e.target.value }; updateField('versions', nv)
+                      }} placeholder="版本号" style={{ width: 110, padding: '6px 10px', fontSize: 13, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace', fontWeight: 700 }} />
+                      <button onClick={() => updateField('versions', (editContent || content).versions.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0, lineHeight: 1 }}><DeleteOutlined /></button>
+                    </div>
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>发布日期</div>
+                      <input value={v.date} onChange={e => {
+                        const nv = [...(editContent || content).versions]; nv[i] = { ...nv[i], date: e.target.value }; updateField('versions', nv)
+                      }} style={{ width: '100%', padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, boxSizing: 'border-box' }} placeholder="2026-04-01" />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>更新内容</div>
+                      <textarea
+                        value={v.changes}
+                        onChange={e => {
+                          const nv = [...(editContent || content).versions]; nv[i] = { ...nv[i], changes: e.target.value }; updateField('versions', nv)
+                        }}
+                        placeholder="更新内容"
+                        style={{
+                          width: '100%', minHeight: 56, padding: '6px 10px', fontSize: 12,
+                          border: '1px solid #d9d9d9', borderRadius: 6, resize: 'vertical',
+                          fontFamily: 'inherit', lineHeight: 1.6, boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <button onClick={() => updateField('versions', [...(editContent || content).versions, { version: '', publisher: content.publisher, date: '', changes: '' }])} style={{ padding: '6px 12px', border: '1px dashed #d9d9d9', borderRadius: 6, background: '#fafafa', color: '#8c8c8c', cursor: 'pointer', fontSize: 12, width: '100%', marginTop: 2 }}>+ 添加版本</button>
+              </div>
+            ) : (
+              <div>
+                {sortedVersions.map((v) => {
+                  const isCurrent = v.version === (latestContent.currentVersion || latestVersion)
+                  const isSelected = v.version === selectedVersion
+                  return (
+                    <div
+                      key={v.version}
+                      onClick={() => { setSelectedVersion(v.version); if (!isCurrent) navigate(`/skills/skill/${encodeURIComponent(name || '')}/${encodeURIComponent(v.version)}`) }}
+                      style={{
+                        borderRadius: 8,
+                        padding: 14,
+                        marginBottom: 10,
+                        background: isSelected ? '#eff6ff' : '#fff',
+                        border: `1px solid ${isSelected ? '#bfdbfe' : '#ececec'}`,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {/* 版本号 */}
+                      <div style={{ marginBottom: 8 }}>
+                        <span style={{
+                          fontFamily: 'Consolas, Monaco, monospace',
+                          fontSize: 15, fontWeight: 700,
+                          color: isSelected ? '#1d4ed8' : '#1f2937',
+                        }}>
+                          {v.version}
+                        </span>
+                      </div>
+
+                      {/* 更新内容 */}
+                      <div style={{
+                        fontSize: 13, color: '#374151', lineHeight: 1.7,
+                        marginBottom: 10,
+                      }}>
+                        {v.changes}
+                      </div>
+
+                      {/* 发布者 + 日期 + 回滚按钮（同一行） */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#9ca3af' }}>
+                          <span>{v.publisher}</span>
+                          <span>{v.date}</span>
+                        </div>
+                        <button
+                          disabled={isCurrent}
+                          onClick={(e) => { e.stopPropagation(); if (!isCurrent) setRollbackTarget(v.version) }}
+                          style={{
+                            padding: '2px 10px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: 4,
+                            background: 'transparent',
+                            color: '#6b7280',
+                            fontSize: 11, fontWeight: 500,
+                            cursor: isCurrent ? 'default' : 'pointer',
+                            flexShrink: 0,
+                            visibility: isCurrent ? 'hidden' : 'visible',
+                          }}
+                        >
+                          回滚
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </aside>
+      </div>
     </div>
   )
 }

@@ -213,7 +213,7 @@ const MySkillCard: React.FC<{
   )
 }
 
-// ==================== 公共 Skills 卡片 ====================
+// ==================== 公共Skills 卡片 ====================
 const PublicSkillCard: React.FC<{
   skill: SkillItem
   liked: boolean
@@ -265,6 +265,8 @@ const SharedSkillsMarket: React.FC = () => {
   const [displayCount, setDisplayCount] = useState(LOAD_COUNT)
   const [showPublishModal, setShowPublishModal] = useState(false)
   const [newSkill, setNewSkill] = useState<NewSkillForm>(emptyNewSkill)
+  // 上次「保存」的草稿，重新打开弹窗时恢复；取消时回退到此状态
+  const [savedDraft, setSavedDraft] = useState<NewSkillForm>(emptyNewSkill)
   const navigate = useNavigate()
 
   const toggleLike = (name: string) => {
@@ -276,18 +278,22 @@ const SharedSkillsMarket: React.FC = () => {
     })
   }
 
-  const handlePublish = () => {
-    // 必填校验
-    if (!newSkill.name.trim()) { alert('请填写 Skill 名称'); return }
-    if (!newSkill.overview.trim()) { alert('请填写概述'); return }
-    if (newSkill.features.filter(f => f.trim()).length === 0) { alert('请至少添加一个功能特性'); return }
-    if (newSkill.categories.length === 0) { alert('请选择至少一个分类标签'); return }
-    if (!newSkill.skillMd.trim()) { alert('请填写 SKILL.md 内容'); return }
-    if (newSkill.versions.filter(v => v.version.trim()).length === 0) { alert('请至少添加一个版本'); return }
-    if (newSkill.apis.filter(a => a.api.trim()).length === 0) { alert('请至少添加一个 API 接口'); return }
-    if (newSkill.errors.filter(e => e.code.trim()).length === 0) { alert('请至少添加一个错误码'); return }
+  // 校验表单必填项
+  const validateForm = (): boolean => {
+    if (!newSkill.name.trim()) { alert('请填写Skill名称'); return false }
+    if (allSkills.some(s => s.name === newSkill.name.trim())) { alert('已存在同名Skill，请修改名称'); return false }
+    if (!newSkill.overview.trim()) { alert('请填写Skill概述'); return false }
+    if (newSkill.features.filter(f => f.trim()).length === 0) { alert('请至少添加一个功能特性'); return false }
+    if (newSkill.categories.length === 0) { alert('请选择至少一个分类标签'); return false }
+    if (!newSkill.skillMd.trim()) { alert('请填写SKILL.md内容'); return false }
+    if (newSkill.versions.filter(v => v.version.trim()).length === 0) { alert('请至少添加一个版本'); return false }
+    if (newSkill.apis.filter(a => a.api.trim()).length === 0) { alert('请至少添加一个API接口'); return false }
+    if (newSkill.errors.filter(e => e.code.trim()).length === 0) { alert('请至少添加一个错误码'); return false }
+    return true
+  }
 
-    // 保存到 skillContentMap
+  // 保存详情页内容（仅写入 skillContentMap，不创建卡片）
+  const saveContent = () => {
     skillContentMap[newSkill.name] = {
       overview: newSkill.overview,
       features: newSkill.features.filter(f => f.trim()),
@@ -298,7 +304,10 @@ const SharedSkillsMarket: React.FC = () => {
       apis: newSkill.apis.filter(a => a.api.trim()),
       errors: newSkill.errors.filter(e => e.code.trim()),
     }
-    // 添加到 allSkills 和 我的 Skills
+  }
+
+  // 创建 Skill 卡片（添加到公共列表 + 我的 Skills）
+  const createCard = () => {
     const newItem = {
       name: newSkill.name,
       description: newSkill.overview.slice(0, 60) + '...',
@@ -311,8 +320,30 @@ const SharedSkillsMarket: React.FC = () => {
     }
     allSkills.push(newItem)
     mySkills.push(newItem)
+  }
+
+  // 取消：关闭弹窗，表单回退到上次保存的草稿
+  const handleCancel = () => {
+    setShowPublishModal(false)
+    setNewSkill(savedDraft)
+  }
+
+  // 保存：校验同名 → 保存详情页内容 + 更新草稿，不创建卡片，不跳转
+  const handleSave = () => {
+    if (!newSkill.name.trim()) { alert('请填写Skill名称'); return }
+    if (allSkills.some(s => s.name === newSkill.name.trim())) { alert('已存在同名Skill，请修改名称'); return }
+    saveContent()
+    setSavedDraft(newSkill)
+  }
+
+  // 提交审核：完整校验 → 保存内容 + 创建卡片 + 跳转详情页
+  const handleSubmit = () => {
+    if (!validateForm()) return
+    saveContent()
+    createCard()
     setShowPublishModal(false)
     setNewSkill(emptyNewSkill)
+    setSavedDraft(emptyNewSkill)
     navigate(`/skills/skill/${newSkill.name}`)
   }
 
@@ -359,20 +390,20 @@ const SharedSkillsMarket: React.FC = () => {
         <UseCaseCarousel />
       </div> */}
 
-      {/* ===== 我的 Skills ===== */}
+      {/* ===== 我的Skills ===== */}
       <div style={{ marginTop: 10 }}>
         <div style={{ ...titleStyle, marginTop: 0 }}>
           <div style={titleBarStyle} />
-          <span style={titleTextStyle}>我的 Skills</span>
+          <span style={titleTextStyle}>我的Skills</span>
         </div>
         <button
-          onClick={() => setShowPublishModal(true)}
+          onClick={() => { setNewSkill(savedDraft); setShowPublishModal(true) }}
           style={{
             marginBottom: 20, display: 'flex', alignItems: 'center', gap: 4,
             padding: '6px 16px', border: '1px solid #3b82f6', borderRadius: 6,
             background: '#fff', color: '#3b82f6', fontSize: 13, fontWeight: 600, cursor: 'pointer',
           }}>
-          <PlusOutlined style={{ fontSize: 12 }} /> 发布新 Skill
+          <PlusOutlined style={{ fontSize: 12 }} /> 发布新Skill
         </button>
         <Row gutter={[20, 20]}>
           {mySkills.map((skill, i) => (
@@ -383,11 +414,11 @@ const SharedSkillsMarket: React.FC = () => {
         </Row>
       </div>
 
-      {/* ===== 公共 Skills ===== */}
+      {/* ===== 公共Skills ===== */}
       <div style={{ marginTop: 40 }}>
         <div style={{ ...titleStyle, marginTop: 0 }}>
           <div style={titleBarStyle} />
-          <span style={titleTextStyle}>公共 Skills</span>
+          <span style={titleTextStyle}>公共Skills</span>
         </div>
 
         {/* 分类标签 + 搜索框 */}
@@ -415,7 +446,7 @@ const SharedSkillsMarket: React.FC = () => {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" style={{ flexShrink: 0, marginRight: 8 }}>
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
             </svg>
-            <input type="text" placeholder="搜索全部 Skills" value={searchKeyword}
+            <input type="text" placeholder="搜索全部Skills" value={searchKeyword}
               onChange={e => { setSearchKeyword(e.target.value); setDisplayCount(LOAD_COUNT) }}
               style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, color: '#374151', background: 'transparent' }}
             />
@@ -444,7 +475,7 @@ const SharedSkillsMarket: React.FC = () => {
         )}
       </div>
 
-      {/* 发布新 Skill 弹窗 */}
+      {/* 发布新Skill 弹窗 */}
       {showPublishModal && (
         <div
           style={{
@@ -452,7 +483,7 @@ const SharedSkillsMarket: React.FC = () => {
             background: 'rgba(0,0,0,0.5)', zIndex: 1000,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
-          onClick={() => setShowPublishModal(false)}
+          onClick={handleCancel}
         >
           <div
             style={{
@@ -464,20 +495,20 @@ const SharedSkillsMarket: React.FC = () => {
           >
             {/* 弹窗标题 */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>发布新 Skill</span>
-              <CloseOutlined onClick={() => setShowPublishModal(false)} style={{ fontSize: 18, color: '#6b7280', cursor: 'pointer' }} />
+              <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>发布新Skill</span>
+              <CloseOutlined onClick={handleCancel} style={{ fontSize: 18, color: '#6b7280', cursor: 'pointer' }} />
             </div>
 
-            {/* Skill 名称 */}
+            {/* Skill名称 */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Skill 名称 <span style={{ color: '#ff4d4f' }}>*</span></div>
-              <input value={newSkill.name} onChange={e => updateField('name', e.target.value)} placeholder="请输入 Skill 名称" style={{ width: '100%', padding: '8px 12px', fontSize: 14, border: '1px solid #d9d9d9', borderRadius: 8 }} />
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Skill名称 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <input value={newSkill.name} onChange={e => updateField('name', e.target.value)} placeholder="请输入Skill名称" style={{ width: '100%', padding: '8px 12px', fontSize: 14, border: '1px solid #d9d9d9', borderRadius: 8 }} />
             </div>
 
             {/* 概述 */}
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>概述 <span style={{ color: '#ff4d4f' }}>*</span></div>
-              <textarea value={newSkill.overview} onChange={e => updateField('overview', e.target.value)} placeholder="请输入 Skill 概述" style={{ width: '100%', minHeight: 60, padding: 12, fontSize: 14, border: '1px solid #d9d9d9', borderRadius: 8, resize: 'vertical', fontFamily: 'inherit' }} />
+              <textarea value={newSkill.overview} onChange={e => updateField('overview', e.target.value)} placeholder="请输入Skill概述" style={{ width: '100%', minHeight: 60, padding: 12, fontSize: 14, border: '1px solid #d9d9d9', borderRadius: 8, resize: 'vertical', fontFamily: 'inherit' }} />
             </div>
 
             {/* 功能特性 */}
@@ -532,7 +563,7 @@ const SharedSkillsMarket: React.FC = () => {
                 <textarea
                   value={newSkill.skillMd}
                   onChange={e => updateField('skillMd', e.target.value)}
-                  placeholder="# 在此输入 SKILL.md 内容&#10;&#10;name: your-skill-name&#10;description: 描述你的 Skill&#10;version: 1.0.0"
+                  placeholder="# 在此输入SKILL.md内容&#10;&#10;name: your-skill-name&#10;description: 描述你的Skill&#10;version: 1.0.0"
                   style={{
                     width: '100%', minHeight: 200, padding: 16, fontSize: 12,
                     border: 'none', borderRadius: 0, resize: 'vertical',
@@ -592,9 +623,9 @@ const SharedSkillsMarket: React.FC = () => {
 
             {/* 按钮组 */}
             <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', paddingTop: 16, borderTop: '1px solid #e8e8e8' }}>
-              <button onClick={() => setShowPublishModal(false)} style={{ padding: '6px 16px', border: '1px solid #d9d9d9', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>取消</button>
-              <button onClick={handlePublish} style={{ padding: '6px 16px', border: '1px solid #d9d9d9', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>保存</button>
-              <button onClick={handlePublish} style={{ padding: '6px 16px', border: 'none', borderRadius: 6, background: '#3b82f6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>提交审核</button>
+              <button onClick={handleCancel} style={{ padding: '6px 16px', border: '1px solid #d9d9d9', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>取消</button>
+              <button onClick={handleSave} style={{ padding: '6px 16px', border: '1px solid #d9d9d9', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>保存</button>
+              <button onClick={handleSubmit} style={{ padding: '6px 16px', border: 'none', borderRadius: 6, background: '#3b82f6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>提交审核</button>
             </div>
           </div>
         </div>
