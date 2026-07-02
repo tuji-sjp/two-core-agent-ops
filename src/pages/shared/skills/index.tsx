@@ -470,19 +470,19 @@ const SharedSkillsMarket: React.FC = () => {
 
             {/* Skill 名称 */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Skill 名称 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Skill 名称 <span style={{ color: '#ff4d4f' }}>*</span></div>
               <input value={newSkill.name} onChange={e => updateField('name', e.target.value)} placeholder="请输入 Skill 名称" style={{ width: '100%', padding: '8px 12px', fontSize: 14, border: '1px solid #d9d9d9', borderRadius: 8 }} />
             </div>
 
             {/* 概述 */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>概述 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>概述 <span style={{ color: '#ff4d4f' }}>*</span></div>
               <textarea value={newSkill.overview} onChange={e => updateField('overview', e.target.value)} placeholder="请输入 Skill 概述" style={{ width: '100%', minHeight: 60, padding: 12, fontSize: 14, border: '1px solid #d9d9d9', borderRadius: 8, resize: 'vertical', fontFamily: 'inherit' }} />
             </div>
 
             {/* 功能特性 */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>功能特性 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>功能特性 <span style={{ color: '#ff4d4f' }}>*</span></div>
               {newSkill.features.map((f, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
                   <span style={{ color: '#9ca3af', fontSize: 12, flexShrink: 0 }}>{i + 1}.</span>
@@ -495,7 +495,7 @@ const SharedSkillsMarket: React.FC = () => {
 
             {/* 分类标签 */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>分类标签 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 8 }}>分类标签 <span style={{ color: '#ff4d4f' }}>*</span></div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {['OCR识别', '数据采集', '立案定责', '核保评估'].map(tag => {
                   const active = newSkill.categories.includes(tag)
@@ -518,7 +518,7 @@ const SharedSkillsMarket: React.FC = () => {
 
             {/* SKILL.md */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>SKILL.md <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>SKILL.md <span style={{ color: '#ff4d4f' }}>*</span></div>
               <div style={{
                 background: '#fff', borderRadius: 8, overflow: 'hidden',
                 border: '1px solid #e5e7eb',
@@ -545,7 +545,7 @@ const SharedSkillsMarket: React.FC = () => {
 
             {/* 版本历史 */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>版本历史 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>版本历史 <span style={{ color: '#ff4d4f' }}>*</span></div>
               {newSkill.versions.map((v, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
                   <input value={v.version} onChange={e => {
@@ -564,7 +564,7 @@ const SharedSkillsMarket: React.FC = () => {
 
             {/* API 参考 */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>API 参考 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>API 参考 <span style={{ color: '#ff4d4f' }}>*</span></div>
               {newSkill.apis.map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
                   <input value={item.api} onChange={e => { const na = [...newSkill.apis]; na[i] = { ...na[i], api: e.target.value }; updateField('apis', na) }} placeholder="接口名" style={{ width: 150, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
@@ -578,7 +578,7 @@ const SharedSkillsMarket: React.FC = () => {
 
             {/* 错误码 */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>错误码 <span style={{ color: '#ff4d4f' }}>*</span></div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>错误码 <span style={{ color: '#ff4d4f' }}>*</span></div>
               {newSkill.errors.map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
                   <input value={item.code} onChange={e => { const ne = [...newSkill.errors]; ne[i] = { ...ne[i], code: e.target.value }; updateField('errors', ne) }} placeholder="错误码" style={{ width: 120, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
