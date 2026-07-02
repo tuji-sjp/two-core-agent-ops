@@ -46,7 +46,7 @@ const App: React.FC = () => {
         {/* 技能中心 */}
         <Route path="skills/market" element={<SharedSkillsMarket />} />
         <Route path="skills/mcp" element={<PagePlaceholder />} />
-        <Route path="skills/skill/:name" element={<SkillDetail />} />
+        <Route path="skills/skill/:name/:version?" element={<SkillDetail />} />
 
         {/* 数据共享 */}
         <Route path="data-share/data-assets" element={<SharedDataAssets />} />
