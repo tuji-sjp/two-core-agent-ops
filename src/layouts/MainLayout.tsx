@@ -68,7 +68,6 @@ const menuItems: MenuProps['items'] = [
         key: 'agent-claims',
         label: '理赔',
         children: [
-          { key: '/agent/claims/overview', label: '概览' },
           { key: '/agent/claims/logs', label: '日志清单' },
           { key: '/agent/claims/case-analysis', label: '错例分析' },
         ],
@@ -77,7 +76,6 @@ const menuItems: MenuProps['items'] = [
         key: 'agent-underwriting',
         label: '核保',
         children: [
-          { key: '/agent/underwriting/overview', label: '概览' },
           { key: '/agent/underwriting/logs', label: '日志清单' },
           { key: '/agent/underwriting/case-analysis', label: '错例分析' },
         ],
@@ -86,7 +84,6 @@ const menuItems: MenuProps['items'] = [
         key: 'agent-anti-fraud',
         label: '反欺诈',
         children: [
-          { key: '/agent/anti-fraud/overview', label: '概览' },
           { key: '/agent/anti-fraud/logs', label: '日志清单' },
           { key: '/agent/anti-fraud/case-analysis', label: '错例分析' },
         ],

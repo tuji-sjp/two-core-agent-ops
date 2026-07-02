@@ -685,7 +685,7 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
               </div>
 
               {/* 决策链图 */}
-              <div style={{ padding: '16px 24px 32px 0px', minHeight: 500 }}>
+              <div style={{ padding: '16px 16px 16px 16px', minHeight: 500 }}>
                 <DecisionChainView key={selected.id} item={selected} />
               </div>
             </section>
