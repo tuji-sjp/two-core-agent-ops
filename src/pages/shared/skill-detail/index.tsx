@@ -899,76 +899,23 @@ gh medical-interpret analyze --report <report_json> --product <product_code>
   },
 }
 
-// 历史版本内容快照（mock 数据，每个历史版本展示简化内容）
-const skillVersionContentMap: Record<string, SkillContent> = {
-  '票据OCR识别:v0.1.0': {
-    overview: '内测版本，支持增值税发票基础识别，覆盖关键字段提取能力验证。',
-    features: ['增值税专票/普票基础识别', '关键字段提取（发票代码、号码、金额）'],
-    category: ['OCR识别'],
-    publisher: '阿里云智能',
-    versions: [{ version: 'v0.1.0', publisher: '阿里云智能', date: '2026-05-15', changes: '内测版本，内部试用验证核心能力' }],
-    skillMd: `---\nname: ocr-receipt-extract\nversion: 0.1.0\n---\n# OCR Receipt Extract (Beta)\n内测版本，仅支持增值税发票识别。`,
-    apis: [{ api: 'recognize_vat_invoice', desc: '识别增值税发票', fields: 'invoice_code, invoice_no, amount' }],
-    errors: [{ code: 'INVALID_IMAGE', desc: '图片格式不支持', solution: '检查格式是否为 JPG/PNG' }],
-  },
-  '医疗文档OCR识别:v0.1.0': {
-    overview: '内测版本，验证病历识别准确率，支持基础病历文档结构化。',
-    features: ['病历文档基础识别', '诊断信息提取'],
-    category: ['OCR识别'],
-    publisher: '医疗智能团队',
-    versions: [{ version: 'v0.1.0', publisher: '医疗智能团队', date: '2026-04-20', changes: '内测版本，验证病历识别准确率' }],
-    skillMd: `---\nname: medical-doc-ocr\nversion: 0.1.0\n---\n# Medical Document OCR (Beta)\n内测版本，仅支持病历文档识别。`,
-    apis: [{ api: 'recognize_medical_record', desc: '识别病历文档', fields: 'doc_type, diagnosis' }],
-    errors: [{ code: 'INVALID_DOC_TYPE', desc: '非医疗文档类型', solution: '确认上传文档为病历' }],
-  },
-  '医疗文档OCR识别:v2.0.0': {
-    overview: '架构升级版本，引入医学 NLP 模型，支持 ICD-10 编码映射，新增检验报告识别。',
-    features: ['病历、检验报告识别', '医学术语标准化', 'ICD-10 编码映射'],
-    category: ['OCR识别'],
-    publisher: '医疗智能团队',
-    versions: [
-      { version: 'v2.0.0', publisher: '医疗智能团队', date: '2026-05-10', changes: '架构升级，引入医学 NLP 模型，支持 ICD-10 编码映射' },
-      { version: 'v0.1.0', publisher: '医疗智能团队', date: '2026-04-20', changes: '内测版本，验证病历识别准确率' },
-    ],
-    skillMd: `---\nname: medical-doc-ocr\nversion: 2.0.0\n---\n# Medical Document OCR v2\n引入医学 NLP 模型，支持 ICD-10 编码映射。`,
-    apis: [
-      { api: 'recognize_medical_record', desc: '识别病历文档', fields: 'doc_type, diagnosis, treatment_plan' },
-      { api: 'map_icd10', desc: 'ICD-10 编码映射', fields: 'diagnosis_text, icd10_codes[]' },
-    ],
-    errors: [
-      { code: 'INVALID_DOC_TYPE', desc: '非医疗文档类型', solution: '确认上传文档为病历/检验报告' },
-      { code: 'TERM_NOT_MAPPED', desc: '医学术语无法映射到 ICD-10', solution: '使用同义词表辅助映射' },
-    ],
-  },
-  '身份证OCR识别:v0.1.0': {
-    overview: '内测版本，验证基础识别准确率，支持身份证正反面信息提取。',
-    features: ['身份证正反面基础识别', '校验码验证'],
-    category: ['OCR识别'],
-    publisher: '身份认证团队',
-    versions: [{ version: 'v0.1.0', publisher: '身份认证团队', date: '2026-04-10', changes: '内测版本，验证基础识别准确率' }],
-    skillMd: `---\nname: id-card-ocr\nversion: 0.1.0\n---\n# ID Card OCR (Beta)\n内测版本，仅支持基础识别。`,
-    apis: [{ api: 'recognize_id_front', desc: '识别身份证正面', fields: 'name, id_number' }],
-    errors: [{ code: 'CARD_NOT_DETECTED', desc: '未检测到身份证区域', solution: '确保身份证完整可见' }],
-  },
-  '身份证OCR识别:v1.5.0': {
-    overview: '新增批量处理接口，支持一次上传多张身份证，优化识别性能。',
-    features: ['身份证正反面识别', '批量处理', '校验码验证'],
-    category: ['OCR识别'],
-    publisher: '身份认证团队',
-    versions: [
-      { version: 'v1.5.0', publisher: '身份认证团队', date: '2026-05-18', changes: '新增批量处理接口，支持一次上传多张身份证' },
-      { version: 'v0.1.0', publisher: '身份认证团队', date: '2026-04-10', changes: '内测版本，验证基础识别准确率' },
-    ],
-    skillMd: `---\nname: id-card-ocr\nversion: 1.5.0\n---\n# ID Card OCR v1.5\n新增批量处理接口。`,
-    apis: [
-      { api: 'recognize_id_front', desc: '识别身份证正面', fields: 'name, id_number, address' },
-      { api: 'batch_recognize', desc: '批量身份证识别', fields: 'results[], total_count' },
-    ],
-    errors: [
-      { code: 'CARD_NOT_DETECTED', desc: '未检测到身份证区域', solution: '确保身份证完整、正面向上' },
-      { code: 'CHECKSUM_FAILED', desc: '校验码验证失败', solution: '人工复核识别结果' },
-    ],
-  },
+// 根据最新版本内容生成指定历史版本的简化内容
+function buildVersionContent(latest: SkillContent, targetVersion: string): SkillContent {
+  const v = latest.versions.find(v => v.version === targetVersion)
+  const versionIndex = latest.versions.findIndex(v => v.version === targetVersion)
+  const isLatest = versionIndex === 0
+  // 历史版本的概述加版本标识
+  const versionTag = isLatest ? '' : `【${targetVersion} 历史版本】`
+  return {
+    overview: `${versionTag} ${v?.changes || latest.overview}`,
+    features: latest.features.slice(0, Math.max(1, latest.features.length - (latest.versions.length - 1 - versionIndex))),
+    category: latest.category,
+    publisher: latest.publisher,
+    versions: latest.versions.slice(versionIndex),
+    skillMd: `---\nname: ${latest.skillMd.match(/name:\s*(\S+)/)?.[1] || 'unknown'}\nversion: ${targetVersion}\n---\n\n# ${latest.skillMd.split('\n').find(l => l.startsWith('# ')) || '# Skill'}\n\n> 此为 ${targetVersion} 版本存档`,
+    apis: latest.apis.slice(0, Math.max(1, latest.apis.length - (latest.versions.length - 1 - versionIndex))),
+    errors: latest.errors.slice(0, Math.max(1, latest.errors.length - (latest.versions.length - 1 - versionIndex))),
+  }
 }
 
 const defaultSkill: SkillContent = skillContentMap['票据OCR识别']
@@ -987,13 +934,13 @@ const SkillDetail: React.FC = () => {
   // 可编辑状态的本地副本
   const [editContent, setEditContent] = useState<SkillContent | null>(null)
 
-  // 按版本参数查找内容：优先历史版本快照，否则取最新版本
-  const versionKey = currentVersion ? `${currentName}:${currentVersion}` : ''
+  // 按版本参数查找内容：有版本参数时生成该版本的简化内容，否则取最新版本
+  const latestContent = skillContentMap[currentName] || defaultSkill
   const content = isEditing && editContent
     ? editContent
-    : (versionKey && skillVersionContentMap[versionKey])
-    || skillContentMap[currentName]
-    || defaultSkill
+    : currentVersion
+    ? buildVersionContent(latestContent, currentVersion)
+    : latestContent
 
   const skillData = {
     name: currentName,
