@@ -1,7 +1,138 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Tag, message } from 'antd'
-import { ArrowLeftOutlined, FolderOutlined, AppstoreOutlined, CopyOutlined } from '@ant-design/icons'
+import { ArrowLeftOutlined, CopyOutlined } from '@ant-design/icons'
+import icoGroupInfo from '../../../assets/icons/分组信息.svg?raw'
+import icoAllItems from '../../../assets/icons/全部项目.svg?raw'
+
+// SVG path 解析器：正确处理绝对/相对坐标、所有命令（M/L/H/V/C/S/Q/T/A/Z）和隐式重复
+// 返回所有锚点（含控制点）的 x/y 数组，用于计算 bounding box
+function parsePath(d: string): { xs: number[]; ys: number[] } {
+  const xs: number[] = []
+  const ys: number[] = []
+  const tokens: (string | number)[] = []
+  const re = /([MmLlHhVvCcSsQqTtAaZz])|(-?\d*\.?\d+(?:[eE][-+]?\d+)?)/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(d)) !== null) {
+    if (m[1]) tokens.push(m[1])
+    else tokens.push(parseFloat(m[2]))
+  }
+  let i = 0
+  let curX = 0, curY = 0, startX = 0, startY = 0, cmd = ''
+  const readNum = (): number => (i < tokens.length && typeof tokens[i] === 'number' ? tokens[i++] as number : 0)
+  while (i < tokens.length) {
+    if (typeof tokens[i] === 'string') { cmd = tokens[i++] as string }
+    if (!cmd) break
+    const upper = cmd.toUpperCase()
+    const rel = cmd !== upper
+    while (i < tokens.length && typeof tokens[i] === 'number') {
+      if (upper === 'M') {
+        const ox = readNum(), oy = readNum()
+        curX = rel ? curX + ox : ox; curY = rel ? curY + oy : oy
+        xs.push(curX); ys.push(curY)
+        startX = curX; startY = curY
+        cmd = rel ? 'l' : 'L'
+      } else if (upper === 'L' || upper === 'T') {
+        const ox = readNum(), oy = readNum()
+        curX = rel ? curX + ox : ox; curY = rel ? curY + oy : oy
+        xs.push(curX); ys.push(curY)
+      } else if (upper === 'H') {
+        const ox = readNum()
+        curX = rel ? curX + ox : ox
+        xs.push(curX); ys.push(curY)
+      } else if (upper === 'V') {
+        const oy = readNum()
+        curY = rel ? curY + oy : oy
+        xs.push(curX); ys.push(curY)
+      } else if (upper === 'C') {
+        const ox1 = readNum(), oy1 = readNum(), ox2 = readNum(), oy2 = readNum(), ox = readNum(), oy = readNum()
+        if (rel) {
+          xs.push(curX + ox1, curX + ox2, curX + ox); ys.push(curY + oy1, curY + oy2, curY + oy)
+          curX += ox; curY += oy
+        } else {
+          xs.push(ox1, ox2, ox); ys.push(oy1, oy2, oy)
+          curX = ox; curY = oy
+        }
+      } else if (upper === 'S' || upper === 'Q') {
+        const ox1 = readNum(), oy1 = readNum(), ox = readNum(), oy = readNum()
+        if (rel) {
+          xs.push(curX + ox1, curX + ox); ys.push(curY + oy1, curY + oy)
+          curX += ox; curY += oy
+        } else {
+          xs.push(ox1, ox); ys.push(oy1, oy)
+          curX = ox; curY = oy
+        }
+      } else if (upper === 'A') {
+        readNum(); readNum(); readNum(); readNum(); readNum()
+        const ox = readNum(), oy = readNum()
+        curX = rel ? curX + ox : ox; curY = rel ? curY + oy : oy
+        xs.push(curX); ys.push(curY)
+      } else if (upper === 'Z') {
+        curX = startX; curY = startY
+        xs.push(curX); ys.push(curY)
+        break
+      } else break
+    }
+  }
+  return { xs, ys }
+}
+
+// Icon 组件：traced SVG 通过 ?raw 内联，颜色/大小通过 CSS 控制
+// 自动解析 path 的真实内容 bounding box（支持绝对/相对坐标），重映射 viewBox 让内容充满容器
+const Icon: React.FC<{ src: string; color: string; size?: number; fillRatio?: number }> = ({ src, color, size = 14, fillRatio = 0.95 }) => {
+  const html = useMemo(() => {
+    let s = src.replace(/^﻿/, '')
+
+    const allXs: number[] = []
+    const allYs: number[] = []
+    const dRegex = /\bd="([^"]+)"/g
+    let m: RegExpExecArray | null
+    while ((m = dRegex.exec(s)) !== null) {
+      const { xs, ys } = parsePath(m[1])
+      allXs.push(...xs)
+      allYs.push(...ys)
+    }
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    for (const x of allXs) { if (x < minX) minX = x; if (x > maxX) maxX = x }
+    for (const y of allYs) { if (y < minY) minY = y; if (y > maxY) maxY = y }
+
+    let finalViewBox: string | undefined
+    if (isFinite(minX) && isFinite(maxX) && maxX > minX && maxY > minY) {
+      const cw = maxX - minX
+      const ch = maxY - minY
+      const maxDim = Math.max(cw, ch)
+      const half = maxDim / (2 * fillRatio)
+      const cx = (minX + maxX) / 2
+      const cy = (minY + maxY) / 2
+      const vbSize = maxDim / fillRatio
+      finalViewBox = `${cx - half} ${cy - half} ${vbSize} ${vbSize}`
+    }
+
+    let svgAttrs = ''
+    s = s.replace(/<svg\b([^>]*)>/, (_, attrs: string) => {
+      svgAttrs = attrs
+      return ''
+    })
+    if (svgAttrs) {
+      let a = svgAttrs
+        .replace(/\s*width="[^"]*"/, '')
+        .replace(/\s*height="[^"]*"/, '')
+        .replace(/\s*viewBox="[^"]*"/, '')
+      const vb = finalViewBox ? ` viewBox="${finalViewBox}"` : ''
+      s = `<svg${a}${vb} width="1em" height="1em">` + s
+    }
+
+    s = s.replace(/fill="[^"]+"/g, 'fill="currentColor"')
+    s = s.replace(/stroke="[^"]+"/g, 'stroke="currentColor"')
+    return s
+  }, [src, fillRatio])
+  return (
+    <span
+      style={{ fontSize: size, color, display: 'inline-flex', lineHeight: 1, flexShrink: 0 }}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  )
+}
 
 const CATEGORIES = [
   { name: '全部', count: 91 },
@@ -1057,7 +1188,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
                   transition: 'all 0.15s',
                 }}
               >
-                <FolderOutlined style={{ fontSize: 14 }} /> 分组信息
+                <Icon src={icoGroupInfo} color={viewMode === 'group' ? '#fff' : '#6b7280'} /> 分组信息
               </div>
               <div
                 onClick={() => setViewMode('category')}
@@ -1076,7 +1207,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
                   transition: 'all 0.15s',
                 }}
               >
-                <AppstoreOutlined style={{ fontSize: 14 }} /> 全部分类
+                <Icon src={icoAllItems} color={viewMode === 'category' ? '#fff' : '#6b7280'} /> 全部分类
               </div>
             </div>
 
@@ -1127,12 +1258,10 @@ const AgentClaimsTaskDetail: React.FC = () => {
                           </div>
                           <span style={{
                             fontSize: 12,
-                            color: '#9ca3af',
+                            color: '#6b7280',
                             background: '#f3f4f6',
                             borderRadius: 10,
                             padding: '1px 8px',
-                            minWidth: 20,
-                            textAlign: 'center',
                           }}>
                             {groupTotal}
                           </span>
@@ -1173,13 +1302,11 @@ const AgentClaimsTaskDetail: React.FC = () => {
                                         <span>{subGroup.name}</span>
                                       </div>
                                       <span style={{
-                                        fontSize: 11,
-                                        color: '#9ca3af',
+                                        fontSize: 12,
+                                        color: '#6b7280',
                                         background: '#f3f4f6',
                                         borderRadius: 10,
-                                        padding: '1px 6px',
-                                        minWidth: 18,
-                                        textAlign: 'center',
+                                        padding: '1px 8px',
                                       }}>
                                         {subTotal}
                                       </span>
@@ -1219,13 +1346,11 @@ const AgentClaimsTaskDetail: React.FC = () => {
                                                   <span>{categoryGroup.name}</span>
                                                 </div>
                                                 <span style={{
-                                                  fontSize: 11,
-                                                  color: '#9ca3af',
+                                                  fontSize: 12,
+                                                  color: '#6b7280',
                                                   background: '#f3f4f6',
                                                   borderRadius: 10,
-                                                  padding: '1px 6px',
-                                                  minWidth: 18,
-                                                  textAlign: 'center',
+                                                  padding: '1px 8px',
                                                 }}>
                                                   {catTotal}
                                                 </span>
@@ -1257,12 +1382,10 @@ const AgentClaimsTaskDetail: React.FC = () => {
                                                         <span>{item.name}</span>
                                                         <span style={{
                                                           fontSize: 12,
-                                                          color: isActive ? '#fff' : '#9ca3af',
-                                                          background: isActive ? 'rgba(255,255,255,0.3)' : '#f3f4f6',
+                                                          color: '#6b7280',
+                                                          background: '#f3f4f6',
                                                           borderRadius: 10,
                                                           padding: '1px 8px',
-                                                          minWidth: 20,
-                                                          textAlign: 'center',
                                                         }}>
                                                           {item.count}
                                                         </span>
@@ -1304,12 +1427,10 @@ const AgentClaimsTaskDetail: React.FC = () => {
                                     <span>{child.name}</span>
                                     <span style={{
                                       fontSize: 12,
-                                      color: isActive ? '#fff' : '#9ca3af',
-                                      background: isActive ? 'rgba(255,255,255,0.3)' : '#f3f4f6',
+                                      color: '#6b7280',
+                                      background: '#f3f4f6',
                                       borderRadius: 10,
                                       padding: '1px 8px',
-                                      minWidth: 20,
-                                      textAlign: 'center',
                                     }}>
                                       {child.count}
                                     </span>
@@ -1348,12 +1469,10 @@ const AgentClaimsTaskDetail: React.FC = () => {
                       <span>{cat.name}</span>
                       <span style={{
                         fontSize: 12,
-                        color: active ? '#fff' : '#9ca3af',
-                        background: active ? 'rgba(255,255,255,0.3)' : '#f3f4f6',
+                        color: '#6b7280',
+                        background: '#f3f4f6',
                         borderRadius: 10,
                         padding: '1px 8px',
-                        minWidth: 20,
-                        textAlign: 'center',
                       }}>
                         {cat.count}
                       </span>

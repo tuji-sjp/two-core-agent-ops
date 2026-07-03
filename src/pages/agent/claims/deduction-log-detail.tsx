@@ -4,8 +4,6 @@ import { Tag, Table, Pagination, message } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   ArrowLeftOutlined, CopyOutlined,
-  ShareAltOutlined, SafetyOutlined,
-  AppstoreOutlined,
 } from '@ant-design/icons'
 import { getFeeItems, getBillHeader, getMbStandardize, getMbDeduct, getUnreasonableGroups, type FeeItem, type FeeResult, type NodeStatus, type DecisionChain } from './deduction-log-detail-data'
 
@@ -18,20 +16,133 @@ import icoClause from '../../../assets/icons/商保控费-条款知识判定模�
 import icoOutput from '../../../assets/icons/输出标化模块.svg?raw'
 import icoMbStd from '../../../assets/icons/医保剔费-项目标化模块.svg?raw'
 import icoMbDed from '../../../assets/icons/医保剔费-项目剔费模块.svg?raw'
+import icoAllItems from '../../../assets/icons/全部项目.svg?raw'
+import icoRisk from '../../../assets/icons/风控模块.svg?raw'
+import icoShareState from '../../../assets/icons/共享状态.svg?raw'
+
+// SVG path 解析器：正确处理绝对/相对坐标、所有命令（M/L/H/V/C/S/Q/T/A/Z）和隐式重复
+// 返回所有锚点（含控制点）的 x/y 数组，用于计算 bounding box
+function parsePath(d: string): { xs: number[]; ys: number[] } {
+  const xs: number[] = []
+  const ys: number[] = []
+  const tokens: (string | number)[] = []
+  const re = /([MmLlHhVvCcSsQqTtAaZz])|(-?\d*\.?\d+(?:[eE][-+]?\d+)?)/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(d)) !== null) {
+    if (m[1]) tokens.push(m[1])
+    else tokens.push(parseFloat(m[2]))
+  }
+  let i = 0
+  let curX = 0, curY = 0, startX = 0, startY = 0, cmd = ''
+  const readNum = (): number => (i < tokens.length && typeof tokens[i] === 'number' ? tokens[i++] as number : 0)
+  while (i < tokens.length) {
+    if (typeof tokens[i] === 'string') { cmd = tokens[i++] as string }
+    if (!cmd) break
+    const upper = cmd.toUpperCase()
+    const rel = cmd !== upper
+    while (i < tokens.length && typeof tokens[i] === 'number') {
+      if (upper === 'M') {
+        const ox = readNum(), oy = readNum()
+        curX = rel ? curX + ox : ox; curY = rel ? curY + oy : oy
+        xs.push(curX); ys.push(curY)
+        startX = curX; startY = curY
+        cmd = rel ? 'l' : 'L'
+      } else if (upper === 'L' || upper === 'T') {
+        const ox = readNum(), oy = readNum()
+        curX = rel ? curX + ox : ox; curY = rel ? curY + oy : oy
+        xs.push(curX); ys.push(curY)
+      } else if (upper === 'H') {
+        const ox = readNum()
+        curX = rel ? curX + ox : ox
+        xs.push(curX); ys.push(curY)
+      } else if (upper === 'V') {
+        const oy = readNum()
+        curY = rel ? curY + oy : oy
+        xs.push(curX); ys.push(curY)
+      } else if (upper === 'C') {
+        const ox1 = readNum(), oy1 = readNum(), ox2 = readNum(), oy2 = readNum(), ox = readNum(), oy = readNum()
+        if (rel) {
+          xs.push(curX + ox1, curX + ox2, curX + ox); ys.push(curY + oy1, curY + oy2, curY + oy)
+          curX += ox; curY += oy
+        } else {
+          xs.push(ox1, ox2, ox); ys.push(oy1, oy2, oy)
+          curX = ox; curY = oy
+        }
+      } else if (upper === 'S' || upper === 'Q') {
+        const ox1 = readNum(), oy1 = readNum(), ox = readNum(), oy = readNum()
+        if (rel) {
+          xs.push(curX + ox1, curX + ox); ys.push(curY + oy1, curY + oy)
+          curX += ox; curY += oy
+        } else {
+          xs.push(ox1, ox); ys.push(oy1, oy)
+          curX = ox; curY = oy
+        }
+      } else if (upper === 'A') {
+        readNum(); readNum(); readNum(); readNum(); readNum()
+        const ox = readNum(), oy = readNum()
+        curX = rel ? curX + ox : ox; curY = rel ? curY + oy : oy
+        xs.push(curX); ys.push(curY)
+      } else if (upper === 'Z') {
+        curX = startX; curY = startY
+        xs.push(curX); ys.push(curY)
+        break
+      } else break
+    }
+  }
+  return { xs, ys }
+}
 
 // Icon 组件：traced SVG 通过 ?raw 内联，颜色/大小通过 CSS 控制
-const Icon: React.FC<{ src: string; color: string; size?: number }> = ({ src, color, size = 14 }) => {
+// 自动解析 path 的真实内容 bounding box（支持绝对/相对坐标），重映射 viewBox 让内容充满容器
+const Icon: React.FC<{ src: string; color: string; size?: number; fillRatio?: number }> = ({ src, color, size = 14, fillRatio = 0.95 }) => {
   const html = useMemo(() => {
     let s = src.replace(/^﻿/, '')
+
+    // 用完整 path parser 计算所有 <path d="..."> 的内容边界框
+    const allXs: number[] = []
+    const allYs: number[] = []
+    const dRegex = /\bd="([^"]+)"/g
+    let m: RegExpExecArray | null
+    while ((m = dRegex.exec(s)) !== null) {
+      const { xs, ys } = parsePath(m[1])
+      allXs.push(...xs)
+      allYs.push(...ys)
+    }
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    for (const x of allXs) { if (x < minX) minX = x; if (x > maxX) maxX = x }
+    for (const y of allYs) { if (y < minY) minY = y; if (y > maxY) maxY = y }
+
+    // 计算新 viewBox：让内容占容器的 fillRatio（默认 95%），保持正方形
+    let finalViewBox: string | undefined
+    if (isFinite(minX) && isFinite(maxX) && maxX > minX && maxY > minY) {
+      const cw = maxX - minX
+      const ch = maxY - minY
+      const maxDim = Math.max(cw, ch)
+      const half = maxDim / (2 * fillRatio)
+      const cx = (minX + maxX) / 2
+      const cy = (minY + maxY) / 2
+      const vbSize = maxDim / fillRatio
+      finalViewBox = `${cx - half} ${cy - half} ${vbSize} ${vbSize}`
+    }
+
+    let svgAttrs = ''
     s = s.replace(/<svg\b([^>]*)>/, (_, attrs: string) => {
-      let a = attrs
+      svgAttrs = attrs
+      return ''
+    })
+    if (svgAttrs) {
+      let a = svgAttrs
         .replace(/\s*width="[^"]*"/, '')
         .replace(/\s*height="[^"]*"/, '')
-      return `<svg${a} width="1em" height="1em">`
-    })
+        .replace(/\s*viewBox="[^"]*"/, '')
+      const vb = finalViewBox ? ` viewBox="${finalViewBox}"` : ''
+      s = `<svg${a}${vb} width="1em" height="1em">` + s
+    }
+
     s = s.replace(/fill="[^"]+"/g, 'fill="currentColor"')
+    s = s.replace(/stroke="[^"]+"/g, 'stroke="currentColor"')
     return s
-  }, [src])
+  }, [src, fillRatio])
   return (
     <span
       style={{ fontSize: size, color, display: 'inline-flex', lineHeight: 1, flexShrink: 0 }}
@@ -234,13 +345,13 @@ const Connector: React.FC<{ label?: string }> = ({ label }) => (
   </div>
 )
 
-const EndPoint: React.FC<{ label: string }> = ({ label }) => (
+const EndPoint: React.FC<{ label: string; fillRatio?: number }> = ({ label, fillRatio }) => (
   <div style={{
     display: 'inline-flex', alignItems: 'center', gap: 6,
     border: '1px solid #3b82f640', background: '#eff6ff',
     borderRadius: 20, padding: '6px 16px',
   }}>
-    {<Icon src={label === '开始' ? icoStart : icoEnd} color="#3b82f6" />}
+    {<Icon src={label === '开始' ? icoStart : icoEnd} color="#3b82f6" fillRatio={fillRatio} />}
     <span style={{ fontSize: 14, fontWeight: 500, color: '#3b82f6' }}>{label}</span>
   </div>
 )
@@ -263,13 +374,13 @@ const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
           width: 36, height: 36, borderRadius: '50%', background: '#fee2e2',
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
         }}>
-          <ShareAltOutlined style={{ color: '#dc2626', fontSize: 14 }} />
+          <Icon src={icoShareState} color="#dc2626" size={18} />
         </div>
         <div style={{ fontSize: 14, fontWeight: 600, color: '#dc2626' }}>共享状态</div>
         <div style={{ fontSize: 12, color: '#dc2626cc', lineHeight: 1.5 }}>Shared State（记忆）<br />各节点读写中间结论</div>
       </div>
 
-      <EndPoint label="开始" />
+      <EndPoint label="开始" fillRatio={0.85} />
       <Connector />
 
       <ChainNodeCard icon={<Icon src={icoMbStd} color="#1f2937" />} title="医保剔费-项目标化模块" subtitle="调用HIDS接口获取TopN推荐项，基于作业标化逻辑选择最优标化项目" status={mbS.status}
@@ -308,7 +419,7 @@ const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
       <Connector />
 
       <ChainNodeCard
-        icon={<SafetyOutlined style={{ color: '#1f2937', fontSize: 14 }} />} title="风控模块" subtitle="识别项目风险项、判定当前项目是否需要流转人工复核"
+        icon={<Icon src={icoRisk} color="#1f2937" />} title="风控模块" subtitle="识别项目风险项、判定当前项目是否需要流转人工复核"
         status={c.risk.status}
         badges={c.risk.status === 'hit'
           ? <Tag color="error" style={{ borderRadius: 6, minWidth: 50, textAlign: 'center', fontSize: 12, fontWeight: 500 }}>转人工</Tag>
@@ -593,7 +704,7 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
                   >
                     {mode === 'unreasonable'
                       ? <Icon src={icoUnreasonable} color={sidebarMode === mode ? '#fff' : '#6b7280'} />
-                      : <AppstoreOutlined style={{ color: sidebarMode === mode ? '#fff' : '#6b7280', fontSize: 14 }} />}
+                      : <Icon src={icoAllItems} color={sidebarMode === mode ? '#fff' : '#6b7280'} />}
                     {mode === 'unreasonable' ? '不合理类型' : '全部项目'}
                   </div>
                 ))}
