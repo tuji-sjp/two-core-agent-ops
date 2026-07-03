@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { Row, Col } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { skillContentMap } from '../skill-detail'
@@ -11,6 +11,7 @@ import {
   PlusOutlined,
   CloseOutlined,
   DeleteOutlined,
+  CheckCircleFilled,
 } from '@ant-design/icons'
 
 // ==================== 使用案例数据 ====================
@@ -267,6 +268,9 @@ const SharedSkillsMarket: React.FC = () => {
   const [newSkill, setNewSkill] = useState<NewSkillForm>(emptyNewSkill)
   // 上次「保存」的草稿，重新打开弹窗时恢复；取消时回退到此状态
   const [savedDraft, setSavedDraft] = useState<NewSkillForm>(emptyNewSkill)
+  // 保存成功提示弹窗
+  const [showSaveToast, setShowSaveToast] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navigate = useNavigate()
 
   const toggleLike = (name: string) => {
@@ -328,12 +332,35 @@ const SharedSkillsMarket: React.FC = () => {
     setNewSkill(savedDraft)
   }
 
-  // 保存：校验同名 → 保存详情页内容 + 更新草稿，不创建卡片，不跳转
+  // 保存：校验 → 保存内容 + 显示提示弹窗 → 2.5秒后关闭所有弹窗（悬停暂停）
   const handleSave = () => {
     if (!newSkill.name.trim()) { alert('请填写Skill名称'); return }
     if (allSkills.some(s => s.name === newSkill.name.trim())) { alert('已存在同名Skill，请修改名称'); return }
     saveContent()
     setSavedDraft(newSkill)
+    setShowSaveToast(true)
+    timerRef.current = setTimeout(() => {
+      setShowSaveToast(false)
+      setShowPublishModal(false)
+    }, 2500)
+  }
+
+  // 鼠标悬停暂停倒计时
+  const handleMouseEnter = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+  }
+
+  // 鼠标离开恢复倒计时
+  const handleMouseLeave = () => {
+    if (showSaveToast && !timerRef.current) {
+      timerRef.current = setTimeout(() => {
+        setShowSaveToast(false)
+        setShowPublishModal(false)
+      }, 1500)
+    }
   }
 
   // 提交审核：完整校验 → 保存内容 + 创建卡片 + 跳转详情页
@@ -581,10 +608,10 @@ const SharedSkillsMarket: React.FC = () => {
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
                   <input value={v.version} onChange={e => {
                     const nv = [...newSkill.versions]; nv[i] = { ...nv[i], version: e.target.value }; updateField('versions', nv)
-                  }} placeholder="版本号" style={{ width: 100, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
+                  }} placeholder="版本号" style={{ width: 140, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
                   <input value={v.date} onChange={e => {
                     const nv = [...newSkill.versions]; nv[i] = { ...nv[i], date: e.target.value }; updateField('versions', nv)
-                  }} placeholder="日期" style={{ width: 130, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
+                  }} placeholder="日期" style={{ width: 160, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
                   <input value={v.changes} onChange={e => {
                     const nv = [...newSkill.versions]; nv[i] = { ...nv[i], changes: e.target.value }; updateField('versions', nv)
                   }} placeholder="更新内容" style={{ flex: 1, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
@@ -598,9 +625,9 @@ const SharedSkillsMarket: React.FC = () => {
               <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>API 参考 <span style={{ color: '#ff4d4f' }}>*</span></div>
               {newSkill.apis.map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
-                  <input value={item.api} onChange={e => { const na = [...newSkill.apis]; na[i] = { ...na[i], api: e.target.value }; updateField('apis', na) }} placeholder="接口名" style={{ width: 150, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
-                  <input value={item.desc} onChange={e => { const na = [...newSkill.apis]; na[i] = { ...na[i], desc: e.target.value }; updateField('apis', na) }} placeholder="功能描述" style={{ width: 130, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
-                  <input value={item.fields} onChange={e => { const na = [...newSkill.apis]; na[i] = { ...na[i], fields: e.target.value }; updateField('apis', na) }} placeholder="返回字段" style={{ flex: 1, padding: '6px 10px', fontSize: 11, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
+                  <input value={item.api} onChange={e => { const na = [...newSkill.apis]; na[i] = { ...na[i], api: e.target.value }; updateField('apis', na) }} placeholder="接口名" style={{ width: 140, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
+                  <input value={item.desc} onChange={e => { const na = [...newSkill.apis]; na[i] = { ...na[i], desc: e.target.value }; updateField('apis', na) }} placeholder="功能描述" style={{ width: 160, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
+                  <input value={item.fields} onChange={e => { const na = [...newSkill.apis]; na[i] = { ...na[i], fields: e.target.value }; updateField('apis', na) }} placeholder="返回字段" style={{ flex: 1, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
                   <button onClick={() => updateField('apis', newSkill.apis.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}><DeleteOutlined /></button>
                 </div>
               ))}
@@ -612,7 +639,7 @@ const SharedSkillsMarket: React.FC = () => {
               <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>错误码 <span style={{ color: '#ff4d4f' }}>*</span></div>
               {newSkill.errors.map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
-                  <input value={item.code} onChange={e => { const ne = [...newSkill.errors]; ne[i] = { ...ne[i], code: e.target.value }; updateField('errors', ne) }} placeholder="错误码" style={{ width: 120, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
+                  <input value={item.code} onChange={e => { const ne = [...newSkill.errors]; ne[i] = { ...ne[i], code: e.target.value }; updateField('errors', ne) }} placeholder="错误码" style={{ width: 140, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6, fontFamily: 'monospace' }} />
                   <input value={item.desc} onChange={e => { const ne = [...newSkill.errors]; ne[i] = { ...ne[i], desc: e.target.value }; updateField('errors', ne) }} placeholder="描述" style={{ width: 160, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
                   <input value={item.solution} onChange={e => { const ne = [...newSkill.errors]; ne[i] = { ...ne[i], solution: e.target.value }; updateField('errors', ne) }} placeholder="解决方案" style={{ flex: 1, padding: '6px 10px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 6 }} />
                   <button onClick={() => updateField('errors', newSkill.errors.filter((_, j) => j !== i))} style={{ padding: 4, border: 'none', background: 'transparent', color: '#ff4d4f', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}><DeleteOutlined /></button>
@@ -626,6 +653,36 @@ const SharedSkillsMarket: React.FC = () => {
               <button onClick={handleCancel} style={{ padding: '6px 16px', border: '1px solid #d9d9d9', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>取消</button>
               <button onClick={handleSave} style={{ padding: '6px 16px', border: '1px solid #d9d9d9', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>保存</button>
               <button onClick={handleSubmit} style={{ padding: '6px 16px', border: 'none', borderRadius: 6, background: '#3b82f6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>提交审核</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 保存成功提示弹窗 */}
+      {showSaveToast && (
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.35)',
+            zIndex: 1100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <div
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            style={{
+              background: '#fff', borderRadius: 16, padding: '24px 20px', width: 360,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08)',
+              textAlign: 'center',
+              transform: 'translateY(-20px)',
+              pointerEvents: 'auto',
+            }}
+          >
+            <CheckCircleFilled style={{ fontSize: 36, color: '#52c41a', marginBottom: 10 }} />
+            <div style={{ fontSize: 15, color: '#1f2937', fontWeight: 500, lineHeight: 1.6 }}>
+              编辑内容已保存，即将关闭“发布新Skill”弹窗。
             </div>
           </div>
         </div>

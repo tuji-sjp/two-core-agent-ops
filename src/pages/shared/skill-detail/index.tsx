@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { ArrowLeftOutlined, EditOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons'
 import { allSkills, mySkills } from '../skills'
 
@@ -924,6 +924,7 @@ const defaultSkill: SkillContent = skillContentMap['票据OCR识别']
 
 const SkillDetail: React.FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { name, version } = useParams()
   const [activeSection, setActiveSection] = useState('overview')
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
@@ -940,11 +941,21 @@ const SkillDetail: React.FC = () => {
   // 按版本参数查找内容：版本参数指向最新版本时等同于无版本参数，直接取完整内容
   const latestContent = skillContentMap[currentName] || defaultSkill
   const latestVersion = latestContent.versions[0]?.version || ''
-  const content = isEditing && editContent
-    ? editContent
-    : (currentVersion && currentVersion !== latestVersion)
-    ? buildVersionContent(latestContent, currentVersion)
-    : latestContent
+
+  // 用 state 存储 viewingVersion，在 useEffect 中根据 URL 变化同步更新
+  const [viewingVersion, setViewingVersion] = useState(currentVersion || latestContent.currentVersion || latestVersion)
+  useEffect(() => {
+    const newViewingVersion = currentVersion || latestContent.currentVersion || latestVersion
+    setViewingVersion(newViewingVersion)
+  }, [location.pathname, currentVersion, latestContent.currentVersion, latestVersion])
+
+  const content = React.useMemo(() => {
+    if (isEditing && editContent) return editContent
+    if (viewingVersion && viewingVersion !== latestVersion) {
+      return buildVersionContent(latestContent, viewingVersion)
+    }
+    return { ...latestContent, versions: [...latestContent.versions] }
+  }, [isEditing, editContent, viewingVersion, latestVersion, latestContent])
 
   const skillData = {
     name: currentName,
@@ -952,11 +963,12 @@ const SkillDetail: React.FC = () => {
     category: content.category[0] || '',
     description: content.overview,
   }
-
-  // 当前正在查看的版本（URL 参数或默认最新版本）
-  const viewingVersion = currentVersion || latestContent.versions[0]?.version || ''
   // 卡片点击选中的版本（独立状态，用于高亮反馈）
   const [selectedVersion, setSelectedVersion] = useState<string | null>(viewingVersion)
+  // 同步 selectedVersion 和 viewingVersion（URL 变化时更新）
+  useEffect(() => {
+    setSelectedVersion(viewingVersion)
+  }, [viewingVersion])
   // 版本降序排列（最新在前），供右侧版本栏展示
   const sortedVersions = [...latestContent.versions].sort((a, b) => {
     const va = a.version.replace(/[vV]/g, '').split('.').map(Number)
@@ -1201,11 +1213,12 @@ const SkillDetail: React.FC = () => {
       )}
 
       {/* 两栏布局：左侧主内容 + 右侧版本历史 */}
-      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+      <div key={location.pathname} style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         {/* 左侧主内容 */}
         <div style={{ flex: 1, minWidth: 0 }}>
       {/* 概述 */}
       <section
+        key={`overview-${viewingVersion}`}
         id="overview"
         ref={el => { sectionRefs.current['overview'] = el }}
         style={{
@@ -1305,6 +1318,7 @@ const SkillDetail: React.FC = () => {
 
       {/* SKILL.md */}
       <section
+        key={`skillmd-${viewingVersion}`}
         id="best-practices"
         ref={el => { sectionRefs.current['best-practices'] = el }}
         style={{
@@ -1349,6 +1363,7 @@ const SkillDetail: React.FC = () => {
 
       {/* API参考 */}
       <section
+        key={`api-${viewingVersion}`}
         id="api"
         ref={el => { sectionRefs.current['api'] = el }}
         style={{
@@ -1565,7 +1580,12 @@ const SkillDetail: React.FC = () => {
                   return (
                     <div
                       key={v.version}
-                      onClick={() => { setSelectedVersion(v.version); if (!isCurrent) navigate(`/skills/skill/${encodeURIComponent(name || '')}/${encodeURIComponent(v.version)}`) }}
+                      onClick={() => {
+                        setSelectedVersion(v.version)
+                        if (v.version !== viewingVersion) {
+                          navigate(`/skills/skill/${encodeURIComponent(name || '')}/${encodeURIComponent(v.version)}`)
+                        }
+                      }}
                       style={{
                         borderRadius: 8,
                         padding: 14,
