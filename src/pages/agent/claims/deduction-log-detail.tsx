@@ -5,7 +5,7 @@ import type { ColumnsType } from 'antd/es/table'
 import {
   ArrowLeftOutlined, CopyOutlined,
 } from '@ant-design/icons'
-import { getFeeItems, getBillHeader, getMbStandardize, getMbDeduct, getUnreasonableGroups, type FeeItem, type FeeResult, type NodeStatus, type DecisionChain } from './deduction-log-detail-data'
+import { getFeeItems, getBillHeader, getMbStandardize, getMbDeduct, getMbStandardizeData, getMbDeductData, getRuleData, getClauseData, getRiskData, getOutputData, getUnreasonableGroups, type FeeItem, type FeeResult, type NodeStatus, type DecisionChain, type StandardizeRow, type DeductRow, type RuleRow, type ClauseRow, type RiskRow, type OutputRow } from './deduction-log-detail-data'
 
 import icoUnreasonable from '../../../assets/icons/不合理类型.svg?raw'
 import icoEnd from '../../../assets/icons/结束.svg?raw'
@@ -197,8 +197,9 @@ const ChainNodeCard: React.FC<{
   status: NodeStatus
   badges?: React.ReactNode
   popupContent?: React.ReactNode
+  popupWidth?: number
   children?: React.ReactNode | ((onSubNodeClick: (sub: { name: string; status: NodeStatus; conclusion: string }) => void) => React.ReactNode)
-}> = ({ icon, title, subtitle, status, badges, popupContent, children }) => {
+}> = ({ icon, title, subtitle, status, badges, popupContent, popupWidth = 300, children }) => {
   const meta = statusMeta(status)
   const [open, setOpen] = useState(false)
   const [activeSubNode, setActiveSubNode] = useState<{ name: string; status: NodeStatus; conclusion: string } | null>(null)
@@ -259,7 +260,7 @@ const ChainNodeCard: React.FC<{
       {open && hasPopup && (
         <div style={{
           position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)',
-          marginRight: 12, zIndex: 100, width: 280,
+          marginRight: 12, zIndex: 100, width: popupWidth,
         }} onClick={e => e.stopPropagation()}>
           <div style={{
             background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
@@ -274,7 +275,7 @@ const ChainNodeCard: React.FC<{
                 borderRadius: 4, padding: '1px 6px',
               }}>{meta.label}</span>
             </div>
-            <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.6 }}>
+            <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.6, wordBreak: 'break-word' }}>
               {popupContent}
             </div>
           </div>
@@ -356,6 +357,115 @@ const EndPoint: React.FC<{ label: string; fillRatio?: number }> = ({ label, fill
   </div>
 )
 
+/** 医保剔费-项目标化模块弹窗 */
+const StandardizeTable: React.FC<{ row: StandardizeRow }> = ({ row }) => {
+  const labelStyle: React.CSSProperties = { fontWeight: 700, color: '#1f2937', whiteSpace: 'nowrap' }
+  const valueStyle: React.CSSProperties = { color: '#4b5563' }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, lineHeight: 1.6 }}>
+      <div><span style={labelStyle}>序号：</span><span style={valueStyle}>{String(row.no).padStart(4, '0')}</span></div>
+      <div><span style={labelStyle}>原始清单项目：</span><span style={valueStyle}>{row.originalItem}</span></div>
+      <div><span style={labelStyle}>泰康标准项编码：</span><span style={valueStyle}>{row.tkCode}</span></div>
+      <div><span style={labelStyle}>泰康标准项名称：</span><span style={valueStyle}>{row.tkName}</span></div>
+      <div><span style={labelStyle}>商保控费标签：</span><span style={valueStyle}>{row.controlTag}</span></div>
+      <div><span style={labelStyle}>LLM择优说明：</span><span style={valueStyle}>{row.llmReason}</span></div>
+      <div><span style={labelStyle}>置信度：</span><span style={valueStyle}>{(row.confidence * 100).toFixed(0)}%</span></div>
+      <div>
+        <span style={labelStyle}>HIDS标化推荐列表：</span>
+        <div style={{ ...valueStyle, display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2 }}>
+          {row.hidsList.map((h, i) => (
+            <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ width: 16, height: 16, borderRadius: '50%', background: i === 0 ? '#dcfce7' : '#f3f4f6', color: i === 0 ? '#16a34a' : '#6b7280', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 }}>{i + 1}</span>
+              {h}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** 医保剔费-项目剔费模块弹窗 */
+const DeductTable: React.FC<{ row: DeductRow }> = ({ row }) => {
+  const labelStyle: React.CSSProperties = { fontWeight: 700, color: '#1f2937', whiteSpace: 'nowrap' }
+  const valueStyle: React.CSSProperties = { color: '#4b5563' }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, lineHeight: 1.6 }}>
+      <div><span style={labelStyle}>序号：</span><span style={valueStyle}>{String(row.no).padStart(4, '0')}</span></div>
+      <div><span style={labelStyle}>原始清单项目：</span><span style={valueStyle}>{row.originalItem}</span></div>
+      <div><span style={labelStyle}>泰康标准项名称：</span><span style={valueStyle}>{row.tkName}</span></div>
+      <div><span style={labelStyle}>自付比例：</span><span style={valueStyle}>{row.selfPayRatio}</span></div>
+      <div><span style={labelStyle}>自费金额：</span><span style={valueStyle}>¥{row.selfPayAmount.toFixed(2)}</span></div>
+      <div><span style={labelStyle}>医保属性：</span><span style={valueStyle}>{row.insuranceAttr}</span></div>
+      <div><span style={labelStyle}>项目类型：</span><span style={valueStyle}>{row.projectType}</span></div>
+    </div>
+  )
+}
+
+/** 商保控费-规则知识判定模块弹窗 */
+const RuleTable: React.FC<{ row: RuleRow }> = ({ row }) => {
+  const labelStyle: React.CSSProperties = { fontWeight: 700, color: '#1f2937', whiteSpace: 'nowrap' }
+  const valueStyle: React.CSSProperties = { color: '#4b5563' }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, lineHeight: 1.6 }}>
+      <div><span style={labelStyle}>序号：</span><span style={valueStyle}>{String(row.no).padStart(4, '0')}</span></div>
+      <div><span style={labelStyle}>原始清单项目：</span><span style={valueStyle}>{row.originalItem}</span></div>
+      <div><span style={labelStyle}>泰康标准项名称：</span><span style={valueStyle}>{row.tkName}</span></div>
+      <div><span style={labelStyle}>命中知识名称：</span><span style={valueStyle}>{row.hitKnowledge}</span></div>
+      <div><span style={labelStyle}>是否扣除：</span><span style={{ ...valueStyle, color: row.isDeducted ? '#d97706' : '#16a34a', fontWeight: 500 }}>{row.isDeducted ? '是' : '否'}</span></div>
+      <div><span style={labelStyle}>不合理类型：</span><span style={valueStyle}>{row.unreasonableType}</span></div>
+      <div><span style={labelStyle}>判定理由：</span><span style={valueStyle}>{row.reason}</span></div>
+    </div>
+  )
+}
+
+/** 商保控费-条款知识判定模块弹窗 */
+const ClauseTable: React.FC<{ row: ClauseRow }> = ({ row }) => {
+  const labelStyle: React.CSSProperties = { fontWeight: 700, color: '#1f2937', whiteSpace: 'nowrap' }
+  const valueStyle: React.CSSProperties = { color: '#4b5563' }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, lineHeight: 1.6 }}>
+      <div><span style={labelStyle}>序号：</span><span style={valueStyle}>{String(row.no).padStart(4, '0')}</span></div>
+      <div><span style={labelStyle}>原始清单项目：</span><span style={valueStyle}>{row.originalItem}</span></div>
+      <div><span style={labelStyle}>泰康标准项名称：</span><span style={valueStyle}>{row.tkName}</span></div>
+      <div><span style={labelStyle}>不合理类型：</span><span style={valueStyle}>{row.unreasonableType}</span></div>
+      <div><span style={labelStyle}>条款分析摘要：</span><span style={valueStyle}>{row.clauseSummary}</span></div>
+      <div>
+        <span style={labelStyle}>判定逻辑：</span>
+        <div style={{ ...valueStyle, marginTop: 2, whiteSpace: 'pre-line' }}>{row.logic}</div>
+      </div>
+      <div><span style={labelStyle}>引用条款内容：</span><span style={valueStyle}>{row.clauseContent}</span></div>
+    </div>
+  )
+}
+
+/** 风控模块弹窗 */
+const RiskTable: React.FC<{ row: RiskRow }> = ({ row }) => {
+  const labelStyle: React.CSSProperties = { fontWeight: 700, color: '#1f2937', whiteSpace: 'nowrap' }
+  const valueStyle: React.CSSProperties = { color: '#4b5563' }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, lineHeight: 1.6 }}>
+      <div><span style={labelStyle}>序号：</span><span style={valueStyle}>{String(row.no).padStart(4, '0')}</span></div>
+      <div><span style={labelStyle}>原始清单项目：</span><span style={valueStyle}>{row.originalItem}</span></div>
+      <div><span style={labelStyle}>风控理由：</span><span style={valueStyle}>{row.riskReason}</span></div>
+    </div>
+  )
+}
+
+/** 输出标化模块弹窗 */
+const OutputTable: React.FC<{ row: OutputRow }> = ({ row }) => {
+  const labelStyle: React.CSSProperties = { fontWeight: 700, color: '#1f2937', whiteSpace: 'nowrap' }
+  const valueStyle: React.CSSProperties = { color: '#4b5563' }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, lineHeight: 1.6 }}>
+      <div><span style={labelStyle}>序号：</span><span style={valueStyle}>{String(row.no).padStart(4, '0')}</span></div>
+      <div><span style={labelStyle}>原始清单项目：</span><span style={valueStyle}>{row.originalItem}</span></div>
+      <div><span style={labelStyle}>不合理类型：</span><span style={valueStyle}>{row.unreasonableType}</span></div>
+      <div><span style={labelStyle}>判定依据：</span><span style={valueStyle}>{row.basis}</span></div>
+    </div>
+  )
+}
+
 const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
   const c: DecisionChain = item.chain
   const mbS = getMbStandardize(item)
@@ -384,17 +494,17 @@ const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
       <Connector />
 
       <ChainNodeCard icon={<Icon src={icoMbStd} color="#1f2937" />} title="医保剔费-项目标化模块" subtitle="调用HIDS接口获取TopN推荐项，基于作业标化逻辑选择最优标化项目" status={mbS.status}
-        popupContent={mbS.conclusion}
+        popupContent={<StandardizeTable row={getMbStandardizeData(item)} />}
       />
       <Connector />
 
       <ChainNodeCard icon={<Icon src={icoMbDed} color="#1f2937" />} title="医保剔费-项目剔费模块" subtitle="基于选择的最佳标化项目，调用MBE剔费接口获取医保剔费数据，结合案件信息识别特殊剔费场景并做针对性处理" status={mbD.status}
-        popupContent={mbD.conclusion}
+        popupContent={<DeductTable row={getMbDeductData(item)} />}
       />
       <Connector />
 
       <ChainNodeCard icon={<Icon src={icoRule} color="#1f2937" />} title="商保控费-规则知识判定模块" subtitle="基于扣费知识体系，对费用项目进行合理性判定" status={c.rule.status}
-        popupContent={c.rule.conclusion}
+        popupContent={<RuleTable row={getRuleData(item)} />}
       >
         {(handleSubNodeClick: (sub: { name: string; status: NodeStatus; conclusion: string }) => void) => (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 12px 12px' }}>
@@ -409,7 +519,7 @@ const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
         subtitle="结合条款知识，对费用项目进行合理性判定"
         status={c.clause.status}
         badges={c.clause.reflected ? <span style={{ fontSize: 12, fontWeight: 500, color: '#3b82f6', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 4, padding: '2px 8px' }}> 触发反省 · 二次校验</span> : undefined}
-        popupContent={c.clause.conclusion}
+        popupContent={<ClauseTable row={getClauseData(item)} />}
       />
       {c.clause.reflected && (
         <div style={{ marginTop: 4, fontSize: 12, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -424,12 +534,12 @@ const DecisionChainView: React.FC<{ item: FeeItem }> = ({ item }) => {
         badges={c.risk.status === 'hit'
           ? <Tag color="error" style={{ borderRadius: 6, minWidth: 50, textAlign: 'center', fontSize: 12, fontWeight: 500 }}>转人工</Tag>
           : <Tag style={{ borderRadius: 6, minWidth: 50, textAlign: 'center', fontSize: 12, fontWeight: 500, color: '#6a727d' }}>无风险</Tag>}
-        popupContent={c.risk.conclusion}
+        popupContent={<RiskTable row={getRiskData(item)} />}
       />
       <Connector />
 
       <ChainNodeCard icon={<Icon src={icoOutput} color="#1f2937" />} title="输出标化模块" subtitle="汇总前面所有模块判定数据，生成标准化扣费结论" status={c.output.status}
-        popupContent={c.output.conclusion}
+        popupContent={<OutputTable row={getOutputData(item)} />}
       />
       <Connector />
       <EndPoint label="结束" />
@@ -780,11 +890,10 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
                     </div>
                     <p style={{ fontSize: 12, color: '#6b7280', margin: '6px 0 0' }}>所属分类：{selected.category}</p>
                   </div>
-                  <dl style={{ marginLeft: 'auto', display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '4px 24px' }}>
+                  <dl style={{ marginLeft: 'auto', display: 'grid', gridTemplateColumns: 'repeat(3, auto)', gap: '4px 24px' }}>
                     <div><dt style={{ fontSize: 12, color: '#6b7280' }}>单价</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>¥{selected.unitPrice}</dd></div>
                     <div><dt style={{ fontSize: 12, color: '#6b7280' }}>数量</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>{selected.quantity}{selected.spec}</dd></div>
-                    <div><dt style={{ fontSize: 12, color: '#6b7280' }}>金额</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>¥{selected.amount.toFixed(2)}</dd></div>
-                    <div><dt style={{ fontSize: 12, color: '#6b7280' }}>扣费金额</dt><dd style={{ fontSize: 12, fontWeight: 600, color: selected.deductAmount > 0 ? '#d97706' : '#1f2937', margin: 0 }}>¥{selected.deductAmount.toFixed(2)}</dd></div>
+                    <div><dt style={{ fontSize: 12, color: '#6b7280' }}>总金额</dt><dd style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', margin: 0 }}>¥{selected.amount.toFixed(2)}</dd></div>
                   </dl>
                 </div>
               </div>
