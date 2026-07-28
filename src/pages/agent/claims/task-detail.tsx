@@ -183,9 +183,16 @@ const GROUPS_STRUCTURE = [
             ],
           },
           {
-            name: '票据组',
+            name: '票据组1',
             children: [
               { name: '医疗票据' },
+              { name: '费用清单' },
+              { name: '结算单' },
+            ],
+          },
+          {
+            name: '票据组2',
+            children: [
               { name: '增值税发票' },
               { name: '费用清单' },
               { name: '结算单' },
@@ -203,9 +210,16 @@ const GROUPS_STRUCTURE = [
             ],
           },
           {
-            name: '票据组',
+            name: '票据组1',
             children: [
               { name: '医疗票据' },
+              { name: '费用清单' },
+              { name: '结算单' },
+            ],
+          },
+          {
+            name: '票据组2',
+            children: [
               { name: '增值税发票' },
               { name: '费用清单' },
               { name: '结算单' },
@@ -254,7 +268,7 @@ const GROUPS_STRUCTURE = [
   },
 ]
 
-const TABS = ['影像展示', '引擎结果', 'LIC系统响应']
+const TABS = ['引擎结果', '影像展示']
 
 // 标签类型与配色
 const TAG_TYPES = ['重复', '切割', '矫正'] as const
@@ -286,45 +300,48 @@ function assignTags(images: { name: string; category: string; group: string }[])
 
 // 模拟图片数据
 const IMAGES: { name: string; category: string; group: string }[] = [
+  // 住院组
+  { name: '出院小结', category: '出院小结', group: '住院组' },
   { name: '出院小结', category: '出院小结', group: '住院组' },
   { name: '出院小结', category: '出院小结', group: '住院组' },
   { name: '诊断证明', category: '诊断证明', group: '住院组' },
   { name: '诊断证明', category: '诊断证明', group: '住院组' },
+  { name: '诊断证明', category: '诊断证明', group: '住院组' },
+  { name: '诊断证明', category: '诊断证明', group: '住院组' },
   { name: '医疗票据', category: '医疗票据', group: '住院组' },
   { name: '医疗票据', category: '医疗票据', group: '住院组' },
-  { name: '增值税发票', category: '增值税发票', group: '住院组' },
+  { name: '医疗票据', category: '医疗票据', group: '住院组' },
   { name: '增值税发票', category: '增值税发票', group: '住院组' },
   { name: '费用清单', category: '费用清单', group: '住院组' },
   { name: '费用清单', category: '费用清单', group: '住院组' },
   { name: '结算单', category: '结算单', group: '住院组' },
   { name: '结算单', category: '结算单', group: '住院组' },
+  { name: '结算单', category: '结算单', group: '住院组' },
+  { name: '结算单', category: '结算单', group: '住院组' },
+  { name: '结算单', category: '结算单', group: '住院组' },
+  // 门诊组
+  { name: '门诊病历', category: '门诊病历', group: '门诊组' },
   { name: '门诊病历', category: '门诊病历', group: '门诊组' },
   { name: '门诊病历', category: '门诊病历', group: '门诊组' },
   { name: '医疗票据', category: '医疗票据', group: '门诊组' },
-  { name: '医疗票据', category: '医疗票据', group: '门诊组' },
+  { name: '增值税发票', category: '增值税发票', group: '门诊组' },
   { name: '增值税发票', category: '增值税发票', group: '门诊组' },
   { name: '增值税发票', category: '增值税发票', group: '门诊组' },
   { name: '费用清单', category: '费用清单', group: '门诊组' },
-  { name: '费用清单', category: '费用清单', group: '门诊组' },
   { name: '结算单', category: '结算单', group: '门诊组' },
   { name: '结算单', category: '结算单', group: '门诊组' },
-  { name: '出院小结', category: '出院小结', group: '待分组' },
+  // 待分组
   { name: '出院小结', category: '出院小结', group: '待分组' },
   { name: '诊断证明', category: '诊断证明', group: '待分组' },
   { name: '诊断证明', category: '诊断证明', group: '待分组' },
   { name: '门诊病历', category: '门诊病历', group: '待分组' },
-  { name: '门诊病历', category: '门诊病历', group: '待分组' },
   { name: '医疗票据', category: '医疗票据', group: '待分组' },
   { name: '医疗票据', category: '医疗票据', group: '待分组' },
-  { name: '增值税发票', category: '增值税发票', group: '待分组' },
   { name: '增值税发票', category: '增值税发票', group: '待分组' },
   { name: '费用清单', category: '费用清单', group: '待分组' },
   { name: '费用清单', category: '费用清单', group: '待分组' },
   { name: '结算单', category: '结算单', group: '待分组' },
-  { name: '结算单', category: '结算单', group: '待分组' },
-  { name: '病案首页', category: '病案首页', group: '无需分组' },
-  { name: '病案首页', category: '病案首页', group: '无需分组' },
-  { name: '病案首页', category: '病案首页', group: '无需分组' },
+  // 无需分组
   { name: '病案首页', category: '病案首页', group: '无需分组' },
   { name: '病案首页', category: '病案首页', group: '无需分组' },
   { name: '病案首页附页', category: '病案首页附页', group: '无需分组' },
@@ -332,74 +349,225 @@ const IMAGES: { name: string; category: string; group: string }[] = [
   { name: '病案首页附页', category: '病案首页附页', group: '无需分组' },
   { name: '手术记录', category: '手术记录', group: '无需分组' },
   { name: '手术记录', category: '手术记录', group: '无需分组' },
-  { name: '手术记录', category: '手术记录', group: '无需分组' },
-  { name: '手术记录', category: '手术记录', group: '无需分组' },
-  { name: '超声检查报告', category: '超声检查报告', group: '无需分组' },
   { name: '超声检查报告', category: '超声检查报告', group: '无需分组' },
   { name: '超声检查报告', category: '超声检查报告', group: '无需分组' },
   { name: '超声检查报告', category: '超声检查报告', group: '无需分组' },
   { name: '超声检查报告', category: '超声检查报告', group: '无需分组' },
   { name: 'MRI检查报告', category: 'MRI检查报告', group: '无需分组' },
-  { name: 'MRI检查报告', category: 'MRI检查报告', group: '无需分组' },
-  { name: 'MRI检查报告', category: 'MRI检查报告', group: '无需分组' },
   { name: 'CT检查报告', category: 'CT检查报告', group: '无需分组' },
   { name: 'CT检查报告', category: 'CT检查报告', group: '无需分组' },
   { name: 'CT检查报告', category: 'CT检查报告', group: '无需分组' },
-  { name: 'CT检查报告', category: 'CT检查报告', group: '无需分组' },
-  { name: '血凝检查', category: '血凝检查', group: '无需分组' },
-  { name: '血凝检查', category: '血凝检查', group: '无需分组' },
   { name: '血凝检查', category: '血凝检查', group: '无需分组' },
   { name: '血生化检查', category: '血生化检查', group: '无需分组' },
   { name: '血生化检查', category: '血生化检查', group: '无需分组' },
   { name: '血常规检查', category: '血常规检查', group: '无需分组' },
-  { name: '血常规检查', category: '血常规检查', group: '无需分组' },
-  { name: '血常规检查', category: '血常规检查', group: '无需分组' },
   { name: '心电图', category: '心电图', group: '无需分组' },
   { name: '心电图', category: '心电图', group: '无需分组' },
-  { name: '其他化验检查', category: '其他化验检查', group: '无需分组' },
-  { name: '其他化验检查', category: '其他化验检查', group: '无需分组' },
-  { name: '其他化验检查', category: '其他化验检查', group: '无需分组' },
+  { name: '心电图', category: '心电图', group: '无需分组' },
   { name: '其他化验检查', category: '其他化验检查', group: '无需分组' },
   { name: '住院证', category: '住院证', group: '无需分组' },
   { name: '住院证', category: '住院证', group: '无需分组' },
   { name: '入院记录_住院记录', category: '入院记录_住院记录', group: '无需分组' },
-  { name: '入院记录_住院记录', category: '入院记录_住院记录', group: '无需分组' },
-  { name: '理赔申请书', category: '理赔申请书', group: '无需分组' },
-  { name: '理赔申请书', category: '理赔申请书', group: '无需分组' },
   { name: '理赔申请书', category: '理赔申请书', group: '无需分组' },
   { name: '理赔须知', category: '理赔须知', group: '无需分组' },
-  { name: '理赔须知', category: '理赔须知', group: '无需分组' },
-  { name: '居民身份证', category: '居民身份证', group: '无需分组' },
-  { name: '居民身份证', category: '居民身份证', group: '无需分组' },
-  { name: '居民身份证', category: '居民身份证', group: '无需分组' },
-  { name: '居民身份证', category: '居民身份证', group: '无需分组' },
-  { name: '居民身份证', category: '居民身份证', group: '无需分组' },
-  { name: '银行卡', category: '银行卡', group: '无需分组' },
-  { name: '银行卡', category: '银行卡', group: '无需分组' },
-  { name: '其他_自然场景', category: '其他_自然场景', group: '无需分组' },
   { name: '其他_自然场景', category: '其他_自然场景', group: '无需分组' },
 ]
 
 const IMAGES_WITH_TAGS = assignTags(IMAGES)
 
-const ENGINE_RESULT_JSON = JSON.stringify({
+const ENGINE_RESULT_DATA = {
   imageList: [
+    { imageId: 180647000, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '费用清单', imageTypeDetailCode: '费用清单', imageTypeDetailProb: '0.95', imageIndex: '180647000_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647001, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '费用清单', imageTypeDetailCode: '费用清单', imageTypeDetailProb: '0.95', imageIndex: '180647001_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647002, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '费用清单', imageTypeDetailCode: '费用清单', imageTypeDetailProb: '0.95', imageIndex: '180647002_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647003, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '结算单', imageTypeDetailCode: '结算单', imageTypeDetailProb: '0.95', imageIndex: '180647003_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647004, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '结算单', imageTypeDetailCode: '结算单', imageTypeDetailProb: '0.95', imageIndex: '180647004_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647005, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '结算单', imageTypeDetailCode: '结算单', imageTypeDetailProb: '0.95', imageIndex: '180647005_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647006, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '结算单', imageTypeDetailCode: '结算单', imageTypeDetailProb: '0.95', imageIndex: '180647006_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647007, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '结算单', imageTypeDetailCode: '结算单', imageTypeDetailProb: '0.95', imageIndex: '180647007_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647008, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '结算单', imageTypeDetailCode: '结算单', imageTypeDetailProb: '0.95', imageIndex: '180647008_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647009, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '结算单', imageTypeDetailCode: '结算单', imageTypeDetailProb: '0.95', imageIndex: '180647009_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647010, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '医疗票据', imageTypeDetailCode: '医疗票据', imageTypeDetailProb: '0.95', imageIndex: '180647010_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647011, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '医疗票据', imageTypeDetailCode: '医疗票据', imageTypeDetailProb: '0.95', imageIndex: '180647011_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647012, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '医疗票据', imageTypeDetailCode: '医疗票据', imageTypeDetailProb: '0.95', imageIndex: '180647012_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647013, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '医疗票据', imageTypeDetailCode: '医疗票据', imageTypeDetailProb: '0.95', imageIndex: '180647013_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647014, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '医疗票据', imageTypeDetailCode: '医疗票据', imageTypeDetailProb: '0.95', imageIndex: '180647014_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647015, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '增值税发票', imageTypeDetailCode: '增值税发票', imageTypeDetailProb: '0.95', imageIndex: '180647015_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647016, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '增值税发票', imageTypeDetailCode: '增值税发票', imageTypeDetailProb: '0.95', imageIndex: '180647016_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647017, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '增值税发票', imageTypeDetailCode: '增值税发票', imageTypeDetailProb: '0.95', imageIndex: '180647017_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647018, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '增值税发票', imageTypeDetailCode: '增值税发票', imageTypeDetailProb: '0.95', imageIndex: '180647018_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647019, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '诊断证明', imageTypeDetailCode: '诊断证明', imageTypeDetailProb: '0.95', imageIndex: '180647019_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647020, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '诊断证明', imageTypeDetailCode: '诊断证明', imageTypeDetailProb: '0.95', imageIndex: '180647020_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647021, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '诊断证明', imageTypeDetailCode: '诊断证明', imageTypeDetailProb: '0.95', imageIndex: '180647021_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647022, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '诊断证明', imageTypeDetailCode: '诊断证明', imageTypeDetailProb: '0.95', imageIndex: '180647022_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647023, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '诊断证明', imageTypeDetailCode: '诊断证明', imageTypeDetailProb: '0.95', imageIndex: '180647023_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647024, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '诊断证明', imageTypeDetailCode: '诊断证明', imageTypeDetailProb: '0.95', imageIndex: '180647024_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647025, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '门诊病历', imageTypeDetailCode: '门诊病历', imageTypeDetailProb: '0.95', imageIndex: '180647025_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647026, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '门诊病历', imageTypeDetailCode: '门诊病历', imageTypeDetailProb: '0.95', imageIndex: '180647026_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647027, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '门诊病历', imageTypeDetailCode: '门诊病历', imageTypeDetailProb: '0.95', imageIndex: '180647027_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647028, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '门诊病历', imageTypeDetailCode: '门诊病历', imageTypeDetailProb: '0.95', imageIndex: '180647028_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647029, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '出院小结', imageTypeDetailCode: '出院小结', imageTypeDetailProb: '0.95', imageIndex: '180647029_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647030, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '出院小结', imageTypeDetailCode: '出院小结', imageTypeDetailProb: '0.95', imageIndex: '180647030_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647031, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '出院小结', imageTypeDetailCode: '出院小结', imageTypeDetailProb: '0.95', imageIndex: '180647031_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+    { imageId: 180647032, logId: '2044686737098563584', imageTypeTotal: '医疗材料', imageTypeTotalCode: 'medical_material', imageTypeDetail: '出院小结', imageTypeDetailCode: '出院小结', imageTypeDetailProb: '0.95', imageIndex: '180647032_1', repeatIndex: '', imageAngle: 0, imageRect: { y1: 0, x1: 0, y2: 100, x2: 100, y3: 100, x3: 0, y4: 0, x4: 0 }, imageQuality: { isClear: '0.9', isComplete: '0.9', isReal: '0.9' }, imageOcr: {} },
+  ],
+  medicalGroup: [
     {
-      imageRect: { y1: 0, x1: 601, y2: 767, x2: 601, y3: 767, x3: 7, y4: 0, x4: 7 },
-      imageId: 180647425,
-      logId: '20447191119107231744',
-      imageTypeTotal: '医疗材料',
-      imageTypeTotalCode: 'medical_material',
-      imageTypeDetail: '医疗票据',
-      imageTypeDetailCode: 'medical_invoice',
-      imageTypeDetailProb: '0.9998130202',
-      imageIndex: '180647425_1',
-      repeatIndex: '',
-      imageAngle: 270,
-      imageQuality: { isClear: '0.5755220652', isComplete: '0.9782338738', isReal: '0.9' },
+      groupSeq: '1', groupType: '住院组',
+      children: [
+        {
+          subGroupSeq: '1', subGroupType: '病历组',
+          items: [
+            { imageType: '出院小结', typeImageList: [{ typeImageId: '180647029_1' }, { typeImageId: '180647029_1' }] },
+            { imageType: '诊断证明', typeImageList: [{ typeImageId: '180647019_1' }, { typeImageId: '180647019_1' }] },
+          ],
+        },
+        {
+          subGroupSeq: '2', subGroupType: '票据组1',
+          items: [
+            { imageType: '医疗票据', typeImageList: [{ typeImageId: '180647010_1' }, { typeImageId: '180647010_1' }] },
+            { typeImageId: '180647000_1' },
+            { imageType: '结算单', typeImageList: [{ typeImageId: '180647003_1' }, { typeImageId: '180647003_1' }] },
+          ],
+        },
+        {
+          subGroupSeq: '3', subGroupType: '票据组2',
+          items: [
+            { typeImageId: '180647015_1' },
+          ],
+        },
+      ],
+    },
+    {
+      groupSeq: '2', groupType: '门诊组',
+      children: [
+        {
+          subGroupSeq: '1', subGroupType: '病历组',
+          items: [
+            { imageType: '门诊病历', typeImageList: [{ typeImageId: '180647025_1' }, { typeImageId: '180647025_1' }] },
+          ],
+        },
+        {
+          subGroupSeq: '2', subGroupType: '票据组1',
+          items: [
+            { typeImageId: '180647010_1' },
+            { typeImageId: '180647000_1' },
+            { typeImageId: '180647003_1' },
+          ],
+        },
+        {
+          subGroupSeq: '3', subGroupType: '票据组2',
+          items: [
+            { imageType: '增值税发票', typeImageList: [{ typeImageId: '180647015_1' }, { typeImageId: '180647015_1' }] },
+          ],
+        },
+      ],
+    },
+    {
+      groupSeq: '3', groupType: '待分组',
+      items: [
+        { typeImageId: '180647003_1' },
+        { typeImageId: '180647029_1' },
+      ],
+    },
+    {
+      groupSeq: '4', groupType: '无需分组',
+      items: [
+        { imageType: '病案首页', typeImageList: [{ typeImageId: '180647000_1' }, { typeImageId: '180647000_1' }] },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+        { typeImageId: '180647000_1' },
+      ],
     },
   ],
-}, null, 2)
+  claimInfo: {},
+  verificationInfo: {},
+  qualityInfo: {},
+  // ── 理赔接收结果 ──
+  claimResult: {
+    receiveNo: 'R1',
+    orderId: 'O1',
+    result: '0',
+    collectMode: '2',
+    num: 2,
+    groupList: [
+      {
+        groupNo: '1',
+        groupId: '1234567890',
+        groupName: '',
+        medicalInfo: {
+          name: '张三', nameImageId: '180647030',
+          clicType: '住院',
+          clicDate: '', clicDateImageId: '',
+          inHosDate: '20260102', inHosDateImageId: '180647000',
+          outHosDate: '20260110', outHosDateImageId: '180647000',
+          hospCode: '协和', hospCodeImageId: '180647007',
+          hosSubjectCode: '心内科', hosSubjectImageId: '180647003',
+          outResult: '好转', outResultImageId: '180647003',
+          doctorName: '李医生', doctorNameImageId: '180647003',
+          isIcuTreatment: '', isIcuTreatImageId: '',
+        },
+        diagnosisInfoList: [
+          { keyword: '高血压', imageId: '180647003', score: '1.00', icd6: 'I10.x00', icd6Name: '高血压', icd4: 'I10', icd4Name: '原发性高血压', licCode: 'I10', licName: '高血压', labels: [{ labelCode: 'ICD1/ICD3', labelName: '诊断/循环系统' }] },
+        ],
+        surgicalInfoList: [
+          { surgKeyword: '冠脉支架植入术', surgName: '冠脉支架植入术', surgDate: '20260105', imageId: '180647003', surgCode: '', surgNameHids: '', surgCodeHids: '', score: '', labels: [] },
+        ],
+        historyInfoList: [
+          { diseaseKeyword: '既往高血压病史10年', diseaseName: '高血压', historyDate: '', imageId: '180647003', score: '' },
+        ],
+        surgHistoryInfoList: [
+          { surgKeyword: '阑尾切除术', surgName: '阑尾切除术', surgDate: '20180312', imageId: '180647003', surgCode: '', surgNameHids: '', surgCodeHids: '', score: '', labels: [] },
+        ],
+        medicalGroupImageList: [
+          { imageType: '出院小结', imageTypeDesc: '', totalNum: '1', imageList: [{ imageId: '180647000', serialNum: '1' }] },
+        ],
+        billGroupInfoList: [
+          {
+            billGroupNo: '1', billGroupId: '9876543210',
+            basicData: {
+              billNo: 'INV001', billNoImageId: '180647007',
+              billEleType: '02', billEleTypeImageId: '180647007',
+              imageType: '电子住院发票', imageTypeImageId: '180647007',
+              billType: '电子住院发票',
+              billSourceType: '01',
+              billTotalAmt: '2000.00', billTotalAmtImageId: '180647007',
+              isSclPay: '01', isSclPayImageId: '180647007',
+              insuredType: '01', insuredTypeImageId: '180647007',
+            },
+            accountData: {
+              socialInsPayment: '1500.00', socialInsPaymentImageId: '180647007',
+              allOwnPayment: '500.00', allOwnPaymentImageId: '180647007',
+              yiOwnPayment: '50.00',
+            },
+            categoryData: [
+              { chargeCategory: '西药费', chargeCategoryImageId: '180647007', chargeStandardName: '西药', chargeStandardCode: '01', categoryAmt: '800.00' },
+            ],
+            feeDtData: [
+              { itemName: '阿莫西林', itemNameImageId: '180647007', totalAmt: '100.00', quantity: '4', unitPrice: '25.00', specification: '0.25g' },
+            ],
+            billGroupImageList: [
+              { imageType: '电子住院发票', imageList: [{ imageId: '180647007', serialNum: '1' }] },
+            ],
+          },
+        ],
+      },
+    ],
+    noGroup: [],
+  },
+}
 
 // 影像详情 mock 数据
 const IMAGE_DETAIL_MOCK: Record<string, {
@@ -946,7 +1114,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
   const logStatus = matchedLog?.status || 'success'
   const logCreatedAt = matchedLog?.createdAt || ''
 
-  const [activeTab, setActiveTab] = useState('影像展示')
+  const [activeTab, setActiveTab] = useState('引擎结果')
   const [activeCategory, setActiveCategory] = useState('全部')
   const [viewMode, setViewMode] = useState<'group' | 'category'>('category')
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
@@ -956,18 +1124,42 @@ const AgentClaimsTaskDetail: React.FC = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [selectedDuplicateIndex, setSelectedDuplicateIndex] = useState<number>(0)
 
+  // 查找影像（端到端返回结果）
+  const findClaimResultImage = (imageId: string) => {
+    return ENGINE_RESULT_DATA.imageList.find(img => String(img.imageId) === imageId)
+  }
+
+  // 点击影像ID - 跳转到影像展示的预览弹窗
+  const handleImageIdClick = (imageId: string) => {
+    // 通过 imageId 计算索引（imageId = 180647000 + index）
+    const idx = parseInt(imageId) - 180647000
+    if (idx >= 0 && idx < filteredImages.length) {
+      setActiveTab('影像展示')
+      openPreview(idx)
+    }
+  }
+
+  // 可点击的影像ID组件
+  const ClickableImageId: React.FC<{ imageId: string }> = ({ imageId }) => {
+    if (!imageId) return <span style={{ color: '#8c8c8c' }}>-</span>
+    const img = findClaimResultImage(imageId)
+    if (!img) return <span style={{ color: '#1f2937' }}>{imageId}</span>
+    return (
+      <span
+        onClick={() => handleImageIdClick(imageId)}
+        style={{ color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline' }}
+      >
+        {imageId}
+      </span>
+    )
+  }
+
   const toggleGroup = (groupName: string) => {
     setExpandedGroups(prev => {
       const next = new Set(prev)
       if (next.has(groupName)) next.delete(groupName)
       else next.add(groupName)
       return next
-    })
-  }
-
-  const handleCopyJson = () => {
-    navigator.clipboard.writeText(ENGINE_RESULT_JSON).then(() => {
-      message.success('已复制到剪贴板')
     })
   }
 
@@ -1101,7 +1293,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
         marginTop: 10,
         marginBottom: 24,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <span
             onClick={() => navigate('/agent/claims/logs')}
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#595959', fontSize: 14 }}
@@ -1109,11 +1301,20 @@ const AgentClaimsTaskDetail: React.FC = () => {
             <ArrowLeftOutlined /> 返回
           </span>
           <div style={{ width: 1, height: 16, background: '#e8e8e8' }} />
-          <span style={{ fontSize: 16, marginRight: 24 }}>
+          <span style={{ fontSize: 16 }}>
             <span style={{ fontWeight: 600, color: '#1F2937' }}>任务号：</span><span style={{ fontWeight: 400 }}>{taskId}</span>
           </span>
           <span style={{ fontSize: 16 }}>
             <span style={{ fontWeight: 600, color: '#1F2937' }}>索赔号：</span><span style={{ fontWeight: 400 }}>{claimNo}</span>
+          </span>
+          <span style={{ fontSize: 16 }}>
+            <span style={{ fontWeight: 600, color: '#1F2937' }}>案件号：</span><span style={{ fontWeight: 400 }}>{caseNo}</span>
+          </span>
+          <span style={{ fontSize: 16 }}>
+            <span style={{ fontWeight: 600, color: '#1F2937' }}>执行状态：</span>
+            <Tag color={logStatus === 'success' ? 'success' : logStatus === 'processing' ? 'processing' : 'error'} style={{ borderRadius: 6, minWidth: 50, textAlign: 'center' }}>
+              {logStatus === 'success' ? '成功' : logStatus === 'processing' ? '处理中' : '失败'}
+            </Tag>
           </span>
         </div>
       </div>
@@ -2214,59 +2415,571 @@ const AgentClaimsTaskDetail: React.FC = () => {
       )}
 
       {activeTab === '引擎结果' && (
-        <div>
-          {/* 标题 + 复制按钮 */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 16,
-          }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#1f2937', lineHeight: '22px' }}>
-              引擎返回结果
-            </span>
-            <button
-              onClick={handleCopyJson}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                background: '#65a5ff',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                padding: '6px 10px',
-                fontSize: 12,
-                fontWeight: 500,
-                cursor: 'pointer',
-              }}
-            >
-              <CopyOutlined style={{ fontSize: 12 }} /> 复制JSON
-            </button>
+        <>
+          <div>
+          {/* ── 理赔接收结果 ── */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 4, height: 18, background: '#3b82f6', borderRadius: 2, display: 'inline-block' }} />
+              端到端返回结果
+            </div>
+            {ENGINE_RESULT_DATA.claimResult.groupList.map((group) => (
+              <div key={group.groupNo} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* ① 基本信息 */}
+                <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                  <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>基本信息</div>
+                  <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px 24px', fontSize: 13 }}>
+                    <div><span style={{ color: '#6b7280' }}>姓名：</span>{group.medicalInfo.name || '-'}</div>
+                    <div><span style={{ color: '#6b7280' }}>就诊类型：</span>{group.medicalInfo.clicType || '-'}</div>
+                    <div><span style={{ color: '#6b7280' }}>就诊日期：</span>{group.medicalInfo.clicDate || '-'}</div>
+                    <div><span style={{ color: '#6b7280' }}>入院日期：</span>{group.medicalInfo.inHosDate || '-'}</div>
+                    <div><span style={{ color: '#6b7280' }}>出院日期：</span>{group.medicalInfo.outHosDate || '-'}</div>
+                    <div><span style={{ color: '#6b7280' }}>医院代码：</span>{group.medicalInfo.hospCode || '-'}</div>
+                    <div><span style={{ color: '#6b7280' }}>科室：</span>{group.medicalInfo.hosSubjectCode || '-'}</div>
+                    <div><span style={{ color: '#6b7280' }}>出院结果：</span>{group.medicalInfo.outResult || '-'}</div>
+                    <div><span style={{ color: '#6b7280' }}>主治医生：</span>{group.medicalInfo.doctorName || '-'}</div>
+                    <div><span style={{ color: '#6b7280' }}>ICU治疗：</span>{group.medicalInfo.isIcuTreatment || '-'}</div>
+                  </div>
+                </div>
+
+                {/* ② 诊断信息 */}
+                {group.diagnosisInfoList.length > 0 && (
+                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>诊断信息</div>
+                    <table style={{ width: 830, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: '#fafbfc' }}>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>关键词</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>ICD-6</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>ICD-4</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>LIC</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>置信度</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.diagnosisInfoList.map((d, i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                            <td style={{ padding: '8px 12px' }}>{d.keyword}</td>
+                            <td style={{ padding: '8px 12px' }}>{d.icd6} {d.icd6Name}</td>
+                            <td style={{ padding: '8px 12px' }}>{d.icd4} {d.icd4Name}</td>
+                            <td style={{ padding: '8px 12px' }}>{d.licCode} {d.licName}</td>
+                            <td style={{ padding: '8px 12px' }}>{(parseFloat(d.score) * 100).toFixed(0)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* ③ 手术信息 */}
+                {group.surgicalInfoList.length > 0 && (
+                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>手术信息</div>
+                    <table style={{ width: 350, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: '#fafbfc' }}>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>手术名称</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>手术日期</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.surgicalInfoList.map((s, i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                            <td style={{ padding: '8px 12px' }}>{s.surgName || s.surgKeyword}</td>
+                            <td style={{ padding: '8px 12px' }}>{s.surgDate || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* ④ 病史信息 */}
+                {group.historyInfoList.length > 0 && (
+                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>病史信息</div>
+                    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {group.historyInfoList.map((h, i) => (
+                        <div key={i} style={{ fontSize: 13 }}>
+                          <span style={{ color: '#6b7280' }}>疾病描述：</span>{h.diseaseKeyword}
+                          {h.diseaseName && <span style={{ marginLeft: 16, color: '#6b7280' }}>诊断名称：</span>}
+                          {h.diseaseName && <span>{h.diseaseName}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ⑤ 手术史 */}
+                {group.surgHistoryInfoList.length > 0 && (
+                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>手术史</div>
+                    <table style={{ width: 350, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: '#fafbfc' }}>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>手术名称</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>手术日期</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.surgHistoryInfoList.map((s, i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                            <td style={{ padding: '8px 12px' }}>{s.surgName || s.surgKeyword}</td>
+                            <td style={{ padding: '8px 12px' }}>{s.surgDate || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* 病历组影像 */}
+                {group.medicalGroupImageList.length > 0 && (
+                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>病历组影像</div>
+                    <table style={{ width: 450, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: '#fafbfc' }}>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>影像类型</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>影像ID</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.medicalGroupImageList.map((mgi, i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                            <td style={{ padding: '8px 12px' }}>{mgi.imageType}</td>
+                            <td style={{ padding: '8px 12px' }}>
+                              {mgi.imageList.map((img, idx) => (
+                                <span key={idx}>
+                                  <ClickableImageId imageId={img.imageId} />
+                                  {idx < mgi.imageList.length - 1 && '、'}
+                                </span>
+                              ))}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* ⑥⑦⑧ 票据组 */}
+                {group.billGroupInfoList.map((billGroup) => (
+                  <div key={billGroup.billGroupNo} style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>
+                      票据组 {billGroup.billGroupNo}
+                    </div>
+                    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      {/* ⑥ 结算信息 */}
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>结算信息</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 24px', fontSize: 13, padding: '10px 12px', background: '#fafbfc', borderRadius: 6 }}>
+                          <div><span style={{ color: '#6b7280' }}>发票号码：</span>{billGroup.basicData.billNo || '-'}</div>
+                          <div><span style={{ color: '#6b7280' }}>票据类型：</span>{billGroup.basicData.billType || '-'}</div>
+                          <div><span style={{ color: '#6b7280' }}>电子/纸质：</span>{billGroup.basicData.billEleType === '02' ? '电子' : billGroup.basicData.billEleType === '01' ? '纸质' : '-'}</div>
+                          <div><span style={{ color: '#6b7280' }}>总金额：</span>¥{billGroup.basicData.billTotalAmt || '-'}</div>
+                          <div><span style={{ color: '#6b7280' }}>医保支付：</span>¥{billGroup.accountData.socialInsPayment || '-'}</div>
+                          <div><span style={{ color: '#6b7280' }}>个人支付：</span>¥{billGroup.accountData.allOwnPayment || '-'}</div>
+                          <div><span style={{ color: '#6b7280' }}>医保类型：</span>{billGroup.basicData.insuredType === '01' ? '城镇职工' : '-'}</div>
+                          <div><span style={{ color: '#6b7280' }}>统筹支付：</span>{billGroup.basicData.isSclPay === '01' ? '是' : '否'}</div>
+                          <div><span style={{ color: '#6b7280' }}>数据来源：</span>{billGroup.basicData.billSourceType === '01' ? '电票数据' : '非电票'}</div>
+                        </div>
+                      </div>
+
+                      {/* ⑦ 发票分类 */}
+                      {billGroup.categoryData.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>发票分类</div>
+                          <table style={{ width: 750, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
+                            <thead>
+                              <tr style={{ background: '#fafbfc' }}>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>费用类别</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>标准名称</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>标准代码</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>金额</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {billGroup.categoryData.map((c, i) => (
+                                <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                  <td style={{ padding: '8px 12px' }}>{c.chargeCategory}</td>
+                                  <td style={{ padding: '8px 12px' }}>{c.chargeStandardName}</td>
+                                  <td style={{ padding: '8px 12px' }}>{c.chargeStandardCode}</td>
+                                  <td style={{ padding: '8px 12px', textAlign: 'right' }}>¥{c.categoryAmt}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
+                      {/* ⑧ 费用明细 */}
+                      {billGroup.feeDtData.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>费用明细</div>
+                          <table style={{ width: 830, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
+                            <thead>
+                              <tr style={{ background: '#fafbfc' }}>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>项目名称</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>规格</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>单价</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>数量</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>金额</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {billGroup.feeDtData.map((f, i) => (
+                                <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                  <td style={{ padding: '8px 12px' }}>{f.itemName}</td>
+                                  <td style={{ padding: '8px 12px' }}>{f.specification}</td>
+                                  <td style={{ padding: '8px 12px', textAlign: 'right' }}>¥{f.unitPrice}</td>
+                                  <td style={{ padding: '8px 12px', textAlign: 'right' }}>{f.quantity}</td>
+                                  <td style={{ padding: '8px 12px', textAlign: 'right' }}>¥{f.totalAmt}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
+                      {/* 票据组影像 */}
+                      {billGroup.billGroupImageList.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>票据组影像</div>
+                          <table style={{ width: 450, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
+                            <thead>
+                              <tr style={{ background: '#fafbfc' }}>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>影像类型</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>影像ID</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {billGroup.billGroupImageList.map((bgi, i) => (
+                                <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                  <td style={{ padding: '8px 12px' }}>{bgi.imageType}</td>
+                                  <td style={{ padding: '8px 12px' }}>
+                                    {bgi.imageList.map((img, idx) => (
+                                      <span key={idx}>
+                                        <ClickableImageId imageId={img.imageId} />
+                                        {idx < bgi.imageList.length - 1 && '、'}
+                                      </span>
+                                    ))}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
 
-          {/* 代码块 */}
-          <div style={{
-            background: '#F9FAFB',
-            borderRadius: 8,
-            border: '1px solid rgb(229, 231, 235)',
-            padding: '20px 24px',
-            maxHeight: 600,
-            overflow: 'auto',
-          }}>
-            <pre style={{
-              margin: 0,
-              fontSize: 12,
-              lineHeight: 1.8,
-              color: '#1f2937',
-              fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-all',
+          {/* ── JSON代码 ── */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 4, height: 18, background: '#3b82f6', borderRadius: 2, display: 'inline-block' }} />
+                JSON代码
+              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(JSON.stringify(ENGINE_RESULT_DATA.claimResult, null, 2)).then(() => {
+                    message.success('已复制到剪贴板')
+                  })
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: '#65a5ff',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '6px 10px',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                <CopyOutlined style={{ fontSize: 12 }} /> 复制JSON
+              </button>
+            </div>
+            <div style={{
+              background: '#F9FAFB',
+              borderRadius: 8,
+              border: '1px solid rgb(229, 231, 235)',
+              padding: '20px 24px',
+              maxHeight: 600,
+              overflow: 'auto',
             }}>
-              {ENGINE_RESULT_JSON}
-            </pre>
+              <pre style={{
+                margin: 0,
+                fontSize: 12,
+                lineHeight: 1.8,
+                color: '#1f2937',
+                fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-all',
+              }}>
+                {JSON.stringify(ENGINE_RESULT_DATA.claimResult, null, 2)}
+              </pre>
+            </div>
           </div>
+
+          {/* ── 结构化结果（已隐藏） ── */}
+          {false && (
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 4, height: 18, background: '#3b82f6', borderRadius: 2, display: 'inline-block' }} />
+              结构化结果
+              <span style={{ fontSize: 12, color: '#8c8c8c', fontWeight: 400 }}>共 {ENGINE_RESULT_DATA.imageList.length} 张影像</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {ENGINE_RESULT_DATA.imageList.map((img, idx) => {
+                const ocrEntries = Object.entries(img.imageOcr)
+                const clarity = (parseFloat(img.imageQuality.isClear) * 100).toFixed(1)
+                const completeness = (parseFloat(img.imageQuality.isComplete) * 100).toFixed(1)
+                const authenticity = (parseFloat(img.imageQuality.isReal) * 100).toFixed(1)
+                return (
+                  <div key={img.imageId} style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                    background: '#fff',
+                  }}>
+                    {/* 图片头部：序号 + 分类 */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '10px 16px',
+                      background: '#f9fafb',
+                      borderBottom: '1px solid #e5e7eb',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          width: 24, height: 24, borderRadius: '50%',
+                          background: '#3b82f6', color: '#fff', fontSize: 12, fontWeight: 600,
+                        }}>{idx + 1}</span>
+                        <span style={{ fontSize: 13, color: '#6b7280' }}>img_id: {img.imageId}</span>
+                        {img.repeatIndex && (
+                          <span style={{ fontSize: 12, color: '#f59e0b', background: '#fef3c7', padding: '2px 8px', borderRadius: 4 }}>
+                            重复影像: {img.repeatIndex}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {/* 图片内容区 */}
+                    <div style={{ padding: '12px 16px' }}>
+                      {/* 质量指标 */}
+                      <div style={{ display: 'flex', gap: 24, marginBottom: ocrEntries.length > 0 ? 12 : 0 }}>
+                        {[
+                          { label: '清晰度', value: clarity, color: parseFloat(clarity) >= 80 ? '#52c41a' : parseFloat(clarity) >= 60 ? '#faad14' : '#ff4d4f' },
+                          { label: '完整度', value: completeness, color: parseFloat(completeness) >= 80 ? '#52c41a' : parseFloat(completeness) >= 50 ? '#faad14' : '#ff4d4f' },
+                          { label: '真实性', value: authenticity, color: parseFloat(authenticity) >= 80 ? '#52c41a' : '#faad14' },
+                        ].map(q => (
+                          <div key={q.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 12, color: '#8c8c8c' }}>{q.label}</span>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: q.color }}>{q.value}%</span>
+                          </div>
+                        ))}
+                        {img.imageAngle !== 0 && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 12, color: '#8c8c8c' }}>旋转角度</span>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: '#1f2937' }}>{img.imageAngle}°</span>
+                          </div>
+                        )}
+                      </div>
+                      {/* OCR 识别字段 */}
+                      {ocrEntries.length > 0 && (
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(3, 1fr)',
+                          gap: '8px 24px',
+                          padding: '10px 12px',
+                          background: '#fafbfc',
+                          borderRadius: 6,
+                          border: '1px solid #f0f0f0',
+                        }}>
+                          {ocrEntries.map(([key, val]) => (
+                            <div key={key} style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+                              <span style={{ fontSize: 12, color: '#8c8c8c', whiteSpace: 'nowrap', flexShrink: 0 }}>{key}：</span>
+                              <span style={{ fontSize: 13, color: '#1f2937', wordBreak: 'break-all', lineHeight: 1.5 }}>{String(val)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+          )}
+
+          {/* ── 医疗材料分组（已隐藏） ── */}
+          {false && (
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 4, height: 18, background: '#3b82f6', borderRadius: 2, display: 'inline-block' }} />
+              分组结果
+              <span style={{ fontSize: 12, color: '#8c8c8c', fontWeight: 400 }}>共 {ENGINE_RESULT_DATA.medicalGroup.length} 组</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {ENGINE_RESULT_DATA.medicalGroup.map((group) => (
+                <div key={group.groupSeq} style={{
+                  border: '1px solid #e5e7eb',
+                  borderRadius: 8,
+                  overflow: 'hidden',
+                  background: '#fff',
+                }}>
+                  {/* 分组头部 */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 16px',
+                    background: group.groupType === '待分组' ? '#fef2f2' : '#f0fdf4',
+                    borderBottom: '1px solid #e5e7eb',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        width: 24, height: 24, borderRadius: '50%',
+                        background: group.groupType === '待分组' ? '#ef4444' : '#22c55e',
+                        color: '#fff', fontSize: 12, fontWeight: 600,
+                      }}>{group.groupSeq}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2937' }}>{group.groupType}</span>
+                    </div>
+                  </div>
+                  {/* 分组内容 */}
+                  <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {'children' in group && group.children ? (
+                      // 嵌套结构：住院组/门诊组 → 病历组/票据组
+                      group.children.map((sub: any) => (
+                        <div key={sub.subGroupSeq}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>{sub.subGroupType}</div>
+                          <table style={{
+                            borderCollapse: 'collapse',
+                            tableLayout: 'fixed',
+                            width: 750,
+                            fontSize: 13,
+                            borderRadius: 6,
+                            overflow: 'hidden',
+                            border: '1px solid #e5e7eb',
+                          }}>
+                            <thead>
+                              <tr style={{ background: '#f9fafb' }}>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>影像分类名称</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>影像ID</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>置信度</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {sub.items.map((imgType: any) => {
+                                const ids = imgType.typeImageList.map((img: any) => img.typeImageId.split('_')[0])
+                                const imgIds = ids.join('、')
+                                const probs = ids.map((id: string) => {
+                                  const found = ENGINE_RESULT_DATA.imageList.find(i => String(i.imageId) === id)
+                                  return found ? (parseFloat(found.imageTypeDetailProb) * 100).toFixed(2) + '%' : '-'
+                                }).join('、')
+                                return (
+                                  <tr key={imgType.imageType} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                    <td style={{ padding: '8px 12px', color: '#1f2937', fontWeight: 500 }}>{imgType.imageType}</td>
+                                    <td style={{ padding: '8px 12px', color: '#3b82f6' }}>{imgIds}</td>
+                                    <td style={{ padding: '8px 12px', color: '#1f2937' }}>{probs}</td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      ))
+                    ) : (
+                      // 平铺结构：待分组/无需分组
+                      <table style={{
+                        borderCollapse: 'collapse',
+                        tableLayout: 'fixed',
+                        width: 750,
+                        fontSize: 13,
+                        borderRadius: 6,
+                        overflow: 'hidden',
+                        border: '1px solid #e5e7eb',
+                      }}>
+                        <thead>
+                          <tr style={{ background: '#f9fafb' }}>
+                            <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>影像分类名称</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>影像ID</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>置信度</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(group as any).items.map((imgType: any) => {
+                            const ids = imgType.typeImageList.map((img: any) => img.typeImageId.split('_')[0])
+                            const imgIds = ids.join('、')
+                            const probs = ids.map((id: string) => {
+                              const found = ENGINE_RESULT_DATA.imageList.find(i => String(i.imageId) === id)
+                              return found ? (parseFloat(found.imageTypeDetailProb) * 100).toFixed(2) + '%' : '-'
+                            }).join('、')
+                            return (
+                              <tr key={imgType.imageType} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                <td style={{ padding: '8px 12px', color: '#1f2937', fontWeight: 500 }}>{imgType.imageType}</td>
+                                <td style={{ padding: '8px 12px', color: '#3b82f6' }}>{imgIds}</td>
+                                <td style={{ padding: '8px 12px', color: '#1f2937' }}>{probs}</td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          )}
+
+          {/* ── 其他信息 ── */}
+          {(Object.keys(ENGINE_RESULT_DATA.claimInfo).length > 0 ||
+            Object.keys(ENGINE_RESULT_DATA.verificationInfo).length > 0 ||
+            Object.keys(ENGINE_RESULT_DATA.qualityInfo).length > 0) && (
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 4, height: 16, background: '#3b82f6', borderRadius: 2, display: 'inline-block' }} />
+                其他信息
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                {[
+                  { title: '理赔信息', data: ENGINE_RESULT_DATA.claimInfo },
+                  { title: '核验信息', data: ENGINE_RESULT_DATA.verificationInfo },
+                  { title: '质量信息', data: ENGINE_RESULT_DATA.qualityInfo },
+                ].filter(s => Object.keys(s.data).length > 0).map(section => (
+                  <div key={section.title} style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: 8,
+                    padding: 16,
+                    background: '#fff',
+                  }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#1f2937', marginBottom: 10 }}>{section.title}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {Object.entries(section.data).map(([k, v]) => (
+                        <div key={k} style={{ display: 'flex', gap: 8 }}>
+                          <span style={{ fontSize: 12, color: '#8c8c8c', flexShrink: 0 }}>{k}：</span>
+                          <span style={{ fontSize: 13, color: '#1f2937' }}>{String(v)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+        </>
       )}
 
       {activeTab === 'LIC系统响应' && (

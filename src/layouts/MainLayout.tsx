@@ -116,9 +116,8 @@ const menuItems: MenuProps['items'] = [
     icon: <SettingOutlined />,
     label: '平台管理',
     children: [
-      { key: '/platform/alert', label: '异常告警' },
-      { key: '/platform/permission', label: '权限控制' },
       { key: '/platform/user', label: '用户管理' },
+      { key: '/platform/alert', label: '异常告警' },
     ],
   },
 ]

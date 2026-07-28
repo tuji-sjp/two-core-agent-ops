@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react'
 import * as echarts from 'echarts'
 import type { EChartsOption } from 'echarts'
-import { DatePicker } from 'antd'
+import { DatePicker, Select } from 'antd'
 import dayjs, { Dayjs } from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 dayjs.extend(weekOfYear)
@@ -88,7 +88,6 @@ function generateMockData(period: PeriodType, start: Dayjs, end: Dayjs): number[
   })
 }
 
-const periodLabels: Record<PeriodType, string> = { day: '按天', week: '按周', month: '按月' }
 type PeriodType = 'day' | 'week' | 'month'
 
 const colorPalette = ['#cbd5e1', '#94a3b8', '#fb923c', '#f43f5e', '#6366f1', '#06b6d4', '#84cc16', '#f59e0b', '#ec4899', '#6366f1']
@@ -97,7 +96,6 @@ const AutomationRateChart: React.FC = () => {
   const chartRef = useRef<HTMLDivElement>(null)
   const chartInstance = useRef<echarts.ECharts | null>(null)
   const [period, setPeriod] = React.useState<PeriodType>('day')
-  const [dropdownOpen, setDropdownOpen] = React.useState(false)
   const [dateRange, setDateRange] = React.useState<[Dayjs, Dayjs]>([dayjs('2026-04-01'), dayjs('2026-04-05')])
 
   React.useEffect(() => {
@@ -236,47 +234,17 @@ const AutomationRateChart: React.FC = () => {
           智能体自动化率变化趋势图
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                width: 64, height: 32, padding: '0 10px',
-                border: '1px solid #e2e8f0', borderRadius: 6,
-                background: '#fff', fontSize: 13, color: '#334155',
-                cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                boxSizing: 'border-box',
-              }}
-            >
-              <span>{periodLabels[period]}</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-            {dropdownOpen && (
-              <div style={{
-                position: 'absolute', top: '100%', left: 0, marginTop: 4,
-                width: 64, background: '#fff', border: '1px solid #f1f5f9',
-                borderRadius: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                overflow: 'hidden', zIndex: 10,
-              }}>
-                {(['day', 'week', 'month'] as const).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => { setPeriod(p); setDropdownOpen(false) }}
-                    style={{
-                      width: '100%', padding: '6px 0', textAlign: 'center',
-                      fontSize: 13, border: 'none', cursor: 'pointer',
-                      background: period === p ? '#10b981' : 'transparent',
-                      color: period === p ? '#fff' : '#475569',
-                    }}
-                  >
-                    {periodLabels[p]}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <Select
+            value={period}
+            onChange={setPeriod}
+            options={[
+              { label: '按天', value: 'day' },
+              { label: '按周', value: 'week' },
+              { label: '按月', value: 'month' },
+            ]}
+            style={{ width: 72 }}
+            rootClassName="filter-select"
+          />
           <DatePicker.RangePicker
             value={dateRange}
             onChange={(values) => {

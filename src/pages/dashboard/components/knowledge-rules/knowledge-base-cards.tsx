@@ -561,7 +561,7 @@ const DocModal: React.FC<{
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <span style={{ fontSize: 13, color: '#4b5563', whiteSpace: 'nowrap' }}>状态：</span>
                           <Form.Item name="status" style={{ width: 120, marginBottom: 0 }}>
-                            <Select>
+                            <Select rootClassName="filter-select">
                               <Select.Option value="active">生效中</Select.Option>
                               <Select.Option value="updating">修订中</Select.Option>
                               <Select.Option value="deprecated">已废弃</Select.Option>

@@ -713,7 +713,7 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
         marginTop: 10,
         marginBottom: 24,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <span
             onClick={() => navigate('/agent/claims/logs?tab=扣费')}
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#595959', fontSize: 14 }}
@@ -721,17 +721,23 @@ const AgentClaimsDeductionLogDetail: React.FC = () => {
             <ArrowLeftOutlined /> 返回
           </span>
           <div style={{ width: 1, height: 16, background: '#e8e8e8' }} />
-          <span style={{ fontSize: 16, marginRight: 24 }}>
+          <span style={{ fontSize: 16 }}>
             <span style={{ fontWeight: 600, color: '#1F2937' }}>任务号：</span><span style={{ fontWeight: 400 }}>{bill.taskNo}</span>
           </span>
-          <span style={{ fontSize: 16, marginRight: 24 }}>
+          <span style={{ fontSize: 16 }}>
             <span style={{ fontWeight: 600, color: '#1F2937' }}>案件号：</span><span style={{ fontWeight: 400 }}>{bill.caseNo}</span>
           </span>
           <span style={{ fontSize: 16 }}>
             <span style={{ fontWeight: 600, color: '#1F2937' }}>账单号：</span><span style={{ fontWeight: 400 }}>{bill.billNo}</span>
           </span>
+          <span style={{ fontSize: 16 }}>
+            <span style={{ fontWeight: 600, color: '#1F2937' }}>执行状态：</span>
+            <Tag color={execStatus === 'success' ? 'success' : execStatus === 'processing' ? 'processing' : execStatus === 'timeout' ? 'warning' : 'error'} style={{ borderRadius: 6, minWidth: 50, textAlign: 'center' }}>
+              {execStatus === 'success' ? '成功' : execStatus === 'processing' ? '处理中' : execStatus === 'timeout' ? '超时' : '失败'}
+            </Tag>
+          </span>
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 20 }}>
           <span style={{ fontSize: 16 }}>
             <span style={{ fontWeight: 600, color: '#1F2937' }}>账单金额：</span><span style={{ fontWeight: 400 }}>¥{bill.totalAmount.toFixed(2)}</span>
           </span>

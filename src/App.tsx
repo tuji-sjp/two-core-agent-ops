@@ -13,6 +13,7 @@ import SkillDetail from './pages/shared/skill-detail'
 import AgentClaimsLogs from './pages/agent/claims/logs'
 import AgentClaimsTaskDetail from './pages/agent/claims/task-detail'
 import AgentClaimsDeductionLogDetail from './pages/agent/claims/deduction-log-detail'
+import UserManagement from './pages/platform/user'
 
 const PagePlaceholder: React.FC = () => (
   <div style={{ padding: 24, color: '#8c8c8c' }}>页面开发中</div>
@@ -53,9 +54,8 @@ const App: React.FC = () => {
         <Route path="data-share/knowledge-rules" element={<SharedKnowledgeRules />} />
 
         {/* 平台管理 */}
+        <Route path="platform/user" element={<UserManagement />} />
         <Route path="platform/alert" element={<PagePlaceholder />} />
-        <Route path="platform/permission" element={<PagePlaceholder />} />
-        <Route path="platform/user" element={<PagePlaceholder />} />
 
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
