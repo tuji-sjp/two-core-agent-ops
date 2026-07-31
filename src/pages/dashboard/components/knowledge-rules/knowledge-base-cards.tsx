@@ -266,7 +266,7 @@ const WordDocumentViewer: React.FC<{
         })}
       </div>
       <div style={{ borderTop: '1px solid #e5e7eb', marginTop: 32, paddingTop: 12, fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>
-        — 本文档由两核智能体运营平台知识库管理 — 内部资料 注意保管 —
+        — 本文档由两核智能运营平台知识库管理 — 内部资料 注意保管 —
       </div>
     </div>
   )

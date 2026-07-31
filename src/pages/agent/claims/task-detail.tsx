@@ -1286,10 +1286,10 @@ const AgentClaimsTaskDetail: React.FC = () => {
             <span style={{ fontWeight: 600, color: '#1F2937' }}>任务号：</span><span style={{ fontWeight: 400 }}>{taskId}</span>
           </span>
           <span style={{ fontSize: 16 }}>
-            <span style={{ fontWeight: 600, color: '#1F2937' }}>索赔号：</span><span style={{ fontWeight: 400 }}>{claimNo}</span>
+            <span style={{ fontWeight: 600, color: '#1F2937' }}>案件号：</span><span style={{ fontWeight: 400 }}>{caseNo}</span>
           </span>
           <span style={{ fontSize: 16 }}>
-            <span style={{ fontWeight: 600, color: '#1F2937' }}>案件号：</span><span style={{ fontWeight: 400 }}>{caseNo}</span>
+            <span style={{ fontWeight: 600, color: '#1F2937' }}>索赔号：</span><span style={{ fontWeight: 400 }}>{claimNo}</span>
           </span>
           <span style={{ fontSize: 16 }}>
             <span style={{ fontWeight: 600, color: '#1F2937' }}>执行状态：</span>

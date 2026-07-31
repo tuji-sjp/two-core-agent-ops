@@ -168,7 +168,7 @@ const MainLayout: React.FC = () => {
           borderBottom: '1px solid #e8e8e8',
         }}>
           <h1 style={{ color: '#1d2129', fontSize: 15, margin: 0, whiteSpace: 'nowrap', fontWeight: 700 }}>
-            两核智能体运营平台
+            两核智能运营平台
           </h1>
         </div>
         <Menu

@@ -216,7 +216,7 @@ const DashboardHeader: React.FC = () => (
       <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#3b82f6' }} />
     </div>
     <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', letterSpacing: 4, margin: 0 }}>
-      两核智能体运营平台 · 业务全景看板
+      两核智能运营平台 · 业务全景看板
     </h1>
     <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 6 }}>
       <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#3b82f6' }} />

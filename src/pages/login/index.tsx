@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
           marginBottom: 28,
           marginTop: 0,
         }}>
-          欢迎来到两核运营平台
+          欢迎来到两核智能运营平台
         </h2>
 
         {/* 表单 */}
