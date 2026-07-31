@@ -1071,13 +1071,13 @@ const AgentClaimsTaskDetail: React.FC = () => {
   // 匹配采集日志获取对应状态和调用时间
   const CLAIMS_LOGS = [
     { taskId: '2044719745388838912', caseNo: 'A1000000000', status: 'success', createdAt: '2026-06-02 10:23', imageCount: 23 },
-    { taskId: '2044719745288838912', caseNo: 'A1000000000', status: 'success', createdAt: '2026-06-02 10:25', imageCount: 34 },
+    { taskId: '2044719745288838912', caseNo: 'X1000000021', status: 'processing', createdAt: '2026-06-02 10:25', imageCount: 0 },
     { taskId: '2044719745188838912', caseNo: 'B1000000001', status: 'failed', createdAt: '2026-06-01 09:15', imageCount: 45 },
     { taskId: '2044719745088838912', caseNo: 'B1000000001', status: 'success', createdAt: '2026-06-01 09:16', imageCount: 56 },
     { taskId: '2044719744988838912', caseNo: 'B1000000001', status: 'success', createdAt: '2026-06-01 09:17', imageCount: 67 },
     { taskId: '2044719744888838912', caseNo: 'B1000000001', status: 'failed', createdAt: '2026-06-01 09:18', imageCount: 78 },
     { taskId: '2044719744788838912', caseNo: 'C1000000002', status: 'success', createdAt: '2026-05-30 14:10', imageCount: 89 },
-    { taskId: '2044719744688838912', caseNo: 'D1000000003', status: 'success', createdAt: '2026-05-27 11:00', imageCount: 20 },
+    { taskId: '2044719744688838912', caseNo: 'X1000000022', status: 'processing', createdAt: '2026-05-27 11:00', imageCount: 0 },
     { taskId: '2044719744588838912', caseNo: 'D1000000003', status: 'failed', createdAt: '2026-05-27 11:01', imageCount: 31 },
     { taskId: '2044719744488838912', caseNo: 'E1000000004', status: 'success', createdAt: '2026-05-24 08:30', imageCount: 42 },
     { taskId: '2044719744388838912', caseNo: 'E1000000004', status: 'success', createdAt: '2026-05-24 08:31', imageCount: 53 },
@@ -1087,7 +1087,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
     { taskId: '2044719743988838912', caseNo: 'G1000000006', status: 'failed', createdAt: '2026-05-20 13:01', imageCount: 17 },
     { taskId: '2044719743888838912', caseNo: 'H1000000007', status: 'success', createdAt: '2026-05-17 10:00', imageCount: 28 },
     { taskId: '2044719743788838912', caseNo: 'I1000000008', status: 'success', createdAt: '2026-05-16 09:00', imageCount: 39 },
-    { taskId: '2044719743688838912', caseNo: 'I1000000008', status: 'failed', createdAt: '2026-05-16 09:01', imageCount: 50 },
+    { taskId: '2044719743688838912', caseNo: 'X1000000023', status: 'processing', createdAt: '2026-05-16 09:01', imageCount: 0 },
     { taskId: '2044719743588838912', caseNo: 'J1000000009', status: 'success', createdAt: '2026-05-14 14:30', imageCount: 61 },
     { taskId: '2044719743488838912', caseNo: 'J1000000009', status: 'success', createdAt: '2026-05-14 14:31', imageCount: 72 },
     { taskId: '2044719743388838912', caseNo: 'J1000000009', status: 'failed', createdAt: '2026-05-14 14:32', imageCount: 83 },
@@ -1097,13 +1097,13 @@ const AgentClaimsTaskDetail: React.FC = () => {
     { taskId: '2044719742988838912', caseNo: 'M1000000012', status: 'success', createdAt: '2026-05-10 15:00', imageCount: 47 },
     { taskId: '2044719742888838912', caseNo: 'M1000000012', status: 'success', createdAt: '2026-05-10 15:01', imageCount: 58 },
     { taskId: '2044719742788838912', caseNo: 'N1000000013', status: 'failed', createdAt: '2026-05-08 09:30', imageCount: 69 },
-    { taskId: '2044719742688838912', caseNo: 'O1000000014', status: 'success', createdAt: '2026-05-06 10:00', imageCount: 80 },
+    { taskId: '2044719742688838912', caseNo: 'X1000000024', status: 'processing', createdAt: '2026-05-06 10:00', imageCount: 0 },
     { taskId: '2044719742588838912', caseNo: 'O1000000014', status: 'success', createdAt: '2026-05-06 10:01', imageCount: 91 },
     { taskId: '2044719742488838912', caseNo: 'P1000000015', status: 'failed', createdAt: '2026-05-04 08:00', imageCount: 22 },
     { taskId: '2044719742388838912', caseNo: 'Q1000000016', status: 'success', createdAt: '2026-05-02 12:00', imageCount: 33 },
     { taskId: '2044719742288838912', caseNo: 'Q1000000016', status: 'success', createdAt: '2026-05-02 12:01', imageCount: 44 },
     { taskId: '2044719742188838912', caseNo: 'Q1000000016', status: 'failed', createdAt: '2026-05-02 12:02', imageCount: 55 },
-    { taskId: '2044719742088838912', caseNo: 'R1000000017', status: 'success', createdAt: '2026-04-30 16:30', imageCount: 66 },
+    { taskId: '2044719742088838912', caseNo: 'X1000000025', status: 'processing', createdAt: '2026-04-30 16:30', imageCount: 0 },
     { taskId: '2044719741988838912', caseNo: 'S1000000018', status: 'success', createdAt: '2026-04-28 14:00', imageCount: 77 },
     { taskId: '2044719741888838912', caseNo: 'S1000000018', status: 'failed', createdAt: '2026-04-28 14:01', imageCount: 88 },
     { taskId: '2044719741788838912', caseNo: 'T1000000019', status: 'success', createdAt: '2026-04-26 09:00', imageCount: 19 },
@@ -1116,7 +1116,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState('引擎结果')
   const [activeCategory, setActiveCategory] = useState('全部')
-  const [viewMode, setViewMode] = useState<'group' | 'category'>('category')
+  const [viewMode, setViewMode] = useState<'group' | 'category'>('group')
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [activeGroupForItem, setActiveGroupForItem] = useState('')
   const [activeSubItem, setActiveSubItem] = useState('')

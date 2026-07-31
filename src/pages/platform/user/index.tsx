@@ -5,7 +5,7 @@ import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 
 // ── 类型定义 ──
 
-const SPACES = ['理赔', '核保', '反欺诈'] as const
+const SPACES = ['公共', '理赔', '核保', '反欺诈'] as const
 
 const ROLES = [
   { value: 'admin', label: '管理员' },
@@ -19,6 +19,7 @@ const STATUS_MAP: Record<string, { color: string; text: string }> = {
 }
 
 const SPACE_COLOR_MAP: Record<string, string> = {
+  '公共': 'purple',
   '理赔': 'blue',
   '核保': 'orange',
   '反欺诈': 'green',
@@ -102,7 +103,7 @@ const INITIAL_USERS: UserRecord[] = [
 
 // ── 样式常量 ──
 
-// 根据角色和空间获取菜单权限（按空间分组展示，每组最多3个）
+// 根据角色和空间获取菜单权限（按空间分组展示，每组最多3个，跳过全部无权限的空间）
 const getUserMenus = (role: RoleType, spaces: string[], menuPermissions: MenuPermission[]) => {
   const result: { space: string; menus: { label: string; level: string }[]; hasMore: boolean }[] = []
 
@@ -111,7 +112,9 @@ const getUserMenus = (role: RoleType, spaces: string[], menuPermissions: MenuPer
     const perm = menuPermissions.find(p => p.key === m.key)
     return { label: m.label, level: perm?.level === 'read' ? '只读' : perm?.level === 'write' ? '读写' : '无权限' }
   })
-  result.push({ space: '公共', menus: publicMenus.slice(0, 3), hasMore: publicMenus.length > 3 })
+  if (publicMenus.some(m => m.level !== '无权限')) {
+    result.push({ space: '公共', menus: publicMenus.slice(0, 3), hasMore: publicMenus.length > 3 })
+  }
 
   // 各空间菜单（按理赔、核保、反欺诈顺序）
   const spaceOrder = ['理赔', '核保', '反欺诈']
@@ -121,7 +124,10 @@ const getUserMenus = (role: RoleType, spaces: string[], menuPermissions: MenuPer
         const perm = role === 'admin' ? { level: 'write' as const } : menuPermissions.find(p => p.key === m.key)
         return { label: m.label, level: perm?.level === 'read' ? '只读' : perm?.level === 'write' ? '读写' : '无权限' }
       }) || []
-      result.push({ space, menus: spaceMenus.slice(0, 3), hasMore: spaceMenus.length > 3 })
+      // 跳过全部无权限的空间
+      if (spaceMenus.some(m => m.level !== '无权限')) {
+        result.push({ space, menus: spaceMenus.slice(0, 3), hasMore: spaceMenus.length > 3 })
+      }
     }
   })
 
@@ -293,12 +299,51 @@ const UserManagement: React.FC = () => {
     })
   }
 
+  // 停用/启用切换
+  const handleToggleStatus = (user: UserRecord) => {
+    const nextStatus = user.status === 'active' ? 'disabled' : 'active'
+    const actionText = nextStatus === 'disabled' ? '停用' : '启用'
+    Modal.confirm({
+      title: `确认${actionText}`,
+      content: `确定要${actionText}用户「${user.realName}」吗？`,
+      okText: '确认',
+      cancelText: '取消',
+      onOk: () => {
+        setUsers(prev => prev.map(u => u.key === user.key ? { ...u, status: nextStatus } : u))
+        message.success(`${actionText}成功`)
+      },
+    })
+  }
+
+  // 新增弹窗 - 空间变更时自动生成"只读"默认权限
+  const handleAddSpaceChange = (spaces: string[]) => {
+    const newMenus: MenuPermission[] = []
+    // 所选空间（含公共）的菜单加入
+    spaces.forEach(space => {
+      MENU_TREE[space]?.forEach(m => {
+        newMenus.push({ key: m.key, level: 'read' })
+      })
+    })
+    const newKnowledge: KnowledgePermission[] = spaces.filter(s => s !== '公共').map(s => ({ space: s, level: 'read' }))
+    setNewUser({ ...newUser, spaces, menuPermissions: newMenus, knowledgePermissions: newKnowledge })
+  }
   // 空间变更时同步菜单权限和知识权限
   const handleSpaceChange = (spaces: string[]) => {
     setEditSpaces(spaces)
-    // 更新菜单权限：只保留所选空间的菜单（包括公共菜单）
-    const validMenus = [...(MENU_TREE['公共']?.map(m => m.key) || []), ...spaces.flatMap(s => MENU_TREE[s]?.map(m => m.key) || [])]
-    setEditMenuPermissions(prev => prev.filter(p => validMenus.includes(p.key)))
+    const validMenuKeys = [...(MENU_TREE['公共']?.map(m => m.key) || []), ...spaces.flatMap(s => MENU_TREE[s]?.map(m => m.key) || [])]
+    setEditMenuPermissions(prev => {
+      // 保留已有的有效菜单权限
+      const kept = prev.filter(p => validMenuKeys.includes(p.key))
+      // 新增空间的菜单默认设为"只读"
+      const keptKeys = new Set(kept.map(p => p.key))
+      const added: MenuPermission[] = []
+      validMenuKeys.forEach(key => {
+        if (!keptKeys.has(key)) {
+          added.push({ key, level: 'read' })
+        }
+      })
+      return [...kept, ...added]
+    })
     // 更新知识权限
     setEditKnowledgePermissions(prev => {
       const existing = prev.filter(p => spaces.includes(p.space))
@@ -376,7 +421,7 @@ const UserManagement: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      width: 85,
+      width: 110,
       render: (_: unknown, record: UserRecord) => (
         <Space size={12}>
           <EditOutlined
@@ -387,6 +432,16 @@ const UserManagement: React.FC = () => {
             onClick={() => handleDelete(record)}
             style={{ color: '#ff4d4f', cursor: 'pointer', fontSize: 14 }}
           />
+          <span
+            onClick={() => handleToggleStatus(record)}
+            style={{
+              color: '#1677ff',
+              cursor: 'pointer',
+              fontSize: 13,
+            }}
+          >
+            {record.status === 'active' ? '停用' : '启用'}
+          </span>
         </Space>
       ),
     },
@@ -470,56 +525,61 @@ const UserManagement: React.FC = () => {
             <span style={{ width: 4, height: 16, background: '#3b82f6', borderRadius: 2, display: 'inline-block' }} />
             菜单权限配置
           </div>
-          {editSpaces.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* 公共菜单 */}
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>公共菜单</div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden' }}>
-                  <thead>
-                    <tr style={{ background: '#f9fafb' }}>
-                      <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>菜单名称</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>只读</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>读写</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>无权限</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {MENU_TREE['公共'].map(m => {
-                      const perm = editMenuPermissions.find(p => p.key === m.key)
-                      const level = perm?.level || 'none'
-                      return (
-                        <tr key={m.key} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                          <td style={{ padding: '8px 12px' }}>{m.label}</td>
-                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                            <Radio checked={level === 'read'} onChange={() => {
-                              setEditMenuPermissions(prev => {
-                                const filtered = prev.filter(p => p.key !== m.key)
-                                return [...filtered, { key: m.key, level: 'read' }]
-                              })
-                            }} />
-                          </td>
-                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                            <Radio checked={level === 'write'} onChange={() => {
-                              setEditMenuPermissions(prev => {
-                                const filtered = prev.filter(p => p.key !== m.key)
-                                return [...filtered, { key: m.key, level: 'write' }]
-                              })
-                            }} />
-                          </td>
-                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                            <Radio checked={level === 'none'} onChange={() => {
-                              setEditMenuPermissions(prev => prev.filter(p => p.key !== m.key))
-                            }} />
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              {/* 各空间菜单 */}
-              {editSpaces.map(space => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* 公共菜单 */}
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>公共菜单</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden' }}>
+                <thead>
+                  <tr style={{ background: '#f9fafb' }}>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>菜单名称</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>只读</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>读写</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>无权限</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {MENU_TREE['公共'].map(m => {
+                    const active = editSpaces.includes('公共')
+                    const perm = editMenuPermissions.find(p => p.key === m.key)
+                    const level = active ? (perm?.level || 'none') : 'none'
+                    return (
+                      <tr key={m.key} style={{ borderBottom: '1px solid #f0f0f0', opacity: active ? 1 : 0.45 }}>
+                        <td style={{ padding: '8px 12px' }}>{m.label}</td>
+                        <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                          <Radio checked={level === 'read'} onChange={() => {
+                            if (!active) return
+                            setEditMenuPermissions(prev => {
+                              const filtered = prev.filter(p => p.key !== m.key)
+                              return [...filtered, { key: m.key, level: 'read' }]
+                            })
+                          }} />
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                          <Radio checked={level === 'write'} onChange={() => {
+                            if (!active) return
+                            setEditMenuPermissions(prev => {
+                              const filtered = prev.filter(p => p.key !== m.key)
+                              return [...filtered, { key: m.key, level: 'write' }]
+                            })
+                          }} />
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                          <Radio checked={level === 'none'} onChange={() => {
+                            if (!active) return
+                            setEditMenuPermissions(prev => prev.filter(p => p.key !== m.key))
+                          }} />
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {/* 各空间菜单 - 始终展示全部4个空间 */}
+            {['理赔', '核保', '反欺诈'].map(space => {
+              const active = editSpaces.includes(space)
+              return (
                 <div key={space}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>{space}空间</div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden' }}>
@@ -534,12 +594,13 @@ const UserManagement: React.FC = () => {
                     <tbody>
                       {MENU_TREE[space]?.map(m => {
                         const perm = editMenuPermissions.find(p => p.key === m.key)
-                        const level = perm?.level || 'none'
+                        const level = active ? (perm?.level || 'none') : 'none'
                         return (
-                          <tr key={m.key} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                          <tr key={m.key} style={{ borderBottom: '1px solid #f0f0f0', opacity: active ? 1 : 0.45 }}>
                             <td style={{ padding: '8px 12px' }}>{m.label}</td>
                             <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                               <Radio checked={level === 'read'} onChange={() => {
+                                if (!active) return
                                 setEditMenuPermissions(prev => {
                                   const filtered = prev.filter(p => p.key !== m.key)
                                   return [...filtered, { key: m.key, level: 'read' }]
@@ -548,6 +609,7 @@ const UserManagement: React.FC = () => {
                             </td>
                             <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                               <Radio checked={level === 'write'} onChange={() => {
+                                if (!active) return
                                 setEditMenuPermissions(prev => {
                                   const filtered = prev.filter(p => p.key !== m.key)
                                   return [...filtered, { key: m.key, level: 'write' }]
@@ -556,6 +618,7 @@ const UserManagement: React.FC = () => {
                             </td>
                             <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                               <Radio checked={level === 'none'} onChange={() => {
+                                if (!active) return
                                 setEditMenuPermissions(prev => prev.filter(p => p.key !== m.key))
                               }} />
                             </td>
@@ -565,11 +628,9 @@ const UserManagement: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ fontSize: 13, color: '#9ca3af', padding: 16, textAlign: 'center', border: '1px solid #e5e7eb', borderRadius: 8 }}>请先选择所属空间</div>
-          )}
+              )
+            })}
+          </div>
         </div>
       </div>
     )
@@ -605,20 +666,20 @@ const UserManagement: React.FC = () => {
           style={{ width: 160 }}
         />
         <Select
-          placeholder="所属空间"
-          value={filterSpace || undefined}
-          onChange={val => { setFilterSpace(val || ''); setCurrentPage(1) }}
-          allowClear
-          options={SPACES.map(s => ({ label: s, value: s }))}
-          style={{ width: 120 }}
-          rootClassName="filter-select"
-        />
-        <Select
           placeholder="角色"
           value={filterRole || undefined}
           onChange={val => { setFilterRole(val || ''); setCurrentPage(1) }}
           allowClear
           options={ROLES.map(r => ({ label: r.label, value: r.value }))}
+          style={{ width: 120 }}
+          rootClassName="filter-select"
+        />
+        <Select
+          placeholder="所属空间"
+          value={filterSpace || undefined}
+          onChange={val => { setFilterSpace(val || ''); setCurrentPage(1) }}
+          allowClear
+          options={SPACES.map(s => ({ label: s, value: s }))}
           style={{ width: 120 }}
           rootClassName="filter-select"
         />
@@ -692,9 +753,10 @@ const UserManagement: React.FC = () => {
         destroyOnClose
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* 基本信息 */}
           <div style={{ display: 'flex', gap: 16 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, color: '#374151', marginBottom: 6 }}>OA号</div>
+              <div style={{ fontSize: 13, color: '#374151', marginBottom: 6 }}><span style={{ color: '#ff4d4f', marginRight: 2 }}>*</span>OA号</div>
               <Input value={newUser.userId} onChange={e => setNewUser({ ...newUser, userId: e.target.value })} placeholder="请输入OA号" />
             </div>
             <div style={{ flex: 1 }}>
@@ -706,27 +768,143 @@ const UserManagement: React.FC = () => {
               <Input value={newUser.department} onChange={e => setNewUser({ ...newUser, department: e.target.value })} placeholder="请输入部门" />
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: 13, color: '#374151', marginBottom: 6 }}>角色</div>
-            <Select
-              value={newUser.role}
-              onChange={val => setNewUser({ ...newUser, role: val })}
-              options={ROLES.map(r => ({ label: r.label, value: r.value }))}
-              style={{ width: '100%' }}
-              rootClassName="filter-select"
-            />
+          <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, color: '#374151', marginBottom: 6 }}>角色</div>
+              <Select
+                value={newUser.role}
+                onChange={val => setNewUser({ ...newUser, role: val })}
+                options={ROLES.map(r => ({ label: r.label, value: r.value }))}
+                style={{ width: '100%' }}
+                rootClassName="filter-select"
+              />
+            </div>
           </div>
+          {/* 空间归属 */}
           <div>
             <div style={{ fontSize: 13, color: '#374151', marginBottom: 6 }}>所属空间</div>
             <Checkbox.Group
               value={newUser.spaces}
-              onChange={vals => setNewUser({ ...newUser, spaces: vals as string[] })}
+              onChange={vals => handleAddSpaceChange(vals as string[])}
               style={{ display: 'flex', gap: 24 }}
             >
               {SPACES.map(s => (
                 <Checkbox key={s} value={s}>{s}</Checkbox>
               ))}
             </Checkbox.Group>
+          </div>
+          {/* 菜单权限配置 */}
+          <div>
+            <div style={{ fontSize: 13, color: '#374151', marginBottom: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 4, height: 14, background: '#3b82f6', borderRadius: 2, display: 'inline-block' }} />
+              菜单权限配置
+            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* 公共菜单 */}
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>公共菜单</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden' }}>
+                <thead>
+                  <tr style={{ background: '#f9fafb' }}>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>菜单名称</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>只读</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>读写</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>无权限</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {MENU_TREE['公共'].map(m => {
+                    const active = (newUser.spaces || []).includes('公共')
+                    const perm = (newUser.menuPermissions || []).find(p => p.key === m.key)
+                    const level = active ? (perm?.level || 'none') : 'none'
+                    return (
+                      <tr key={m.key} style={{ borderBottom: '1px solid #f0f0f0', opacity: active ? 1 : 0.45 }}>
+                        <td style={{ padding: '8px 12px' }}>{m.label}</td>
+                        <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                          <Radio checked={level === 'read'} onChange={() => {
+                            if (!active) return
+                            setNewUser(prev => {
+                              const filtered = (prev.menuPermissions || []).filter(p => p.key !== m.key)
+                              return { ...prev, menuPermissions: [...filtered, { key: m.key, level: 'read' }] }
+                            })
+                          }} />
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                          <Radio checked={level === 'write'} onChange={() => {
+                            if (!active) return
+                            setNewUser(prev => {
+                              const filtered = (prev.menuPermissions || []).filter(p => p.key !== m.key)
+                              return { ...prev, menuPermissions: [...filtered, { key: m.key, level: 'write' }] }
+                            })
+                          }} />
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                          <Radio checked={level === 'none'} onChange={() => {
+                            if (!active) return
+                            setNewUser(prev => ({ ...prev, menuPermissions: (prev.menuPermissions || []).filter(p => p.key !== m.key) }))
+                          }} />
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {/* 各空间菜单 - 始终展示全部3个业务空间 */}
+            {['理赔', '核保', '反欺诈'].map(space => {
+              const active = (newUser.spaces || []).includes(space)
+              return (
+                <div key={space}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>{space}空间</div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden' }}>
+                    <thead>
+                      <tr style={{ background: '#f9fafb' }}>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>菜单名称</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>只读</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>读写</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>无权限</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {MENU_TREE[space]?.map(m => {
+                        const perm = (newUser.menuPermissions || []).find(p => p.key === m.key)
+                        const level = active ? (perm?.level || 'none') : 'none'
+                        return (
+                          <tr key={m.key} style={{ borderBottom: '1px solid #f0f0f0', opacity: active ? 1 : 0.45 }}>
+                            <td style={{ padding: '8px 12px' }}>{m.label}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                              <Radio checked={level === 'read'} onChange={() => {
+                                if (!active) return
+                                setNewUser(prev => {
+                                  const filtered = (prev.menuPermissions || []).filter(p => p.key !== m.key)
+                                  return { ...prev, menuPermissions: [...filtered, { key: m.key, level: 'read' }] }
+                                })
+                              }} />
+                            </td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                              <Radio checked={level === 'write'} onChange={() => {
+                                if (!active) return
+                                setNewUser(prev => {
+                                  const filtered = (prev.menuPermissions || []).filter(p => p.key !== m.key)
+                                  return { ...prev, menuPermissions: [...filtered, { key: m.key, level: 'write' }] }
+                                })
+                              }} />
+                            </td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                              <Radio checked={level === 'none'} onChange={() => {
+                                if (!active) return
+                                setNewUser(prev => ({ ...prev, menuPermissions: (prev.menuPermissions || []).filter(p => p.key !== m.key) }))
+                              }} />
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            })}
+          </div>
           </div>
         </div>
       </Modal>

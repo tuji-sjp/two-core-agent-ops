@@ -2,6 +2,7 @@ import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import MainLayout from './layouts/MainLayout'
 import Dashboard from './pages/dashboard'
+import LoginPage from './pages/login'
 import MetricsClaims from './pages/metrics/claims'
 import MetricsUnderwriting from './pages/metrics/underwriting'
 import MetricsAntiFraud from './pages/metrics/anti-fraud'
@@ -14,6 +15,15 @@ import AgentClaimsLogs from './pages/agent/claims/logs'
 import AgentClaimsTaskDetail from './pages/agent/claims/task-detail'
 import AgentClaimsDeductionLogDetail from './pages/agent/claims/deduction-log-detail'
 import UserManagement from './pages/platform/user'
+import { Auth } from './utils/auth'
+
+// 路由守卫：未登录则跳转登录页
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  if (!Auth.isLoggedIn()) {
+    return <Navigate to="/login" replace />
+  }
+  return <>{children}</>
+}
 
 const PagePlaceholder: React.FC = () => (
   <div style={{ padding: 24, color: '#8c8c8c' }}>页面开发中</div>
@@ -22,7 +32,15 @@ const PagePlaceholder: React.FC = () => (
 const App: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={<MainLayout />}>
+      {/* 登录页 - 无需认证 */}
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* 主布局 - 需要认证 */}
+      <Route path="/" element={
+        <ProtectedRoute>
+          <MainLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Navigate to="/business/overview" replace />} />
 
         {/* 业务应用 */}
@@ -58,8 +76,12 @@ const App: React.FC = () => {
         <Route path="platform/alert" element={<PagePlaceholder />} />
 
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
+
+      {/* 未匹配路由 - 根据登录态跳转 */}
+      <Route path="*" element={
+        <Navigate to={Auth.isLoggedIn() ? '/' : '/login'} replace />
+      } />
     </Routes>
   )
 }

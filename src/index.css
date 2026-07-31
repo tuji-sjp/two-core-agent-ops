@@ -114,14 +114,6 @@ body {
   height: 100% !important;
 }
 
-/* User popover: remove default border/shadow, let inner div handle styling */
-.user-popover .ant-popover-inner {
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  background: transparent !important;
-}
-
 .ant-table-cell {
   background: #ffffff !important;
 }
