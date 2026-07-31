@@ -1123,11 +1123,7 @@ const AgentClaimsTaskDetail: React.FC = () => {
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [selectedDuplicateIndex, setSelectedDuplicateIndex] = useState<number>(0)
-
-  // 查找影像（端到端返回结果）
-  const findClaimResultImage = (imageId: string) => {
-    return ENGINE_RESULT_DATA.imageList.find(img => String(img.imageId) === imageId)
-  }
+  const [jsonExpanded, setJsonExpanded] = useState(false)
 
   // 点击影像ID - 跳转到影像展示的预览弹窗
   const handleImageIdClick = (imageId: string) => {
@@ -1137,21 +1133,6 @@ const AgentClaimsTaskDetail: React.FC = () => {
       setActiveTab('影像展示')
       openPreview(idx)
     }
-  }
-
-  // 可点击的影像ID组件
-  const ClickableImageId: React.FC<{ imageId: string }> = ({ imageId }) => {
-    if (!imageId) return <span style={{ color: '#8c8c8c' }}>-</span>
-    const img = findClaimResultImage(imageId)
-    if (!img) return <span style={{ color: '#1f2937' }}>{imageId}</span>
-    return (
-      <span
-        onClick={() => handleImageIdClick(imageId)}
-        style={{ color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline' }}
-      >
-        {imageId}
-      </span>
-    )
   }
 
   const toggleGroup = (groupName: string) => {
@@ -2417,274 +2398,231 @@ const AgentClaimsTaskDetail: React.FC = () => {
       {activeTab === '引擎结果' && (
         <>
           <div>
-          {/* ── 理赔接收结果 ── */}
+          {/* ── 端到端返回结果 ── */}
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 4, height: 18, background: '#3b82f6', borderRadius: 2, display: 'inline-block' }} />
               端到端返回结果
             </div>
-            {ENGINE_RESULT_DATA.claimResult.groupList.map((group) => (
-              <div key={group.groupNo} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {/* ① 基本信息 */}
-                <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
-                  <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>基本信息</div>
-                  <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px 24px', fontSize: 13 }}>
-                    <div><span style={{ color: '#6b7280' }}>姓名：</span>{group.medicalInfo.name || '-'}</div>
-                    <div><span style={{ color: '#6b7280' }}>就诊类型：</span>{group.medicalInfo.clicType || '-'}</div>
-                    <div><span style={{ color: '#6b7280' }}>就诊日期：</span>{group.medicalInfo.clicDate || '-'}</div>
-                    <div><span style={{ color: '#6b7280' }}>入院日期：</span>{group.medicalInfo.inHosDate || '-'}</div>
-                    <div><span style={{ color: '#6b7280' }}>出院日期：</span>{group.medicalInfo.outHosDate || '-'}</div>
-                    <div><span style={{ color: '#6b7280' }}>医院代码：</span>{group.medicalInfo.hospCode || '-'}</div>
-                    <div><span style={{ color: '#6b7280' }}>科室：</span>{group.medicalInfo.hosSubjectCode || '-'}</div>
-                    <div><span style={{ color: '#6b7280' }}>出院结果：</span>{group.medicalInfo.outResult || '-'}</div>
-                    <div><span style={{ color: '#6b7280' }}>主治医生：</span>{group.medicalInfo.doctorName || '-'}</div>
-                    <div><span style={{ color: '#6b7280' }}>ICU治疗：</span>{group.medicalInfo.isIcuTreatment || '-'}</div>
+            {ENGINE_RESULT_DATA.claimResult.groupList.map((group) => {
+              // 统一样式
+              const cardStyle: React.CSSProperties = { background: '#fff', borderRadius: 8, border: '1px solid #f3f4f6', padding: 24, marginBottom: 16 }
+              const titleStyle: React.CSSProperties = { fontSize: 15, fontWeight: 600, color: '#1f2937', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #f3f4f6' }
+              const subTitleStyle: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: '#6b7280', marginBottom: 12, marginTop: 20, paddingTop: 16, borderTop: '1px solid #f3f4f6' }
+              const labelStyle: React.CSSProperties = { color: '#6b7280', fontSize: 14, width: 100, flexShrink: 0 }
+              const valueStyle: React.CSSProperties = { color: '#1f2937', fontSize: 14 }
+              const rowStyle: React.CSSProperties = { display: 'flex', marginBottom: 16, alignItems: 'center' }
+              const thStyle: React.CSSProperties = { padding: '8px 12px', textAlign: 'left', fontWeight: 500, color: '#6b7280', fontSize: 13, borderBottom: '1px solid #f3f4f6', background: '#fafbfc' }
+              const tdStyle: React.CSSProperties = { padding: '10px 12px', borderBottom: '1px solid #f3f4f6', fontSize: 13, color: '#1f2937' }
+              const tableStyle: React.CSSProperties = { width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 16 }
+
+              const FieldRow = ({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) => (
+                <div style={rowStyle}>
+                  <span style={labelStyle}>{label}</span>
+                  <span style={{...valueStyle, fontWeight: highlight ? 600 : 400, color: highlight ? '#16a34a' : '#1f2937'}}>{value || '-'}</span>
+                </div>
+              )
+
+              return (
+              <div key={group.groupNo}>
+                {/* 就诊概览 - 单列竖直罗列 */}
+                <div style={cardStyle}>
+                  <div style={titleStyle}>就诊概览</div>
+                  <div style={{ maxWidth: 400 }}>
+                    <FieldRow label="姓名" value={group.medicalInfo.name} />
+                    <FieldRow label="住院号" value={group.medicalInfo.inHosDate} />
+                    <FieldRow label="科室" value={group.medicalInfo.hosSubjectCode} />
+                    <FieldRow label="ICU 治疗" value={group.medicalInfo.isIcuTreatment || '无'} />
+                    <FieldRow label="就诊类型" value={group.medicalInfo.clicType} />
+                    <FieldRow label="入院日期" value={group.medicalInfo.inHosDate} />
+                    <FieldRow label="出院日期" value={group.medicalInfo.outHosDate} />
+                    <FieldRow label="医院" value={group.medicalInfo.hospCode} />
+                    <FieldRow label="出院结果" value={group.medicalInfo.outResult} highlight={group.medicalInfo.outResult === '好转'} />
+                    <FieldRow label="主治医生" value={group.medicalInfo.doctorName} />
                   </div>
                 </div>
 
-                {/* ② 诊断信息 */}
-                {group.diagnosisInfoList.length > 0 && (
-                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
-                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>诊断信息</div>
-                    <table style={{ width: 830, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
-                      <thead>
-                        <tr style={{ background: '#fafbfc' }}>
-                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>关键词</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>ICD-6</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>ICD-4</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>LIC</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>置信度</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {group.diagnosisInfoList.map((d, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                            <td style={{ padding: '8px 12px' }}>{d.keyword}</td>
-                            <td style={{ padding: '8px 12px' }}>{d.icd6} {d.icd6Name}</td>
-                            <td style={{ padding: '8px 12px' }}>{d.icd4} {d.icd4Name}</td>
-                            <td style={{ padding: '8px 12px' }}>{d.licCode} {d.licName}</td>
-                            <td style={{ padding: '8px 12px' }}>{(parseFloat(d.score) * 100).toFixed(0)}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* ③ 手术信息 */}
-                {group.surgicalInfoList.length > 0 && (
-                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
-                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>手术信息</div>
-                    <table style={{ width: 350, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
-                      <thead>
-                        <tr style={{ background: '#fafbfc' }}>
-                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>手术名称</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>手术日期</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {group.surgicalInfoList.map((s, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                            <td style={{ padding: '8px 12px' }}>{s.surgName || s.surgKeyword}</td>
-                            <td style={{ padding: '8px 12px' }}>{s.surgDate || '-'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* ④ 病史信息 */}
-                {group.historyInfoList.length > 0 && (
-                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
-                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>病史信息</div>
-                    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {group.historyInfoList.map((h, i) => (
-                        <div key={i} style={{ fontSize: 13 }}>
-                          <span style={{ color: '#6b7280' }}>疾病描述：</span>{h.diseaseKeyword}
-                          {h.diseaseName && <span style={{ marginLeft: 16, color: '#6b7280' }}>诊断名称：</span>}
-                          {h.diseaseName && <span>{h.diseaseName}</span>}
+                {/* 诊疗详情 - 双栏 */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                  {/* 左侧：诊断与病史 */}
+                  <div style={cardStyle}>
+                    <div style={titleStyle}>诊断信息</div>
+                    {group.diagnosisInfoList.map((d, i) => (
+                      <div key={i} style={{ marginBottom: i < group.diagnosisInfoList.length - 1 ? 16 : 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          <span style={{ fontWeight: 500, color: '#1f2937', fontSize: 14 }}>{d.keyword}</span>
+                          <span style={{ background: '#f0fdf4', color: '#16a34a', fontSize: 12, padding: '2px 8px', borderRadius: 12 }}>置信度 {(parseFloat(d.score)*100).toFixed(0)}%</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* ⑤ 手术史 */}
-                {group.surgHistoryInfoList.length > 0 && (
-                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
-                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>手术史</div>
-                    <table style={{ width: 350, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
-                      <thead>
-                        <tr style={{ background: '#fafbfc' }}>
-                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>手术名称</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>手术日期</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {group.surgHistoryInfoList.map((s, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                            <td style={{ padding: '8px 12px' }}>{s.surgName || s.surgKeyword}</td>
-                            <td style={{ padding: '8px 12px' }}>{s.surgDate || '-'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* 病历组影像 */}
-                {group.medicalGroupImageList.length > 0 && (
-                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
-                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>病历组影像</div>
-                    <table style={{ width: 450, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
-                      <thead>
-                        <tr style={{ background: '#fafbfc' }}>
-                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>影像类型</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>影像ID</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {group.medicalGroupImageList.map((mgi, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                            <td style={{ padding: '8px 12px' }}>{mgi.imageType}</td>
-                            <td style={{ padding: '8px 12px' }}>
-                              {mgi.imageList.map((img, idx) => (
-                                <span key={idx}>
-                                  <ClickableImageId imageId={img.imageId} />
-                                  {idx < mgi.imageList.length - 1 && '、'}
-                                </span>
-                              ))}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* ⑥⑦⑧ 票据组 */}
-                {group.billGroupInfoList.map((billGroup) => (
-                  <div key={billGroup.billGroupNo} style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
-                    <div style={{ padding: '10px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#1f2937' }}>
-                      票据组 {billGroup.billGroupNo}
-                    </div>
-                    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                      {/* ⑥ 结算信息 */}
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>结算信息</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 24px', fontSize: 13, padding: '10px 12px', background: '#fafbfc', borderRadius: 6 }}>
-                          <div><span style={{ color: '#6b7280' }}>发票号码：</span>{billGroup.basicData.billNo || '-'}</div>
-                          <div><span style={{ color: '#6b7280' }}>票据类型：</span>{billGroup.basicData.billType || '-'}</div>
-                          <div><span style={{ color: '#6b7280' }}>电子/纸质：</span>{billGroup.basicData.billEleType === '02' ? '电子' : billGroup.basicData.billEleType === '01' ? '纸质' : '-'}</div>
-                          <div><span style={{ color: '#6b7280' }}>总金额：</span>¥{billGroup.basicData.billTotalAmt || '-'}</div>
-                          <div><span style={{ color: '#6b7280' }}>医保支付：</span>¥{billGroup.accountData.socialInsPayment || '-'}</div>
-                          <div><span style={{ color: '#6b7280' }}>个人支付：</span>¥{billGroup.accountData.allOwnPayment || '-'}</div>
-                          <div><span style={{ color: '#6b7280' }}>医保类型：</span>{billGroup.basicData.insuredType === '01' ? '城镇职工' : '-'}</div>
-                          <div><span style={{ color: '#6b7280' }}>统筹支付：</span>{billGroup.basicData.isSclPay === '01' ? '是' : '否'}</div>
-                          <div><span style={{ color: '#6b7280' }}>数据来源：</span>{billGroup.basicData.billSourceType === '01' ? '电票数据' : '非电票'}</div>
-                        </div>
+                        <div style={{ fontSize: 12, color: '#6b7280' }}>ICD编码：{d.icd6} {d.icd6Name}</div>
                       </div>
+                    ))}
+                    {group.historyInfoList.length > 0 && (
+                      <>
+                        <div style={subTitleStyle}>既往病史</div>
+                        {group.historyInfoList.map((h, i) => (
+                          <div key={i} style={{ marginBottom: 8 }}>
+                            <FieldRow label="疾病描述" value={h.diseaseKeyword} />
+                            <FieldRow label="诊断名称" value={h.diseaseName} />
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
 
-                      {/* ⑦ 发票分类 */}
-                      {billGroup.categoryData.length > 0 && (
-                        <div>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>发票分类</div>
-                          <table style={{ width: 750, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
-                            <thead>
-                              <tr style={{ background: '#fafbfc' }}>
-                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>费用类别</th>
-                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>标准名称</th>
-                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>标准代码</th>
-                                <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>金额</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {billGroup.categoryData.map((c, i) => (
-                                <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                  <td style={{ padding: '8px 12px' }}>{c.chargeCategory}</td>
-                                  <td style={{ padding: '8px 12px' }}>{c.chargeStandardName}</td>
-                                  <td style={{ padding: '8px 12px' }}>{c.chargeStandardCode}</td>
-                                  <td style={{ padding: '8px 12px', textAlign: 'right' }}>¥{c.categoryAmt}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
+                  {/* 右侧：手术记录 */}
+                  <div style={cardStyle}>
+                    <div style={titleStyle}>手术记录</div>
+                    {group.surgicalInfoList.length > 0 && (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: '#6b7280', marginBottom: 8 }}>本次住院</div>
+                        {group.surgicalInfoList.map((s, i) => (
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f9fafb' }}>
+                            <span style={{ color: '#1f2937', fontSize: 13 }}>{s.surgName || s.surgKeyword}</span>
+                            <span style={{ color: '#6b7280', fontSize: 13 }}>{s.surgDate || '-'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {group.surgHistoryInfoList.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: '#6b7280', marginBottom: 8 }}>既往手术史</div>
+                        {group.surgHistoryInfoList.map((s, i) => (
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f9fafb' }}>
+                            <span style={{ color: '#1f2937', fontSize: 13 }}>{s.surgName || s.surgKeyword}</span>
+                            <span style={{ color: '#6b7280', fontSize: 13 }}>{s.surgDate || '-'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-                      {/* ⑧ 费用明细 */}
-                      {billGroup.feeDtData.length > 0 && (
-                        <div>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>费用明细</div>
-                          <table style={{ width: 830, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
-                            <thead>
-                              <tr style={{ background: '#fafbfc' }}>
-                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>项目名称</th>
-                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>规格</th>
-                                <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>单价</th>
-                                <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 200 }}>数量</th>
-                                <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 80 }}>金额</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {billGroup.feeDtData.map((f, i) => (
-                                <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                  <td style={{ padding: '8px 12px' }}>{f.itemName}</td>
-                                  <td style={{ padding: '8px 12px' }}>{f.specification}</td>
-                                  <td style={{ padding: '8px 12px', textAlign: 'right' }}>¥{f.unitPrice}</td>
-                                  <td style={{ padding: '8px 12px', textAlign: 'right' }}>{f.quantity}</td>
-                                  <td style={{ padding: '8px 12px', textAlign: 'right' }}>¥{f.totalAmt}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-
-                      {/* 票据组影像 */}
-                      {billGroup.billGroupImageList.length > 0 && (
-                        <div>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>票据组影像</div>
-                          <table style={{ width: 450, borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: 13 }}>
-                            <thead>
-                              <tr style={{ background: '#fafbfc' }}>
-                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>影像类型</th>
-                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>影像ID</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {billGroup.billGroupImageList.map((bgi, i) => (
-                                <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                  <td style={{ padding: '8px 12px' }}>{bgi.imageType}</td>
-                                  <td style={{ padding: '8px 12px' }}>
-                                    {bgi.imageList.map((img, idx) => (
-                                      <span key={idx}>
-                                        <ClickableImageId imageId={img.imageId} />
-                                        {idx < bgi.imageList.length - 1 && '、'}
-                                      </span>
-                                    ))}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
+                {/* 住院费用结算 */}
+                {group.billGroupInfoList.length > 0 && group.billGroupInfoList.map((billGroup) => (
+                  <div key={billGroup.billGroupNo} style={cardStyle}>
+                    <div style={titleStyle}>住院费用结算</div>
+                    
+                    {/* 核心金额高亮 */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, padding: 16, background: '#eff6ff', borderRadius: 8, marginBottom: 20 }}>
+                      <div>
+                        <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>总金额</div>
+                        <div style={{ fontSize: 20, fontWeight: 700, color: '#165DFF' }}>¥{billGroup.basicData.billTotalAmt || '-'}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>医保支付</div>
+                        <div style={{ fontSize: 18, fontWeight: 600, color: '#374151' }}>¥{billGroup.accountData.socialInsPayment || '-'}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>个人支付</div>
+                        <div style={{ fontSize: 18, fontWeight: 600, color: '#ea580c' }}>¥{billGroup.accountData.allOwnPayment || '-'}</div>
+                      </div>
                     </div>
+
+                    {/* 结算基础信息 - 单列竖直罗列 */}
+                    <div style={{ maxWidth: 400, marginBottom: 20 }}>
+                      <FieldRow label="发票号码" value={billGroup.basicData.billNo} />
+                      <FieldRow label="票据类型" value={billGroup.basicData.billType} />
+                      <FieldRow label="票据介质" value={billGroup.basicData.billEleType === '02' ? '电子' : billGroup.basicData.billEleType === '01' ? '纸质' : '-'} />
+                      <FieldRow label="医保类型" value={billGroup.basicData.insuredType === '01' ? '城镇职工' : '-'} />
+                      <FieldRow label="统筹支付" value={billGroup.basicData.isSclPay === '01' ? '是' : '否'} />
+                      <FieldRow label="数据来源" value={billGroup.basicData.billSourceType === '01' ? '电票数据' : '非电票'} />
+                    </div>
+
+                    {/* 费用分类 */}
+                    {billGroup.categoryData.length > 0 && (
+                      <>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>费用分类</div>
+                        <table style={tableStyle}>
+                          <thead><tr>
+                            <th style={thStyle}>费用类别</th>
+                            <th style={thStyle}>标准名称 / 代码</th>
+                            <th style={{...thStyle, textAlign: 'right'}}>金额</th>
+                          </tr></thead>
+                          <tbody>
+                            {billGroup.categoryData.map((c, i) => (
+                              <tr key={i}>
+                                <td style={tdStyle}>{c.chargeCategory}</td>
+                                <td style={{...tdStyle, color: '#6b7280'}}>{c.chargeStandardName} / {c.chargeStandardCode}</td>
+                                <td style={{...tdStyle, textAlign: 'right'}}>¥{c.categoryAmt}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </>
+                    )}
+
+                    {/* 费用明细 */}
+                    {billGroup.feeDtData.length > 0 && (
+                      <>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>费用明细</div>
+                        <table style={tableStyle}>
+                          <thead><tr>
+                            <th style={thStyle}>项目名称</th>
+                            <th style={thStyle}>规格 / 单价 / 数量</th>
+                            <th style={{...thStyle, textAlign: 'right'}}>金额</th>
+                          </tr></thead>
+                          <tbody>
+                            {billGroup.feeDtData.map((f, i) => (
+                              <tr key={i}>
+                                <td style={tdStyle}>{f.itemName}</td>
+                                <td style={{...tdStyle, color: '#6b7280'}}>{f.specification} / ¥{f.unitPrice} × {f.quantity}</td>
+                                <td style={{...tdStyle, textAlign: 'right'}}>¥{f.totalAmt}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </>
+                    )}
                   </div>
                 ))}
+
+                {/* 附件资料 */}
+                {(group.medicalGroupImageList.length > 0 || group.billGroupInfoList.some(bg => bg.billGroupImageList.length > 0)) && (
+                  <div style={cardStyle}>
+                    <div style={titleStyle}>附件资料</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {group.medicalGroupImageList.map((mgi, i) => mgi.imageList.map((img, idx) => (
+                        <div key={`${i}-${idx}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: '#f9fafb', borderRadius: 8 }}>
+                          <div>
+                            <div style={{ fontWeight: 500, color: '#1f2937', fontSize: 14, marginBottom: 4 }}>{mgi.imageType}</div>
+                            <div style={{ fontSize: 12, color: '#6b7280' }}>影像ID：{img.imageId}</div>
+                          </div>
+                          <span onClick={() => handleImageIdClick(img.imageId)} style={{ color: '#165DFF', fontSize: 14, cursor: 'pointer' }}>查看</span>
+                        </div>
+                      )))}
+                      {group.billGroupInfoList.map((bg) => bg.billGroupImageList.map((bgi, i) => bgi.imageList.map((img, idx) => (
+                        <div key={`bg-${i}-${idx}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: '#f9fafb', borderRadius: 8 }}>
+                          <div>
+                            <div style={{ fontWeight: 500, color: '#1f2937', fontSize: 14, marginBottom: 4 }}>{bgi.imageType}</div>
+                            <div style={{ fontSize: 12, color: '#6b7280' }}>影像ID：{img.imageId}</div>
+                          </div>
+                          <span onClick={() => handleImageIdClick(img.imageId)} style={{ color: '#165DFF', fontSize: 14, cursor: 'pointer' }}>查看</span>
+                        </div>
+                      ))))}
+                    </div>
+                  </div>
+                )}
               </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* ── JSON代码 ── */}
           <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ width: 4, height: 18, background: '#3b82f6', borderRadius: 2, display: 'inline-block' }} />
-                JSON代码
-              </div>
+            <div
+              style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}
+              onClick={() => setJsonExpanded(!jsonExpanded)}
+            >
+              <span style={{ width: 4, height: 18, background: '#3b82f6', borderRadius: 2, display: 'inline-block' }} />
+              JSON代码
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8c8c8c" strokeWidth="2"
+                style={{ transform: jsonExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}>
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </div>
+            {jsonExpanded && (
+            <>
+            <div style={{ marginTop: 8, marginBottom: 12, display: 'flex' }}>
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(JSON.stringify(ENGINE_RESULT_DATA.claimResult, null, 2)).then(() => {
@@ -2692,45 +2630,31 @@ const AgentClaimsTaskDetail: React.FC = () => {
                   })
                 }}
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  background: '#65a5ff',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 6,
-                  padding: '6px 10px',
-                  fontSize: 12,
-                  fontWeight: 500,
-                  cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: '#65a5ff', color: '#fff', border: 'none',
+                  borderRadius: 6, padding: '6px 10px', fontSize: 12, fontWeight: 500, cursor: 'pointer',
                 }}
               >
                 <CopyOutlined style={{ fontSize: 12 }} /> 复制JSON
               </button>
             </div>
             <div style={{
-              background: '#F9FAFB',
-              borderRadius: 8,
-              border: '1px solid rgb(229, 231, 235)',
-              padding: '20px 24px',
-              maxHeight: 600,
-              overflow: 'auto',
+              background: '#F9FAFB', borderRadius: 8, border: '1px solid rgb(229, 231, 235)',
+              padding: '20px 24px', maxHeight: 600, overflow: 'auto',
             }}>
               <pre style={{
-                margin: 0,
-                fontSize: 12,
-                lineHeight: 1.8,
-                color: '#1f2937',
+                margin: 0, fontSize: 12, lineHeight: 1.8, color: '#1f2937',
                 fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-all',
+                whiteSpace: 'pre-wrap', wordBreak: 'break-all',
               }}>
                 {JSON.stringify(ENGINE_RESULT_DATA.claimResult, null, 2)}
               </pre>
             </div>
+            </>
+            )}
           </div>
 
-          {/* ── 结构化结果（已隐藏） ── */}
+          {/* ─ 结构化结果（已隐藏） ── */}
           {false && (
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -2863,78 +2787,56 @@ const AgentClaimsTaskDetail: React.FC = () => {
                       group.children.map((sub: any) => (
                         <div key={sub.subGroupSeq}>
                           <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>{sub.subGroupType}</div>
-                          <table style={{
-                            borderCollapse: 'collapse',
-                            tableLayout: 'fixed',
-                            width: 750,
-                            fontSize: 13,
-                            borderRadius: 6,
-                            overflow: 'hidden',
-                            border: '1px solid #e5e7eb',
-                          }}>
-                            <thead>
-                              <tr style={{ background: '#f9fafb' }}>
-                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>影像分类名称</th>
-                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>影像ID</th>
-                                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>置信度</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {sub.items.map((imgType: any) => {
-                                const ids = imgType.typeImageList.map((img: any) => img.typeImageId.split('_')[0])
-                                const imgIds = ids.join('、')
-                                const probs = ids.map((id: string) => {
-                                  const found = ENGINE_RESULT_DATA.imageList.find(i => String(i.imageId) === id)
-                                  return found ? (parseFloat(found.imageTypeDetailProb) * 100).toFixed(2) + '%' : '-'
-                                }).join('、')
-                                return (
-                                  <tr key={imgType.imageType} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                    <td style={{ padding: '8px 12px', color: '#1f2937', fontWeight: 500 }}>{imgType.imageType}</td>
-                                    <td style={{ padding: '8px 12px', color: '#3b82f6' }}>{imgIds}</td>
-                                    <td style={{ padding: '8px 12px', color: '#1f2937' }}>{probs}</td>
-                                  </tr>
-                                )
-                              })}
-                            </tbody>
-                          </table>
+                          <div style={{ border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                              <div style={{ padding: '10px 16px', fontWeight: 600, color: '#374151', fontSize: 13 }}>影像分类名称</div>
+                              <div style={{ padding: '10px 16px', fontWeight: 600, color: '#374151', fontSize: 13, gridColumn: 'span 1' }}>影像ID</div>
+                              <div style={{ padding: '10px 16px', fontWeight: 600, color: '#374151', fontSize: 13 }}>置信度</div>
+                            </div>
+                            {sub.items.map((imgType: any, idx: number) => {
+                              const ids = imgType.typeImageList.map((img: any) => img.typeImageId.split('_')[0])
+                              const imgIds = ids.join('、')
+                              const probs = ids.map((id: string) => {
+                                const found = ENGINE_RESULT_DATA.imageList.find(i => String(i.imageId) === id)
+                                return found ? (parseFloat(found.imageTypeDetailProb) * 100).toFixed(2) + '%' : '-'
+                              }).join('、')
+                              const isLast = idx === sub.items.length - 1
+                              return (
+                                <div key={imgType.imageType} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: isLast ? 'none' : '1px solid #f0f0f0' }}>
+                                  <div style={{ padding: '10px 16px', color: '#1f2937', fontWeight: 500, fontSize: 13, borderRight: '1px solid #f0f0f0' }}>{imgType.imageType}</div>
+                                  <div style={{ padding: '10px 16px', color: '#3b82f6', fontSize: 13, borderRight: '1px solid #f0f0f0' }}>{imgIds}</div>
+                                  <div style={{ padding: '10px 16px', color: '#1f2937', fontSize: 13 }}>{probs}</div>
+                                </div>
+                              )
+                            })}
+                          </div>
                         </div>
                       ))
                     ) : (
                       // 平铺结构：待分组/无需分组
-                      <table style={{
-                        borderCollapse: 'collapse',
-                        tableLayout: 'fixed',
-                        width: 750,
-                        fontSize: 13,
-                        borderRadius: 6,
-                        overflow: 'hidden',
-                        border: '1px solid #e5e7eb',
-                      }}>
-                        <thead>
-                          <tr style={{ background: '#f9fafb' }}>
-                            <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 150 }}>影像分类名称</th>
-                            <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>影像ID</th>
-                            <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb', width: 300 }}>置信度</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(group as any).items.map((imgType: any) => {
-                            const ids = imgType.typeImageList.map((img: any) => img.typeImageId.split('_')[0])
-                            const imgIds = ids.join('、')
-                            const probs = ids.map((id: string) => {
-                              const found = ENGINE_RESULT_DATA.imageList.find(i => String(i.imageId) === id)
-                              return found ? (parseFloat(found.imageTypeDetailProb) * 100).toFixed(2) + '%' : '-'
-                            }).join('、')
-                            return (
-                              <tr key={imgType.imageType} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                <td style={{ padding: '8px 12px', color: '#1f2937', fontWeight: 500 }}>{imgType.imageType}</td>
-                                <td style={{ padding: '8px 12px', color: '#3b82f6' }}>{imgIds}</td>
-                                <td style={{ padding: '8px 12px', color: '#1f2937' }}>{probs}</td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
+                      <div style={{ border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                          <div style={{ padding: '10px 16px', fontWeight: 600, color: '#374151', fontSize: 13 }}>影像分类名称</div>
+                          <div style={{ padding: '10px 16px', fontWeight: 600, color: '#374151', fontSize: 13 }}>影像ID</div>
+                          <div style={{ padding: '10px 16px', fontWeight: 600, color: '#374151', fontSize: 13 }}>置信度</div>
+                        </div>
+                        {(group as any).items.map((imgType: any, idx: number) => {
+                          const ids = imgType.typeImageList.map((img: any) => img.typeImageId.split('_')[0])
+                          const imgIds = ids.join('、')
+                          const probs = ids.map((id: string) => {
+                            const found = ENGINE_RESULT_DATA.imageList.find(i => String(i.imageId) === id)
+                            return found ? (parseFloat(found.imageTypeDetailProb) * 100).toFixed(2) + '%' : '-'
+                          }).join('、')
+                          const isLast = idx === (group as any).items.length - 1
+                          return (
+                            <div key={imgType.imageType} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: isLast ? 'none' : '1px solid #f0f0f0' }}>
+                              <div style={{ padding: '10px 16px', color: '#1f2937', fontWeight: 500, fontSize: 13, borderRight: '1px solid #f0f0f0' }}>{imgType.imageType}</div>
+                              <div style={{ padding: '10px 16px', color: '#3b82f6', fontSize: 13, borderRight: '1px solid #f0f0f0' }}>{imgIds}</div>
+                              <div style={{ padding: '10px 16px', color: '#1f2937', fontSize: 13 }}>{probs}</div>
+                            </div>
+                          )
+                        })}
+                      </div>
                     )}
                   </div>
                 </div>
