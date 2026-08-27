@@ -1,96 +1,192 @@
-import React from 'react'
-import { DataCard } from '../shared/data-card'
-import CoreSourceTreemap from './core-source-treemap'
+import React, { useState, useEffect } from 'react'
+import { Row, Col, Typography } from 'antd'
+import DataOverview from './data-overview'
 
-const FIVE_CATEGORIES = [
+const { Text } = Typography
+
+const AGENT_DATA_ITEMS = [
   {
-    name: '病历类',
-    total: 88200,
-    items: [
-      { label: '门诊病历', count: 18500, d: '180', w: '1200', m: '4800' },
-      { label: '住院病历', count: 15200, d: '120', w: '800', m: '3200' },
-      { label: '出院小结', count: 12800, d: '95', w: '650', m: '2800' },
-      { label: '手术记录', count: 10500, d: '80', w: '550', m: '2200' },
-      { label: '病理报告', count: 8200, d: '60', w: '420', m: '1800' },
-      { label: '检验检查', count: 12000, d: '100', w: '680', m: '2700' },
-      { label: '诊断证明', count: 6500, d: '50', w: '340', m: '1400' },
-      { label: '处方笺', count: 4500, d: '35', w: '230', m: '950' },
-    ],
+    title: '案件核心',
+    description: '理赔案件的"身份证"和主骨架。记录一次理赔从受理、报案到结案的基本信息：谁报的案、哪张保单、承担什么责任、案件类型标签、ICD 疾病编码等。所有其他数据都挂在这条主线上。',
   },
   {
-    name: '票据类',
-    total: 42500,
-    items: [
-      { label: '医疗票据', count: 28000, d: '220', w: '1500', m: '6000' },
-      { label: '增值税发票', count: 14500, d: '110', w: '750', m: '3100' },
-    ],
+    title: '账单费用',
+    description: '案件花了多少钱的详细账本。从一张发票，到发票上的每项费用，再到按二/三级分类拆分（西药费、检查费等），以及免赔额、控费标签、按险种分摊的金额。理赔金额计算的数据基础。',
   },
   {
-    name: '费用结算类',
-    total: 38000,
-    items: [
-      { label: '费用清单', count: 22000, d: '170', w: '1100', m: '4600' },
-      { label: '结算单', count: 10500, d: '80', w: '550', m: '2300' },
-      { label: '第三方分割单', count: 5500, d: '40', w: '280', m: '1150' },
-    ],
+    title: '就医医疗',
+    description: '客户看病的过程记录。住了几次院、做了什么手术、每次就诊的诊断和票据，以及重疾的分类认定。用于判断"医疗行为是否合理、是否属于保险责任"。',
   },
   {
-    name: '辅助证明类',
-    total: 55000,
-    items: [
-      { label: '身份证件', count: 35000, d: '280', w: '1900', m: '7600' },
-      { label: '支付证件', count: 12000, d: '90', w: '620', m: '2500' },
-      { label: '事故证明', count: 8000, d: '60', w: '410', m: '1700' },
-    ],
+    title: '支付领款',
+    description: '钱赔给谁、怎么赔。受益人是谁、领款人银行账户信息、支付渠道。理赔流程的最后一环——打款。',
   },
   {
-    name: '申请类',
-    total: 18000,
-    items: [
-      { label: '理赔申请书', count: 18000, d: '140', w: '950', m: '3800' },
-    ],
+    title: '流程处理',
+    description: '案件审核过程中的人机交互痕迹。审核员之间的协谈沟通、案件回退重审、多人合议、向客户发照会要材料、问题件补充等。反映案件流转的完整过程。',
+  },
+  {
+    title: '规则风控',
+    description: '自动化审核的"大脑"。定义了哪些规则、案件命中了什么风险规则、为什么被自动流程阻断。是智能理赔自动化的决策依据。',
+  },
+  {
+    title: '影像材料',
+    description: '理赔案件的所有单证影像。发票、病历等图片的切割、分组、存储位置。',
+  },
+  {
+    title: '主数据维度',
+    description: '支撑性字典数据。医院名录、省市地区、机构、科室、职业、银行、产品条款、数据字典等。用于把业务表中的编码翻译成可读信息。',
+  },
+  {
+    title: '调查任务',
+    description: '案件触发人工调查时的数据快照。初审、扣费、理算、审核等不同阶段发现疑点后，转交调查的客户数据和任务包。',
   },
 ]
+
+const AgentDataCard: React.FC<{ title: string; description: string }> = ({ title, description }) => {
+  return (
+    <div style={{
+      background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb',
+      padding: 20, height: '100%', display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={{ fontSize: 16, fontWeight: 600, color: '#1f2937', marginBottom: 8 }}>
+        {title}
+      </div>
+      <div style={{
+        fontSize: 13, color: '#6b7280', lineHeight: 1.7, flex: 1,
+      }}>
+        {description}
+      </div>
+    </div>
+  )
+}
+
+const INITIAL_DATA_SERVICE_ITEMS = [
+  { name: '影像数据检查服务', totalCount: 45430, dailyCount: 320 },
+  { name: '影像数据查询服务', totalCount: 38210, dailyCount: 275 },
+  { name: '影像 ID 查询服务', totalCount: 35600, dailyCount: 198 },
+  { name: '电子保单条款信息查询服务', totalCount: 26320, dailyCount: 156 },
+  { name: '条款查询服务', totalCount: 15100, dailyCount: 89 },
+  { name: '采集分组查询服务', totalCount: 14900, dailyCount: 72 },
+]
+
+const DataServiceList: React.FC = () => {
+  const [items, setItems] = useState(INITIAL_DATA_SERVICE_ITEMS)
+  const maxCalls = items[0]?.totalCount || 1
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setItems(prev => prev.map(item => ({
+        ...item,
+        totalCount: item.totalCount + item.dailyCount,
+        dailyCount: item.dailyCount + Math.floor(Math.random() * 5) + 1,
+      })))
+    }, 10000)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {items.map((item, index) => {
+        const percentage = (item.totalCount / maxCalls) * 100
+        // TOP 1-3 橙色，TOP 4-6 浅蓝色
+        const isTop = index < 3
+        const barColor = isTop ? '#fb923c' : '#60a5fa'
+        return (
+          <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
+            <div style={{
+              width: 24, height: 24, borderRadius: 16,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 12, fontWeight: 700, flexShrink: 0,
+              background: isTop ? '#fff7ed' : '#f3f4f6',
+              color: isTop ? '#ea580c' : '#6b7280',
+            }}>
+              {index + 1}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <Text ellipsis style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>
+                  {item.name}
+                </Text>
+                <span style={{ fontSize: 14, flexShrink: 0, marginLeft: 8 }}>
+                  <span style={{ color: '#374151' }}>累计使用 </span>
+                  <span style={{ color: '#374151', fontWeight: 600 }}>{item.totalCount.toLocaleString()}</span>
+                  <span style={{ color: '#374151' }}> 次，今日</span>
+                  <span style={{ color: '#D96B30' }}> +</span>
+                  <span style={{ color: '#D96B30', fontWeight: 600 }}>{item.dailyCount}</span>
+                  <span style={{ color: '#374151' }}> 次</span>
+                </span>
+              </div>
+              <div style={{ height: 6, width: '100%', background: '#f3f4f6', borderRadius: 10, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', width: `${percentage}%`, borderRadius: 10,
+                  background: barColor,
+                }} />
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 const ClassificationOverview: React.FC = () => {
   return (
     <div>
-      {/* 分类与规模标题 */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        marginBottom: 20,
-      }}>
+      {/* 数据总览 + 数据服务 水平并列 */}
+      <div style={{ display: 'flex', gap: 80, marginTop: 10 }}>
+        {/* 左侧：数据总览 */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: 20,
+          }}>
+            <div style={{
+              width: 4,
+              height: 20,
+              background: '#3b82f6',
+              borderRadius: 10,
+              marginRight: 10,
+            }} />
+            <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>数据总览</span>
+          </div>
+          <DataOverview />
+        </div>
+
+        {/* 右侧：数据服务 */}
+        <div style={{ flex: 1, minWidth: 0, maxWidth: 600, marginRight: 20 }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', marginBottom: 20,
+          }}>
+            <div style={{
+              width: 4, height: 20, background: '#3b82f6', borderRadius: 10, marginRight: 10,
+            }} />
+            <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>数据服务</span>
+          </div>
+          <DataServiceList />
+        </div>
+      </div>
+
+      {/* 理赔智能体数据 */}
+      <div style={{ marginTop: 40 }}>
         <div style={{
-          width: 4,
-          height: 20,
-          background: '#3b82f6',
-          borderRadius: 10,
-          marginRight: 10,
-        }} />
-        <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>影像数据</span>
+          display: 'flex', alignItems: 'center', marginBottom: 20,
+        }}>
+          <div style={{
+            width: 4, height: 20, background: '#3b82f6', borderRadius: 10, marginRight: 10,
+          }} />
+          <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>理赔智能体数据</span>
+        </div>
+        <Row gutter={[20, 20]}>
+          {AGENT_DATA_ITEMS.map((item, i) => (
+            <Col xs={24} sm={12} lg={8} key={i}>
+              <AgentDataCard title={item.title} description={item.description} />
+            </Col>
+          ))}
+        </Row>
       </div>
-
-      {/* 左右三列布局：左列病历类，中列票据类+费用结算类，右列辅助证明类+申请类，三列等高 */}
-      <div style={{ display: 'flex', gap: 20 }}>
-        {/* 第1列：病历类（8行内容，自然高度最大） */}
-        <div style={{ flex: '1 1 0', height: 550 }}>
-          <DataCard category={FIVE_CATEGORIES[0]} unit="份" headerUnit="份" style={{ height: '100%' }} />
-        </div>
-        {/* 第2列：票据类 + 费用结算类，上下均分 */}
-        <div style={{ flex: '1 1 0', height: 550, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <DataCard category={FIVE_CATEGORIES[1]} unit="份" headerUnit="份" style={{ height: 265 }} />
-          <DataCard category={FIVE_CATEGORIES[2]} unit="份" headerUnit="份" style={{ height: 265 }} />
-        </div>
-        {/* 第3列：辅助证明类 + 申请类，上下均分 */}
-        <div style={{ flex: '1 1 0', height: 550, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <DataCard category={FIVE_CATEGORIES[3]} unit="份" headerUnit="份" style={{ height: 265 }} />
-          <DataCard category={FIVE_CATEGORIES[4]} unit="份" headerUnit="份" style={{ height: 265 }} />
-        </div>
-      </div>
-
-      {/* 核心来源分布 */}
-      <CoreSourceTreemap />
     </div>
   )
 }

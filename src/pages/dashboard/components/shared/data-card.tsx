@@ -91,7 +91,7 @@ const DataCard: React.FC<DataCardProps> = ({ category, unit = '份', headerUnit,
       ...style,
     }}>
       <div style={{
-        background: '#65A5FF',
+        background: '#3067b3',
         fontSize: 16,
         color: '#fff',
         padding: '8px 16px',
