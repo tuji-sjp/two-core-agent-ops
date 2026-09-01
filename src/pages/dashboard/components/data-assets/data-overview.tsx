@@ -5,7 +5,7 @@ const INITIAL_DATA = {
   root: {
     title: '影像数据',
     categories: 4,
-    subCategories: '90+',
+    subCategories: '95',
     daily: 1520,
   },
   policy: {
@@ -46,8 +46,8 @@ const topAreaStyle: React.CSSProperties = {
 }
 
 const mainCardStyle: React.CSSProperties = {
-  background: '#fff',
-  border: '2px solid #3067b3',
+  background: '#eff6ff',
+  border: '1px solid #e5e7eb',
   borderRadius: 12,
   padding: '20px 32px',
   textAlign: 'center',
@@ -137,7 +137,7 @@ const middleLabelStyle: React.CSSProperties = {
 }
 
 const middleDailyStyle: React.CSSProperties = {
-  fontSize: 12,
+  fontSize: 14,
   color: '#6b7280',
   marginTop: 6,
 }
@@ -177,15 +177,15 @@ const bottomNumberStyle: React.CSSProperties = {
 }
 
 const bottomDailyStyle: React.CSSProperties = {
-  fontSize: 13,
+  fontSize: 14,
   color: '#6b7280',
   marginTop: 8,
 }
 
 // 在线电子保单卡片样式
 const policyCardStyle: React.CSSProperties = {
-  background: '#fff',
-  border: '2px solid #3067b3',
+  background: '#eff6ff',
+  border: '1px solid #e5e7eb',
   borderRadius: 12,
   padding: '20px 32px',
   textAlign: 'center',
@@ -320,7 +320,7 @@ const DataOverview: React.FC = () => {
               <span style={cardUnitStyle}>张</span>
             </div>
             <div style={cardDailyStyle}>
-              今日新增 <span style={cardDailyNumberStyle}>{formatNumber(data.root.daily)}</span>
+              今日 <span style={{ color: '#ea580c', fontWeight: 600 }}>↑</span> <span style={cardDailyNumberStyle}>{formatNumber(data.root.daily)}</span>
               <span style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', marginLeft: 2 }}>张</span>
             </div>
           </div>
@@ -343,11 +343,11 @@ const DataOverview: React.FC = () => {
             <div style={middleTitleStyle}>{data.cases.title}</div>
             <div>
               <span style={middleNumberStyle}>{formatNumber(data.cases.total)}</span>
-              <span style={cardUnitStyle}>张</span>
+              <span style={cardUnitStyle}>件</span>
             </div>
             <div style={middleDailyStyle}>
-              今日新增 <span style={{ fontWeight: 600, color: '#ea580c' }}>{data.cases.daily}</span>
-              <span style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', marginLeft: 2 }}>张</span>
+              今日 <span style={{ color: '#ea580c', fontWeight: 600 }}>↑</span> <span style={{ fontWeight: 600, color: '#ea580c' }}>{data.cases.daily}</span>
+              <span style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', marginLeft: 2 }}>件</span>
             </div>
           </div>
         </div>
@@ -366,7 +366,7 @@ const DataOverview: React.FC = () => {
                 <span style={{ fontSize: 16, fontWeight: 500, color: '#1f2937', marginLeft: 2 }}>张</span>
               </div>
               <div style={bottomDailyStyle}>
-                今日新增 <span style={{ fontWeight: 600, color: '#ea580c' }}>{item.daily}</span>
+                今日 <span style={{ color: '#ea580c', fontWeight: 600 }}>↑</span> <span style={{ fontWeight: 600, color: '#ea580c' }}>{item.daily}</span>
                 <span style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', marginLeft: 2 }}>张</span>
               </div>
             </div>
@@ -380,11 +380,11 @@ const DataOverview: React.FC = () => {
           <div style={cardTitleStyle}>{data.policy.title}</div>
           <div>
             <span style={cardNumberStyle}>{formatNumber(data.policy.total)}</span>
-            <span style={cardUnitStyle}>张</span>
+            <span style={cardUnitStyle}>份</span>
           </div>
           <div style={cardDailyStyle}>
-            今日新增 <span style={cardDailyNumberStyle}>{formatNumber(data.policy.daily)}</span>
-            <span style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', marginLeft: 2 }}>张</span>
+            今日 <span style={{ color: '#ea580c', fontWeight: 600 }}>↑</span> <span style={cardDailyNumberStyle}>{formatNumber(data.policy.daily)}</span>
+            <span style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', marginLeft: 2 }}>份</span>
           </div>
         </div>
       </div>

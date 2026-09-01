@@ -113,7 +113,7 @@ const UseCaseCard: React.FC<{
     <div style={{ opacity, transform: `scale(${scale})`, transition: 'all 0.3s ease', zIndex, width: '100%' }}>
       <div style={{
         background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb',
-        boxShadow: active ? '0 8px 24px rgba(0,0,0,0.08)' : '0 2px 8px rgba(0,0,0,0.04)',
+        boxShadow: active ? '0 8px 24px rgba(0,0,0,0.08)' : '0 1px 3px rgba(0,0,0,0.04)',
         padding: 24, minHeight: 280, height: 280, display: 'flex', flexDirection: 'column', justifyContent: 'center',
       }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: '#3b82f6', marginBottom: 16, lineHeight: 1.4 }}>{useCase.title}</div>
@@ -185,6 +185,7 @@ const MySkillCard: React.FC<{
   return (
     <div style={{
       background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       padding: 20, height: '100%', display: 'flex', flexDirection: 'column',
       transition: 'all 0.2s ease', cursor: 'pointer',
     }}>
@@ -223,6 +224,7 @@ const PublicSkillCard: React.FC<{
   return (
     <div style={{
       background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       padding: 20, height: '100%', display: 'flex', flexDirection: 'column',
     }}>
       <div style={{ flex: 1 }}>

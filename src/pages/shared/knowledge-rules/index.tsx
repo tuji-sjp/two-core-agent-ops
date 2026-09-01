@@ -1,29 +1,5 @@
 import React, { useState } from 'react'
-import { Row, Col } from 'antd'
 import KnowledgeBaseCards from '../../dashboard/components/knowledge-rules/knowledge-base-cards'
-import CoverageTreemap, { type CoverageSceneItem } from '../../dashboard/components/knowledge-rules/coverage-treemap'
-import TopKnowledgeList, { type TopKnowledgeItem } from '../../dashboard/components/knowledge-rules/top-knowledge-list'
-
-const underwritingCoverageData: CoverageSceneItem[] = [
-  { name: '重疾险核保评估', value: 32 },
-  { name: '医疗险健康告知', value: 26 },
-  { name: '寿险身故核保', value: 18 },
-  { name: '意外险职业类别', value: 14 },
-  { name: '团险企业客户', value: 10 },
-]
-
-const underwritingTopKnowledge: TopKnowledgeItem[] = [
-  { name: '甲状腺结节核保指南 v2.1', count: 45430 },
-  { name: '高血压III期拒保标准', count: 38210 },
-  { name: '糖尿病并发症加费规则', count: 35600 },
-  { name: '乳腺结节BI-RADS分级核保', count: 26320 },
-  { name: 'BMI超重加费计算表', count: 15100 },
-  { name: '既往症等待期认定规则', count: 14900 },
-  { name: '职业分类风险等级对照表', count: 8200 },
-  { name: '高保额财务核保指引', count: 6500 },
-  { name: '未成年人身故保额限制', count: 5100 },
-  { name: '境外人士核保政策说明', count: 4400 },
-]
 
 const SharedKnowledgeRules: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'claims' | 'underwriting'>('claims')
@@ -75,20 +51,6 @@ const SharedKnowledgeRules: React.FC = () => {
 
       {/* 知识库卡片 */}
       <KnowledgeBaseCards activeTab={activeTab} />
-
-      {/* 覆盖场景 + 知识调用排行 */}
-      <Row gutter={[24, 24]} style={{ marginTop: 30 }}>
-        <Col xs={24} lg={12}>
-          <CoverageTreemap
-            data={isClaims ? undefined : underwritingCoverageData}
-          />
-        </Col>
-        <Col xs={24} lg={12}>
-          <TopKnowledgeList
-            data={isClaims ? undefined : underwritingTopKnowledge}
-          />
-        </Col>
-      </Row>
     </div>
   )
 }

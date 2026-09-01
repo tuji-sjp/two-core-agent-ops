@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Table, Tag, Modal, Form, Input, Button, Select, Space, Pagination, Tabs, Popconfirm, message } from 'antd'
+import { Table, Tag, Modal, Form, Input, Button, Select, Space, Pagination, Tabs, Popconfirm, message, Tooltip } from 'antd'
 import { FileTextOutlined, EditOutlined, EyeOutlined, HistoryOutlined, TableOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { underwritingKnowledge, claimsKnowledge } from '../../data/mock-data'
@@ -90,7 +90,7 @@ function buildColumns(
       title: '文档名称',
       dataIndex: 'name',
       key: 'name',
-      width: '14%',
+      width: '18%',
       render: (text: string, record: KnowledgeItem) => (
         <span style={{ fontWeight: 500, color: CELL_COLOR }}>
           {record.docType === 'sheet' ? (
@@ -106,7 +106,7 @@ function buildColumns(
       title: '知识分类',
       dataIndex: 'category',
       key: 'category',
-      width: '8%',
+      width: '7%',
       render: (text: string) => (
         <Tag color="blue" style={{ borderRadius: 6, margin: 0 }}>{text}</Tag>
       ),
@@ -115,55 +115,56 @@ function buildColumns(
       title: '内容简述',
       dataIndex: 'summary',
       key: 'summary',
-      width: '16%',
+      width: '18%',
       ellipsis: true,
       render: (text: string) => (
-        <span style={{ color: CELL_COLOR, fontSize: 12 }}>{text}</span>
+        <span style={{ color: CELL_COLOR, fontSize: 14 }}>{text}</span>
       ),
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: '9%',
+      width: '8%',
       render: (text: string) => <span style={{ color: CELL_COLOR }}>{text}</span>,
     },
     {
       title: '创建人',
       dataIndex: 'creator',
       key: 'creator',
-      width: '9%',
-      render: (text: string) => <span style={{ color: CELL_COLOR }}>{text}</span>,
+      width: '7%',
+      render: (text: string) => <span style={{ color: CELL_COLOR }}>{text.split('-').pop()}</span>,
     },
     {
       title: '最新版本',
       dataIndex: 'version',
       key: 'version',
-      width: '7%',
+      width: '6%',
       render: (text: string) => <span style={{ color: CELL_COLOR }}>{text}</span>,
     },
     {
-      title: '更新时间',
+      title: '复核时间',
       dataIndex: 'updatedAt',
       key: 'updatedAt',
-      width: '9%',
+      width: '8%',
       render: (text: string) => <span style={{ color: CELL_COLOR }}>{text}</span>,
     },
     {
-      title: '更新人',
+      title: '复核人',
       dataIndex: 'author',
       key: 'author',
-      width: '9%',
-      render: (text: string) => <span style={{ color: CELL_COLOR }}>{text}</span>,
+      width: '7%',
+      render: (text: string) => <span style={{ color: CELL_COLOR }}>{text.split('-').pop()}</span>,
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: '7%',
+      width: '6%',
       render: (status: string) => {
-        const s = statusMap[status] || statusMap.active
-        return <Tag color={s.color} style={{ borderRadius: 6 }}>{s.label}</Tag>
+        const label = status === 'active' ? '已复核' : '待复核'
+        const color = status === 'active' ? 'green' : 'orange'
+        return <Tag color={color} style={{ borderRadius: 6 }}>{label}</Tag>
       },
     },
     {
@@ -172,24 +173,24 @@ function buildColumns(
       width: '10%',
       render: (_: unknown, record: KnowledgeItem) => (
         <Space size={8}>
-          <Button
-            type="link"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => onPreview(record)}
-            style={{ padding: 0 }}
-          >
-            预览
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => onEdit(record)}
-            style={{ padding: 0 }}
-          >
-            编辑
-          </Button>
+          <Tooltip title="预览">
+            <Button
+              type="link"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => onPreview(record)}
+              style={{ padding: 0 }}
+            />
+          </Tooltip>
+          <Tooltip title="复核">
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => onEdit(record)}
+              style={{ padding: 0 }}
+            />
+          </Tooltip>
         </Space>
       ),
     },
@@ -501,7 +502,7 @@ const DocModal: React.FC<{
     <Modal
       title={
         <span style={{ fontSize: 16, fontWeight: 600 }}>
-          {mode === 'view' ? '文档预览' : '文档编辑'}
+          {mode === 'view' ? '文档预览' : '产品条款拆解结果复核'}
         </span>
       }
       open={open}
@@ -517,9 +518,10 @@ const DocModal: React.FC<{
               <Button key="edit" type="primary" icon={<EditOutlined />} onClick={onSwitchToEdit}>进入编辑</Button>,
             ]
       }
-      width={900}
-      styles={{ body: { maxHeight: '70vh', overflow: 'hidden', padding: '16px 24px' } }}
+      width={1080}
+      styles={{ body: { maxHeight: '84vh', overflow: 'hidden', padding: '0 24px' } }}
     >
+      <div style={{ marginTop: 12 }}>
       <Tabs
         activeKey={activeTab}
         onChange={setActiveTab}
@@ -596,6 +598,7 @@ const DocModal: React.FC<{
           },
         ]}
       />
+      </div>
     </Modal>
   )
 }
@@ -633,7 +636,7 @@ function DocTable({ items, activeTab }: { items: KnowledgeItem[]; activeTab: 'cl
     setCurrentDoc(updatedDoc)
   }
 
-  const minWidth = activeTab === 'claims' ? 1280 : 900
+  const minWidth = activeTab === 'claims' ? 1400 : 900
   return (
     <>
       <div className="table-scroll-wrapper">
@@ -710,42 +713,94 @@ const PillTag: React.FC<{ label: string; active: boolean; onClick: () => void }>
 const KnowledgeSection: React.FC<{ groups: { name: string; items: KnowledgeItem[] }[]; activeTab: 'claims' | 'underwriting' }> = ({ groups, activeTab }) => {
   const ALL_LABEL = '全部'
   const [activeGroup, setActiveGroup] = useState(ALL_LABEL)
-  const [searchKeyword, setSearchKeyword] = useState('')
+  const isClaims = activeTab === 'claims'
 
-  React.useEffect(() => { setActiveGroup(ALL_LABEL); setSearchKeyword('') }, [groups])
+  // 理赔知识库筛选条件
+  const [filterName, setFilterName] = useState('')
+  const [filterReviewer, setFilterReviewer] = useState('')
+  const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined)
+
+  React.useEffect(() => {
+    setActiveGroup(ALL_LABEL)
+    setFilterName('')
+    setFilterReviewer('')
+    setFilterStatus(undefined)
+  }, [groups])
+
+  const resetClaimFilters = () => {
+    setFilterName('')
+    setFilterReviewer('')
+    setFilterStatus(undefined)
+  }
 
   const allItems = groups.reduce<KnowledgeItem[]>((acc, g) => [...acc, ...g.items], [])
-  const filteredItems = (searchKeyword
-    ? allItems.filter(item => item.name.toLowerCase().includes(searchKeyword.toLowerCase()))
-    : activeGroup === ALL_LABEL
-      ? allItems
-      : groups.find(g => g.name === activeGroup)?.items || []
+
+  // 基础筛选：分类标签 + 搜索
+  const baseFiltered = (activeGroup === ALL_LABEL
+    ? allItems
+    : groups.find(g => g.name === activeGroup)?.items || []
   )
+
+  // 理赔知识库额外筛选：文档名称、复核人、状态
+  const filteredItems = isClaims
+    ? baseFiltered.filter(item => {
+        if (filterName && !item.name.toLowerCase().includes(filterName.toLowerCase())) return false
+        if (filterReviewer && !item.author.toLowerCase().includes(filterReviewer.toLowerCase())) return false
+        if (filterStatus && item.status !== filterStatus) return false
+        return true
+      })
+    : baseFiltered
+
   // 按更新时间倒序（近→远）
   const currentItems = [...filteredItems].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        {/* 理赔知识库筛选栏 - 左对齐 */}
+        {isClaims && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', alignSelf: 'center' }}>
+            <Input
+              placeholder="文档名称"
+              value={filterName}
+              onChange={e => setFilterName(e.target.value)}
+              allowClear
+              style={{ width: 200 }}
+            />
+            <Input
+              placeholder="复核人"
+              value={filterReviewer}
+              onChange={e => setFilterReviewer(e.target.value)}
+              allowClear
+              style={{ width: 160 }}
+            />
+            <Select
+              placeholder="状态"
+              value={filterStatus}
+              onChange={val => setFilterStatus(val)}
+              allowClear
+              options={[
+                { label: '已复核', value: 'active' },
+                { label: '待复核', value: 'updating' },
+              ]}
+              style={{ width: 120 }}
+              rootClassName="filter-select"
+            />
+            <Button onClick={resetClaimFilters}>重置</Button>
+          </div>
+        )}
+        {!isClaims && <div />}
+        {/* 文档分类标签 - 右对齐 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', alignSelf: 'center' }}>
           <PillTag key={ALL_LABEL} label={ALL_LABEL} active={activeGroup === ALL_LABEL} onClick={() => setActiveGroup(ALL_LABEL)} />
           {groups.map(g => (
             <PillTag key={g.name} label={g.name} active={activeGroup === g.name} onClick={() => setActiveGroup(g.name)} />
           ))}
         </div>
-        <div style={{
-          display: 'flex', alignItems: 'center', width: 360, height: 34, borderRadius: 17,
-          border: '1px solid #e5e7eb', background: '#fff', padding: '0 14px', flexShrink: 0,
-        }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" style={{ flexShrink: 0, marginRight: 8 }}>
-            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-          </svg>
-          <input type="text" placeholder="搜索文档名称" value={searchKeyword} onChange={e => setSearchKeyword(e.target.value)}
-            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, color: '#374151', background: 'transparent' }} />
-        </div>
       </div>
+
       <div style={{ marginTop: 16 }}>
-        <DocTable key={searchKeyword || activeGroup} items={currentItems} activeTab={activeTab} />
+        <DocTable key={activeGroup || filterName || filterReviewer || filterStatus || ''} items={currentItems} activeTab={activeTab} />
       </div>
     </div>
   )
@@ -753,6 +808,32 @@ const KnowledgeSection: React.FC<{ groups: { name: string; items: KnowledgeItem[
 
 const KnowledgeBaseCards: React.FC<{ activeTab: 'claims' | 'underwriting' }> = ({ activeTab }) => {
   const isClaims = activeTab === 'claims'
+
+  // 理赔知识库：新增"产品条款"分类标签，包含前两页（20条）文档
+  const claimsGroups = React.useMemo(() => {
+    if (!isClaims) return []
+    // 将所有文档按更新时间倒序排序，取前20条
+    const allItems = claimsKnowledge.groups.flatMap(g => g.items)
+    const sorted = [...allItems].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    const top20Ids = new Set(sorted.slice(0, 20).map(item => item.id))
+
+    // 创建"产品条款"分组，使用前20条文档的副本并修改 category
+    const productClauseGroup = {
+      name: '产品条款',
+      total: `${top20Ids.size} 篇文档`,
+      items: sorted.slice(0, 20).map(item => ({ ...item, category: '产品条款' })),
+    }
+
+    // 原始分组移除前20条文档（避免重复显示）
+    const remainingGroups = claimsKnowledge.groups.map(g => ({
+      ...g,
+      items: g.items.filter(item => !top20Ids.has(item.id)),
+      total: `${g.items.filter(item => !top20Ids.has(item.id)).length} 篇文档`,
+    }))
+
+    return [productClauseGroup, ...remainingGroups]
+  }, [isClaims])
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
@@ -760,7 +841,7 @@ const KnowledgeBaseCards: React.FC<{ activeTab: 'claims' | 'underwriting' }> = (
         <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>{isClaims ? '理赔知识库' : '核保知识库'}</span>
       </div>
       {isClaims ? (
-        <KnowledgeSection key="claims" groups={claimsKnowledge.groups} activeTab="claims" />
+        <KnowledgeSection key="claims" groups={claimsGroups} activeTab="claims" />
       ) : (
         <KnowledgeSection key="underwriting" groups={underwritingKnowledge.groups} activeTab="underwriting" />
       )}
