@@ -156,7 +156,8 @@ const AgentClaimsLogs: React.FC = () => {
   const [collectionTaskId, setCollectionTaskId] = useState('')
   const [collectionCaseNo, setCollectionCaseNo] = useState('')
   const [collectionClaimNo, setCollectionClaimNo] = useState('')
-  const [collectionCreatedAt, setCollectionCreatedAt] = useState<dayjs.Dayjs | null>(null)
+  const [collectionStartTime, setCollectionStartTime] = useState<dayjs.Dayjs | null>(null)
+  const [collectionEndTime, setCollectionEndTime] = useState<dayjs.Dayjs | null>(null)
   const [collectionStatus, setCollectionStatus] = useState('')
 
   // 扣费筛选
@@ -174,10 +175,11 @@ const AgentClaimsLogs: React.FC = () => {
       (!collectionTaskId || r.taskId.includes(collectionTaskId)) &&
       (!collectionCaseNo || r.caseNo.includes(collectionCaseNo)) &&
       (!collectionClaimNo || r.claimNo.includes(collectionClaimNo)) &&
-      (!collectionCreatedAt || r.createdAt === collectionCreatedAt.format('YYYY-MM-DD HH:mm:ss')) &&
+      (!collectionStartTime || r.createdAt >= collectionStartTime.format('YYYY-MM-DD HH:mm:ss')) &&
+      (!collectionEndTime || r.createdAt <= collectionEndTime.format('YYYY-MM-DD HH:mm:ss')) &&
       (collectionStatus === '' || r.status === collectionStatus)
     )
-  }, [collectionTaskId, collectionCaseNo, collectionClaimNo, collectionCreatedAt, collectionStatus])
+  }, [collectionTaskId, collectionCaseNo, collectionClaimNo, collectionStartTime, collectionEndTime, collectionStatus])
 
   const pagedCollection = useMemo(
     () => filteredCollection.slice((currentPage - 1) * pageSize, currentPage * pageSize),
@@ -206,7 +208,8 @@ const AgentClaimsLogs: React.FC = () => {
     setCollectionTaskId('')
     setCollectionCaseNo('')
     setCollectionClaimNo('')
-    setCollectionCreatedAt(null)
+    setCollectionStartTime(null)
+    setCollectionEndTime(null)
     setCollectionStatus('')
     setCurrentPage(1)
   }
@@ -402,30 +405,40 @@ const AgentClaimsLogs: React.FC = () => {
             value={collectionTaskId}
             onChange={e => { setCollectionTaskId(e.target.value); setCurrentPage(1) }}
             allowClear
-            style={{ width: 200 }}
+            style={{ width: 130, height: 32 }}
           />
           <Input
             placeholder="案件号"
             value={collectionCaseNo}
             onChange={e => { setCollectionCaseNo(e.target.value); setCurrentPage(1) }}
             allowClear
-            style={{ width: 200 }}
+            style={{ width: 130, height: 32 }}
           />
           <Input
             placeholder="索赔号"
             value={collectionClaimNo}
             onChange={e => { setCollectionClaimNo(e.target.value); setCurrentPage(1) }}
             allowClear
-            style={{ width: 200 }}
+            style={{ width: 130, height: 32 }}
           />
           <DatePicker
-            placeholder="调用时间"
-            value={collectionCreatedAt}
-            onChange={(val) => { setCollectionCreatedAt(val); setCurrentPage(1) }}
+            placeholder="调用时间-开始"
+            value={collectionStartTime}
+            onChange={(val) => { setCollectionStartTime(val); setCurrentPage(1) }}
             allowClear
             showTime={{ format: 'HH:mm:ss' }}
             format="YYYY-MM-DD HH:mm:ss"
-            style={{ width: 220, fontSize: 13 }}
+            style={{ width: 130, height: 32, fontSize: 13 }}
+          />
+          <span style={{ color: '#9ca3af' }}>至</span>
+          <DatePicker
+            placeholder="调用时间-结束"
+            value={collectionEndTime}
+            onChange={(val) => { setCollectionEndTime(val); setCurrentPage(1) }}
+            allowClear
+            showTime={{ format: 'HH:mm:ss' }}
+            format="YYYY-MM-DD HH:mm:ss"
+            style={{ width: 130, height: 32, fontSize: 13 }}
           />
           <Select
             placeholder="执行状态"
@@ -437,7 +450,7 @@ const AgentClaimsLogs: React.FC = () => {
               { label: '失败', value: 'failed' },
               { label: '处理中', value: 'processing' },
             ]}
-            style={{ width: 120 }}
+            style={{ width: 130, height: 32 }}
             rootClassName="filter-select"
           />
           <Button onClick={clearCollectionFilters}>重置</Button>
@@ -458,42 +471,42 @@ const AgentClaimsLogs: React.FC = () => {
             value={deductionTaskId}
             onChange={e => { setDeductionTaskId(e.target.value); setCurrentPage(1) }}
             allowClear
-            style={{ width: 180 }}
+            style={{ width: 130, height: 32 }}
           />
           <Input
             placeholder="案件号"
             value={deductionCaseNo}
             onChange={e => { setDeductionCaseNo(e.target.value); setCurrentPage(1) }}
             allowClear
-            style={{ width: 160 }}
+            style={{ width: 130, height: 32 }}
           />
           <Input
             placeholder="账单号"
             value={deductionBillNo}
             onChange={e => { setDeductionBillNo(e.target.value); setCurrentPage(1) }}
             allowClear
-            style={{ width: 180 }}
+            style={{ width: 130, height: 32 }}
           />
           <Input
             placeholder="保单核心"
             value={deductionPolicyCore}
             onChange={e => { setDeductionPolicyCore(e.target.value); setCurrentPage(1) }}
             allowClear
-            style={{ width: 130 }}
+            style={{ width: 130, height: 32 }}
           />
           <Input
             placeholder="险种编码"
             value={deductionInsuranceCode}
             onChange={e => { setDeductionInsuranceCode(e.target.value); setCurrentPage(1) }}
             allowClear
-            style={{ width: 150 }}
+            style={{ width: 130, height: 32 }}
           />
           <Input
             placeholder="扣费项目数量"
             value={deductionItemsCount}
             onChange={e => { setDeductionItemsCount(e.target.value); setCurrentPage(1) }}
             allowClear
-            style={{ width: 150 }}
+            style={{ width: 130, height: 32 }}
           />
           <Select
             placeholder="执行状态"
@@ -506,7 +519,7 @@ const AgentClaimsLogs: React.FC = () => {
               { label: '处理中', value: 'processing' },
               { label: '超时', value: 'timeout' },
             ]}
-            style={{ width: 120 }}
+            style={{ width: 130, height: 32 }}
             rootClassName="filter-select"
           />
           <Button onClick={clearDeductionFilters}>重置</Button>

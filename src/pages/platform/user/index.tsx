@@ -663,7 +663,7 @@ const UserManagement: React.FC = () => {
           value={searchUsername}
           onChange={e => { setSearchUsername(e.target.value); setCurrentPage(1) }}
           allowClear
-          style={{ width: 160 }}
+          style={{ width: 130, height: 32 }}
         />
         <Select
           placeholder="角色"
@@ -671,7 +671,7 @@ const UserManagement: React.FC = () => {
           onChange={val => { setFilterRole(val || ''); setCurrentPage(1) }}
           allowClear
           options={ROLES.map(r => ({ label: r.label, value: r.value }))}
-          style={{ width: 120 }}
+          style={{ width: 130, height: 32 }}
           rootClassName="filter-select"
         />
         <Select
@@ -680,7 +680,7 @@ const UserManagement: React.FC = () => {
           onChange={val => { setFilterSpace(val || ''); setCurrentPage(1) }}
           allowClear
           options={SPACES.map(s => ({ label: s, value: s }))}
-          style={{ width: 120 }}
+          style={{ width: 130, height: 32 }}
           rootClassName="filter-select"
         />
         <Select
@@ -692,7 +692,7 @@ const UserManagement: React.FC = () => {
             { label: '启用', value: 'active' },
             { label: '停用', value: 'disabled' },
           ]}
-          style={{ width: 100 }}
+          style={{ width: 130, height: 32 }}
           rootClassName="filter-select"
         />
         <Button onClick={clearFilters}>重置</Button>

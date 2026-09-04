@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { Row, Col, Table, Tag, Pagination, Input, Button, Select, Popover, Tooltip } from 'antd'
+import { Row, Col, Table, Tag, Pagination, Input, Button, Select, Popover, Tooltip, DatePicker } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useNavigate } from 'react-router-dom'
+import dayjs from 'dayjs'
 import MetricCard from '../../dashboard/components/smart-services/metric-card'
 import CaseProcessingChart from '../../dashboard/components/smart-services/case-processing-chart'
 
@@ -663,8 +664,8 @@ const MetricsClaims: React.FC = () => {
   const [caseNoFilter, setCaseNoFilter] = useState('')
   const [claimNoFilter, setClaimNoFilter] = useState('')
   const [branchFilter, setBranchFilter] = useState('')
-  const [accidentDateFilter, setAccidentDateFilter] = useState('')
-  const [claimDateFilter, setClaimDateFilter] = useState('')
+  const [accidentDateFilter, setAccidentDateFilter] = useState<dayjs.Dayjs | null>(null)
+  const [claimDateFilter, setClaimDateFilter] = useState<dayjs.Dayjs | null>(null)
   const [nodeFilter, setNodeFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
@@ -673,8 +674,8 @@ const MetricsClaims: React.FC = () => {
       (!caseNoFilter || r.caseNo.includes(caseNoFilter)) &&
       (!claimNoFilter || r.claimNo.includes(claimNoFilter)) &&
       (!branchFilter || r.branch.includes(branchFilter)) &&
-      (!accidentDateFilter || r.accidentDate.includes(accidentDateFilter)) &&
-      (!claimDateFilter || r.claimDate.includes(claimDateFilter)) &&
+      (!accidentDateFilter || r.accidentDate === accidentDateFilter.format('YYYY-MM-DD')) &&
+      (!claimDateFilter || r.claimDate === claimDateFilter.format('YYYY-MM-DD')) &&
       (!nodeFilter || r.currentNode.includes(nodeFilter)) &&
       (!statusFilter || r.status.includes(statusFilter))
     )
@@ -686,8 +687,8 @@ const MetricsClaims: React.FC = () => {
     setCaseNoFilter('')
     setClaimNoFilter('')
     setBranchFilter('')
-    setAccidentDateFilter('')
-    setClaimDateFilter('')
+    setAccidentDateFilter(null)
+    setClaimDateFilter(null)
     setNodeFilter('')
     setStatusFilter('')
     setCurrentPage(1)
@@ -775,35 +776,37 @@ const MetricsClaims: React.FC = () => {
           value={caseNoFilter}
           onChange={e => { setCaseNoFilter(e.target.value); setCurrentPage(1) }}
           allowClear
-          style={{ width: 140 }}
+          style={{ width: 130, height: 32 }}
         />
         <Input
           placeholder="索赔号"
           value={claimNoFilter}
           onChange={e => { setClaimNoFilter(e.target.value); setCurrentPage(1) }}
           allowClear
-          style={{ width: 140 }}
+          style={{ width: 130, height: 32 }}
         />
         <Input
           placeholder="分公司"
           value={branchFilter}
           onChange={e => { setBranchFilter(e.target.value); setCurrentPage(1) }}
           allowClear
-          style={{ width: 130 }}
+          style={{ width: 130, height: 32 }}
         />
-        <Input
+        <DatePicker
           placeholder="出险日期"
           value={accidentDateFilter}
-          onChange={e => { setAccidentDateFilter(e.target.value); setCurrentPage(1) }}
+          onChange={(val) => { setAccidentDateFilter(val); setCurrentPage(1) }}
           allowClear
-          style={{ width: 120 }}
+          format="YYYY-MM-DD"
+          style={{ width: 130, height: 32 }}
         />
-        <Input
+        <DatePicker
           placeholder="索赔日期"
           value={claimDateFilter}
-          onChange={e => { setClaimDateFilter(e.target.value); setCurrentPage(1) }}
+          onChange={(val) => { setClaimDateFilter(val); setCurrentPage(1) }}
           allowClear
-          style={{ width: 120 }}
+          format="YYYY-MM-DD"
+          style={{ width: 130, height: 32 }}
         />
         <Select
           placeholder="当前所处节点"
@@ -817,7 +820,7 @@ const MetricsClaims: React.FC = () => {
             { label: '扣费智能体', value: '扣费智能体' },
             { label: '审核智能体', value: '审核智能体' },
           ]}
-          style={{ width: 130 }}
+          style={{ width: 130, height: 32 }}
           rootClassName="filter-select"
         />
         <Select
@@ -829,7 +832,7 @@ const MetricsClaims: React.FC = () => {
             { label: '处理中', value: 'processing' },
             { label: '已完成', value: 'completed' },
           ]}
-          style={{ width: 100 }}
+          style={{ width: 130, height: 32 }}
           rootClassName="filter-select"
         />
         <Button onClick={clearFilters}>重置</Button>

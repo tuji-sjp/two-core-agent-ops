@@ -765,14 +765,14 @@ const KnowledgeSection: React.FC<{ groups: { name: string; items: KnowledgeItem[
               value={filterName}
               onChange={e => setFilterName(e.target.value)}
               allowClear
-              style={{ width: 200 }}
+              style={{ width: 130, height: 32 }}
             />
             <Input
               placeholder="复核人"
               value={filterReviewer}
               onChange={e => setFilterReviewer(e.target.value)}
               allowClear
-              style={{ width: 160 }}
+              style={{ width: 130, height: 32 }}
             />
             <Select
               placeholder="状态"
@@ -783,7 +783,7 @@ const KnowledgeSection: React.FC<{ groups: { name: string; items: KnowledgeItem[
                 { label: '已复核', value: 'active' },
                 { label: '待复核', value: 'updating' },
               ]}
-              style={{ width: 120 }}
+              style={{ width: 130, height: 32 }}
               rootClassName="filter-select"
             />
             <Button onClick={resetClaimFilters}>重置</Button>
@@ -836,7 +836,7 @@ const KnowledgeBaseCards: React.FC<{ activeTab: 'claims' | 'underwriting' }> = (
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
         <div style={{ width: 4, height: 20, background: '#3b82f6', borderRadius: 10, marginRight: 10 }} />
         <span style={{ fontSize: 18, fontWeight: 700, color: '#1f2937' }}>{isClaims ? '理赔知识库' : '核保知识库'}</span>
       </div>
